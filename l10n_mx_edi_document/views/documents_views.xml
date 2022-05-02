@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="documents_view_search_inherit_mexican_doc" model="ir.ui.view">
+        <field name="name">documents.view.search.inherit.mexican.doc</field>
+        <field name="model">ir.attachment</field>
+        <field name="inherit_id" ref="base.view_attachment_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='my_documents_filter']" position="before">
+                <filter name="document_generated" string="Assigned" domain="[('res_id', '!=', 0)]"/>
+                <filter name="document_not_generated" string="Not Assigned" domain="[('res_id', '=', 0)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<odoo>
+    <record model="ir.ui.view" id="view_account_payment_form_inh_l10n_mx_check_cfdi">
+        <field name="name">view.account.payment.form.inh.l10n.mx.check.cfdi</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="l10n_mx_edi.view_account_payment_form_inh_l10n_mx"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_mx_edi_payment_method_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('payment_type', '=', 'transfer')]}</attribute>
+            </xpath>
+            <xpath expr="//label[@for='l10n_mx_edi_pac_status']" position="attributes">
+                <attribute name="attrs">{'invisible': [('payment_type', '=', 'transfer')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_mx_edi_pac_status']/.." position="attributes">
+                <attribute name="attrs">{'invisible': [('payment_type', '=', 'transfer')]}</attribute>
+            </xpath>
+            <xpath expr="//label[@for='l10n_mx_edi_sat_status']" position="attributes">
+                <attribute name="attrs">{'invisible': [('payment_type', '=', 'transfer')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_mx_edi_sat_status']/.." position="attributes">
+                <attribute name="attrs">{'invisible': [('payment_type', '=', 'transfer')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_mx_edi_origin']" position="attributes">
+                <attribute name="attrs">{'invisible': [('payment_type', '=', 'transfer')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_mx_edi_origin']" position="after">
+                <field name="l10n_mx_edi_functionally_approved" invisible="1"/>
+                <field name="l10n_mx_edi_cfdi_uuid" invisible="1"/>
+                <label for="l10n_mx_edi_functional_details" states="posted,sent,reconciled,cancelled" attrs="{'invisible': [('payment_type', '=', 'transfer')]}"/>
+                <field name="l10n_mx_edi_functional_details" nolabel="1" widget='payments_checks'/>
+            </xpath>
+            <xpath expr="//button[@name='post']" position="after">
+                <button name="validate_checks"
+                    class="oe_stat_button"
+                    string="Check CFDI"
+                    attrs="{'invisible':[('state','=','draft')]}"
+                    type="object"
+                    context="{'message': True}"/>
+                <button name="l10n_mx_edi_force_approved"
+                    string="Force Checks"
+                    attrs="{'invisible': ['|', '|', ('payment_type', '=', 'transfer'), ('l10n_mx_edi_functionally_approved', '=', True), ('l10n_mx_edi_cfdi_uuid', '!=', False)]}"
+                    type="object"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

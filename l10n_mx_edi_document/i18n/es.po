@@ -1,0 +1,492 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#    * l10n_mx_edi_document
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-11-25 19:46+0000\n"
+"PO-Revision-Date: 2019-11-25 19:46+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_invoice.py:108
+#: code:addons/l10n_mx_edi_document/models/account_invoice.py:116
+#, python-format
+msgid "<b>Error on invoice validation </b><br/>%s"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model,name:l10n_mx_edi_document.model_documents_workflow_rule
+msgid "A set of condition and actions which will be available to all attachments matching the conditions"
+msgstr "Un conjunto de condiciones y acciones estarán disponibles para todos los archivos adjuntos que coincidan con las condiciones"
+
+#. module: l10n_mx_edi_document
+#: selection:account.payment,l10n_mx_edi_functional:0
+msgid "All the functional checks Ok!"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_analysis
+msgid "Analysis"
+msgstr "Análisis"
+
+#. module: l10n_mx_edi_document
+#: model_terms:ir.ui.view,arch_db:l10n_mx_edi_document.documents_view_search_inherit_mexican_doc
+msgid "Assigned"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:documents.folder,name:l10n_mx_edi_document.documents_cfdi_not_found_folder
+msgid "CFDIs with document not found"
+msgstr "CFDIs con documento no encontrado"
+
+#. module: l10n_mx_edi_document
+#: model_terms:ir.ui.view,arch_db:l10n_mx_edi_document.view_account_payment_form_inh_l10n_mx_check_cfdi
+msgid "Check CFDI"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#. openerp-web
+#: code:addons/l10n_mx_edi_document/static/src/xml/checks_widget.xml:59
+#, python-format
+msgid "Close"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,help:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_fiscally_approved
+msgid "Comply with the fiscal checks?"
+msgstr "¿Cumple con las revisiones fiscales?"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,help:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_functionally_approved
+msgid "Comply with the functional checks?"
+msgstr "¿Cumple con las revisiones funcionales?"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:96
+#, python-format
+msgid "Correct RFC"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_documents_workflow_rule__create_model
+msgid "Create"
+msgstr "Crear"
+
+#. module: l10n_mx_edi_document
+#: model:documents.workflow.rule,name:l10n_mx_edi_document.mexican_document_rule
+msgid "Create Mexican document"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: selection:documents.workflow.rule,create_model:0
+msgid "Credit note"
+msgstr "Nota de crédito"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_date
+msgid "Date (att)"
+msgstr "Fecha (adj)"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,help:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_date
+msgid "Date on the CFDI attached [If 1 if several we will need to split them]"
+msgstr "Fecha en el CFDI adjunto [Si es 1, si son varios se necesita dividirlos]"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:172
+#, python-format
+msgid "Different payment amount"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model,name:l10n_mx_edi_document.model_ir_attachment
+msgid "Document"
+msgstr "Documento"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_rfc
+msgid "Emitter"
+msgstr "Emisor"
+
+#. module: l10n_mx_edi_document
+#. openerp-web
+#: code:addons/l10n_mx_edi_document/static/src/xml/checks_widget.xml:11
+#, python-format
+msgid "Failed checks"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_fiscally_approved
+msgid "Fiscally Approved"
+msgstr "Aprobado Fiscalmente"
+
+#. module: l10n_mx_edi_document
+#: model_terms:ir.ui.view,arch_db:l10n_mx_edi_document.view_account_payment_form_inh_l10n_mx_check_cfdi
+msgid "Force Checks"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_functional_details_html
+msgid "Functional"
+msgstr "Funcional"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_functional_details
+msgid "Functional Details"
+msgstr "Detalles Funcionales"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_functional
+msgid "Functional status"
+msgstr "Estado funcional"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_functionally_approved
+msgid "Functionally Approved"
+msgstr "Aprobado Funcionalmente"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:148
+#, python-format
+msgid "I checked if there is a valid xml in the payment attached"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:documents.folder,name:l10n_mx_edi_document.documents_incorrect_cfdis_folder
+msgid "Incorrect CFDIs"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:95
+#, python-format
+msgid "Incorrect RFC"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,help:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_functional
+msgid "Inform the functional status regarding other data in the system"
+msgstr "Informa el estado funcional de acuerdo a la data en el sistema"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model,name:l10n_mx_edi_document.model_account_invoice
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:174
+#, python-format
+msgid "It looks like you tried to create a payment with amount different than the cfdi amount"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:165
+#, python-format
+msgid "It looks like you tried to create a payment with more than 1 cfdi, please send 1 email per cfdi or split them manually throught odoo"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: selection:documents.workflow.rule,create_model:0
+msgid "Mexican Document"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#. openerp-web
+#: code:addons/l10n_mx_edi_document/static/src/xml/checks_widget.xml:50
+#, python-format
+msgid "Modal title"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:163
+#, python-format
+msgid "More than 1 CFDI"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/ir_attachment.py:62
+#, python-format
+msgid "Neither the emitter nor the receiver of this CFDI is this company, please review this document."
+msgstr "Ni el emisor ni el receptor de este CFDI es esta compañía, por favor revise este documento."
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:107
+#, python-format
+msgid "New UUID"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#. openerp-web
+#: code:addons/l10n_mx_edi_document/static/src/xml/checks_widget.xml:7
+#, python-format
+msgid "No checks performed yet"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#. openerp-web
+#: code:addons/l10n_mx_edi_document/static/src/xml/checks_widget.xml:22
+#: model_terms:ir.ui.view,arch_db:l10n_mx_edi_document.payment_checks_content
+#, python-format
+msgid "No information available"
+msgstr "Información no disponible"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:110
+#, python-format
+msgid "No other payment with this uuid has been declared in the system"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model_terms:ir.ui.view,arch_db:l10n_mx_edi_document.documents_view_search_inherit_mexican_doc
+msgid "Not Assigned"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: selection:account.payment,l10n_mx_edi_functional:0
+msgid "Not checked yet"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:168
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:176
+#, python-format
+msgid "Ok"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:164
+#, python-format
+msgid "Only 1 CFDI"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:154
+#, python-format
+msgid "Payment reference unique"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model,name:l10n_mx_edi_document.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_invoice.py:193
+#, python-format
+msgid "Please configure the tax account in the tax %s"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: selection:documents.workflow.rule,create_model:0
+msgid "Product template"
+msgstr "Plantilla de producto"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_received_rfc
+msgid "Received By"
+msgstr "Recibido Por"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:173
+#, python-format
+msgid "Same payment amount"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,help:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_analysis
+msgid "See in json (and future with a fancy widget) the summary of the test run and their result [Per fiscal test]"
+msgstr "Revise el json (y en un futuro con un widget de lujo) el resumen de las pruebas ejecutadas y sus resultados [Para la prueba fiscal]"
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,help:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_functional_details
+msgid "See in json (and future with a fancy widget) the summary of the test run and their result [Per functional test]"
+msgstr "Revise el json (y en un futuro con un widget de lujo) el resumen de las pruebas ejecutadas y sus resultados [Para la prueba funcional]"
+
+#. module: l10n_mx_edi_document
+#: selection:account.payment,l10n_mx_edi_functional:0
+msgid "Something failed, please check the message log"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#. openerp-web
+#: code:addons/l10n_mx_edi_document/static/src/xml/checks_widget.xml:14
+#, python-format
+msgid "Succesfull checks"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:97
+#, python-format
+msgid "The RFC of this payment is not for this company, maybe your customer made a mistake generating the CFDI or it simply was sent by mistake."
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:101
+#, python-format
+msgid "The RFC used on this CFDI is the one on this company"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:184
+#, python-format
+msgid "The UUID of the related document to payment found on the related invoices to payment"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:182
+#, python-format
+msgid "The UUID of the related document to payment not found on the related invoices to payment"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:108
+#, python-format
+msgid "The XML UUID belongs to other payment already loaded on the system."
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:117
+#, python-format
+msgid "The administrative team will need to check if payments from this customer are valid"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:128
+#, python-format
+msgid "The currency declared in the CFDI is valid and is configured properly"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:126
+#, python-format
+msgid "The currency in the XML was not found or is disabled"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:158
+#, python-format
+msgid "The reference (folio/serie) is first time we see it in this system"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_invoice.py:190
+#, python-format
+msgid "The tax %s cannot be found"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:135
+#, python-format
+msgid "The zip code used in the payment is not the same we have in in the company or in the offices (payment address in the contacts of the company)"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/ir_attachment.py:51
+#, python-format
+msgid "This Document is not a CFDI valid."
+msgstr "Este Documento no es un CFDI valido."
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:116
+#, python-format
+msgid "This customer has been used  before"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:146
+#, python-format
+msgid "This payment is not deductible, it looks like an payment without valid CFDI"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:23
+#, python-format
+msgid "This payment is not possible to verify functionally because there is not CFDI associated yet, please add the xml"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:153
+#, python-format
+msgid "This payment looks duplicated"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:155
+#, python-format
+msgid "This payment reference was loaded for this partner payment reference belongs to other invoice of the same partner."
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_invoice.py:161
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:485
+#, python-format
+msgid "This record was generated from DMS"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: selection:account.payment,l10n_mx_edi_functional:0
+msgid "Trying to check occurred an error, check the log"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,field_description:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_uuid
+msgid "UUID"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:106
+#, python-format
+msgid "UUID Duplicated on payments"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:181
+#, python-format
+msgid "UUID of invoice found"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:180
+#, python-format
+msgid "UUID of invoice not found"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: model:ir.model.fields,help:l10n_mx_edi_document.field_account_payment__l10n_mx_edi_uuid
+msgid "UUID of the xml's attached comma separated if more than one."
+msgstr "UUID del los xml's adjuntos, separados por comas si es más de uno."
+
+#. module: l10n_mx_edi_document
+#: selection:documents.workflow.rule,create_model:0
+msgid "Vendor Credit Note"
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: selection:documents.workflow.rule,create_model:0
+msgid "Vendor bill"
+msgstr "Factura de proveedor"
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:119
+#, python-format
+msgid "We have old payments from this customer, stayin touch if we need something extra."
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:115
+#, python-format
+msgid "We never sold to this customer."
+msgstr ""
+
+#. module: l10n_mx_edi_document
+#: code:addons/l10n_mx_edi_document/models/account_payment.py:139
+#, python-format
+msgid "We reviewed if the zip code of the receiver company is the same than this company"
+msgstr ""
