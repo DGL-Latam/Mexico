@@ -1,0 +1,14 @@
+<odoo>
+    <template id="cfdiv33_inherit" inherit_id="l10n_mx_edi.cfdiv33">
+
+        <xpath expr="//*[local-name()='Concepto']" position="inside">
+             <t t-foreach="record.invoice_line_ids" t-as="product_line_id">
+                <t t-if="product_line_id.product_id.rent_ok">
+                    <t t-set="cuentaPredial" t-value="product_line_id.product_id.cuentaPredial"/>
+                    <cfdi:CuentaPredial xmlns:cfdi="http://www.sat.gob.mx/cfd/3"
+                        t-att-Numero="cuentaPredial"/>
+                </t>
+            </t>
+        </xpath>
+    </template>
+</odoo>
