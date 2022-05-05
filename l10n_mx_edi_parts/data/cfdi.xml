@@ -10,8 +10,15 @@
          </xpath>
          <xpath expr="//*[local-name()='Concepto']" position="inside">
              <t t-foreach="units" t-as="unit">
-                <t t-set="unit_value" t-value="'%.*f' % (decimal_precision, subtotal_wo_discount(line)/line.quantity) if line.quantity else 0.0"/>
-
+                <t t-set="unit_value" t-value="'%.*f' % (decimal_precision, line_vals['price_subtotal_before_discount']/line.quantity) if line.quantity else 0.0"/>
+                <cfdi:Parte xmlns:cfdi="http://www.sat.gob.mx/cfd/3"
+                    t-att-ClaveProdServ="line.product_id.l10n_mx_edi_code_sat_id.code"
+                    t-att-NoIdentificacion="unit.lot_id.name"
+                    t-att-Cantidad="unit.qty_done"
+                    t-att-Unidad="record._get_string_cfdi(line.uom_id.name, 20)"
+                    t-att-Descripcion="record._get_string_cfdi(line.name, 1000)"
+                    t-att-ValorUnitario="unit_value"
+                    t-att-Importe="'%.*f' % (decimal_precision, float(unit_value) * unit.qty_done)"/>
             </t>
         </xpath>
     </template>
