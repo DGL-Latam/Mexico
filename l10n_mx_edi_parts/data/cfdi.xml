@@ -14,11 +14,11 @@
                 <cfdi:Parte xmlns:cfdi="http://www.sat.gob.mx/cfd/3"
                     t-att-ClaveProdServ="line.product_id.unspsc_code_id.code"
                     t-att-NoIdentificacion="unit.lot_id.name"
-                    t-att-Cantidad="unit.quantity_done"
+                    t-att-Cantidad="unit.qty_done"
                     t-att-Unidad="format_string(line.uom_id.name, 20)"
                     t-att-Descripcion="format_string(line.name, 1000)"
                     t-att-ValorUnitario="unit_value"
-                    t-att-Importe="'%.*f' % (currency_precision, float(unit_value) * unit.quantity_done)"/>
+                    t-att-Importe="'%.*f' % (currency_precision, float(unit_value) * unit.qty_done)"/>
             </t>
         </xpath>
     </template>
