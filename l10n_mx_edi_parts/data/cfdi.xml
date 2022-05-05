@@ -5,7 +5,7 @@
             <t t-set="pickings" t-value="sale_order.mapped('picking_ids').filtered(lambda pick: pick.state == 'done') if sale_order else False"/>
         </xpath>
         <xpath expr="//*[local-name()='Concepto']" position="before">
-            <t t-set="moves" t-value="pickings.mapped('').filtered(lambda p: p.product_id == line.product_id) if pickings else False"/>
+            <t t-set="moves" t-value="pickings.mapped('move_ids_without_package').filtered(lambda p: p.product_id == line.product_id) if pickings else False"/>
             <t t-set="units" t-value="moves.mapped('move_line_ids') if moves else False"/>
          </xpath>
          <xpath expr="//*[local-name()='Concepto']" position="inside">
