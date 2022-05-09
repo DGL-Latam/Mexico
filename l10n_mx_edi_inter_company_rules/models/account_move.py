@@ -15,14 +15,14 @@ class AccountMove(models.Model):
                 continue
             if not invoice.auto_generated:
                 records += invoice
-                _logger(invoice.name)
+                _logger.info(invoice.name)
                 continue
             records_so += invoice
         if not records + records_so:
-            _logger('early return')
+            _logger.info('early return')
             return super()._post(soft=soft)
         result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
-        _logger("after super _post")
+        _logger.info("after super _post")
         for invoice in records:
             related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
             if not related:
