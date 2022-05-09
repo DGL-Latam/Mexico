@@ -8,6 +8,7 @@
     'summary': 'Complement for inter_company_rules that copy the EDI Document',
     'depends': [
         'account_inter_company_rules',
+        'sale_purchase_inter_company_rules',
         'l10n_mx_edi',
     ],
     'data': [

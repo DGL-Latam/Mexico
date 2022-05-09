@@ -3,7 +3,7 @@ from odoo import api, models
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def invoice_validate(self):
+    def _post(self):
         records = self.env[self._name]
         records_so = self.env[self._name]
         for invoice in self.filtered(lambda i: i.move_type in ['out_invoice', 'out_refund']):
@@ -15,8 +15,8 @@ class AccountMove(models.Model):
                 continue
             records_so += invoice
         if not records + records_so:
-            return super(AccountMove, self).invoice_validate()
-        result = super(AccountMove, self.with_context(disable_after_commit=True)).invoice_validate()
+            return super()._post()
+        result = super(AccountMove, self.with_context(disable_after_commit=True))._post()
         for invoice in records:
             related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
             if not related:
@@ -24,7 +24,7 @@ class AccountMove(models.Model):
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
                 related.journal_id.code, related.payment_reference or '', company.vat or '')).replace('/', '')
             
-            invoice.l10n_mx_edi_retrieve_last_attachment().sudo().copy({
+            invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
                 'res_id': related.id,
                 'name': filename,
             })
@@ -38,14 +38,14 @@ class AccountMove(models.Model):
             bill = related.invoice_ids
             if bill:
                 filename = ('%s-%s-MX-Invoice-%s.xml' % (
-                    bill.journal_id.code, bill.reference or '', bill.company_id.vat or '')).replace('/', '')
-                bill.l10n_mx_edi_cfdi_name = filename
-                invoice.l10n_mx_edi_retrieve_last_attachment().sudo().copy({
+                    bill.journal_id.code, bill.payment_reference or '', bill.company_id.vat or '')).replace('/', '')
+                
+                invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
                     'res_id': bill.id,
                     'name': filename,
                 })
                 continue
-            invoice.l10n_mx_edi_retrieve_last_attachment().sudo().copy({
+            invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
                 'res_id': related.id,
                 'res_model': 'purchase.order'
             })
