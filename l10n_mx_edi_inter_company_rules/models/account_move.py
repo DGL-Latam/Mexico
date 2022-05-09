@@ -26,6 +26,7 @@ class AccountMove(models.Model):
         for invoice in records:
             related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
             if not related:
+                _logger.info(invoice.name + " has no related")
                 continue
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
                 related.journal_id.code, related.payment_reference or '', company.vat or '')).replace('/', '')
@@ -34,12 +35,15 @@ class AccountMove(models.Model):
                 'res_id': related.id,
                 'name': filename,
             })
+            _logger.info("invoice called get signed edi and copy operation")
         for invoice in records_so:
             sale = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
             if not sale:
+                _logger.info("no sale mapped")
                 continue
             related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id)])
             if not related:
+                _logger.info("no related in the sale order")
                 continue
             bill = related.invoice_ids
             if bill:
@@ -50,7 +54,9 @@ class AccountMove(models.Model):
                     'res_id': bill.id,
                     'name': filename,
                 })
+                _logger.info("bill copied xml")
                 continue
+            _logger.info("no bill?")
             invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
                 'res_id': related.id,
                 'res_model': 'purchase.order'
