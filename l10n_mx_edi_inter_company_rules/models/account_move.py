@@ -1,4 +1,7 @@
 from odoo import api, models
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -8,15 +11,18 @@ class AccountMove(models.Model):
         records_so = self.env[self._name]
         for invoice in self.filtered(lambda i: i.move_type in ['out_invoice', 'out_refund']):
             company = self.env['res.company']._find_company_from_partner(invoice.partner_id.id)
-            if not company or company.rule_type not in ('invoice_and_refund', 'not_synchronize'):
+            if not company or company.rule_type not in ('invoice_and_refund', 'sale', 'purchase', 'sale_purchase'):
                 continue
-            if company.rule_type == 'invoice_and_refund' and not invoice.auto_generated:
+            if not invoice.auto_generated:
                 records += invoice
+                _logger(invoice.name)
                 continue
             records_so += invoice
         if not records + records_so:
+            _logger('early return')
             return super()._post(soft=soft)
         result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
+        _logger("after super _post")
         for invoice in records:
             related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
             if not related:
