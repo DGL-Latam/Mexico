@@ -3,7 +3,7 @@ from odoo import api, models
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def _post(self):
+    def _post(self,soft=True):
         records = self.env[self._name]
         records_so = self.env[self._name]
         for invoice in self.filtered(lambda i: i.move_type in ['out_invoice', 'out_refund']):
@@ -15,8 +15,8 @@ class AccountMove(models.Model):
                 continue
             records_so += invoice
         if not records + records_so:
-            return super()._post()
-        result = super(AccountMove, self.with_context(disable_after_commit=True))._post()
+            return super()._post(soft=soft)
+        result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
         for invoice in records:
             related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
             if not related:
