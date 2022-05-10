@@ -15,50 +15,53 @@ class AccountMove(models.Model):
                 continue
             if not invoice.auto_generated:
                 records += invoice
-                _logger.info(invoice.name)
                 continue
             records_so += invoice
         if not records + records_so:
-            _logger.info('early return')
             return super()._post(soft=soft)
         result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
-        _logger.info("after super _post")
+        result.edi_document_ids._process_documents_web_services()
         for invoice in records:
             related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
             if not related:
-                _logger.info(invoice.name + " has no related")
                 continue
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
                 related.journal_id.code, related.payment_reference or '', company.vat or '')).replace('/', '')
-            
-            invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
+            document = invoice._get_l10n_mx_edi_signed_edi_document()
+            attachment = document.attachment_id
+            copiedAttach = attachment.sudo().copy({
                 'res_id': related.id,
+                'company_id':related.company_id.id,
+            })
+            document.sudo().copy({
+                'move_id': related.id,
+                'attachment_id': copiedAttach.id,
                 'name': filename,
             })
-            _logger.info("invoice called get signed edi and copy operation")
         for invoice in records_so:
             sale = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
             if not sale:
-                _logger.info("no sale mapped")
                 continue
             related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id)])
             if not related:
-                _logger.info("no related in the sale order")
                 continue
             bill = related.invoice_ids
             if bill:
                 filename = ('%s-%s-MX-Invoice-%s.xml' % (
                     bill.journal_id.code, bill.payment_reference or '', bill.company_id.vat or '')).replace('/', '')
-                
-                invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
+                document = invoice._get_l10n_mx_edi_signed_edi_document()
+                attachment = document.attachment_id
+                copiedAttach = attachment.sudo().copy({
                     'res_id': bill.id,
+                    'company_id':bill.company_id.id,
+                })
+                document.sudo().copy({
+                    'move_id': bill.id,
+                    'attachment_id': copiedAttach.id,
                     'name': filename,
                 })
-                _logger.info("bill copied xml")
                 continue
-            _logger.info("no bill?")
             invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
-                'res_id': related.id,
-                'res_model': 'purchase.order'
+                'move_id': related.id,
             })
         return result
