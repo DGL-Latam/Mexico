@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="set_addenda_bed_bath_values" model="ir.actions.server">
+        <field name="name">Set Values Addenda Bed Bath</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">
+invoice = env['account.move'].browse(model._context['move_id'])
+wizard = env['bedbathtransient'].browse(model._context['active_id'])
+wizard_values = [
+    wizard.x_additional_ref_code,
+    wizard.x_po_date.strftime('%Y-%m-%d'),
+    wizard.x_additional_reference,
+    wizard.x_order_number,
+]
+wizard_values = '|'.join([value or '' for value in wizard_values])
+invoice.write({'x_addenda_bed_bath': wizard_values})
+# Create supplier info, if theyre not already created
+for line in invoice.invoice_line_ids:
+    if not any([line.x_addenda_supplier_code]):
+        continue
+    supplier_info = line.sudo().product_id.seller_ids.filtered(
+        lambda s:
+        s.name == invoice.commercial_partner_id
+        and s.product_id == line.product_id
+        and s.sequence == 999)[:1]
+    if supplier_info:
+        supplier_info.write({
+            'product_code': line.x_addenda_supplier_code,
+        })
+    else:
+        supplier_info.create({
+            'name': invoice.commercial_partner_id.id,
+            'product_tmpl_id': line.product_id.product_tmpl_id.id,
+            'product_id': line.product_id.id,
+            'sequence': 999,
+            'product_code': line.x_addenda_supplier_code,
+        })
+        </field>
+    </record>
+
+    <!--
+    Action to set default values on the wizard
+    -->
+    <record id="action_addenda_bed_bath_defaults" model="ir.actions.server">
+        <field name="name">Set default values for the addenda Bed Bath</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">
+context = {'move_id': record.id,
+           'default_x_invoice_line_ids': record.invoice_line_ids.ids,
+}
+wizard_values = record.x_addenda_bed_bath and record.x_addenda_bed_bath.split('|')
+# If the wizard has been run before, fill it with its previous values
+if wizard_values:
+    context.update({
+        'default_x_additional_ref_code': wizard_values[0],
+        'default_x_po_date': wizard_values[1],
+        'default_x_additional_reference': wizard_values[2],
+        'default_x_order_number': wizard_values[3],
+    })
+
+# Set default values if available as supplier info
+for line in record.invoice_line_ids:
+    supplier_info = line.sudo().product_id.seller_ids.filtered(
+        lambda s:
+        s.name == record.commercial_partner_id
+        and s.product_id == line.product_id
+        and s.sequence == 999)[:1]
+    line.write({
+        'x_addenda_supplier_code': line.x_addenda_supplier_code or supplier_info.product_code,
+    })
+
+action = env.ref('l10n_mx_edi_addendas_bedbath.action_addenda_bed_bath').read()[0]
+action['context'] = context
+        </field>
+    </record>
+</odoo>

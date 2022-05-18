@@ -14,14 +14,13 @@ class AccountEdiFormat(models.Model):
         :return cfdi:   The cfdi including the addenda.
         '''
         folio_serie =  self._l10n_mx_edi_get_serie_and_folio(move)
-        partner_shipping = move.partner_shipping_id if move.fields_get(['partner_shipping_id']) else move.partner_id.commercial_partner_id if move.partner_id.type != 'invoice' else move.partner_id
-        comment = self.env['ir.fields.converter'].text_from_html(html_content=partner_shipping.comment).strip()
+
         addenda_values = {
         'record': move, 
         'cfdi': cfdi, 
         'folio_number': folio_serie['folio_number'], 
         'serie_number':folio_serie['serie_number'],
-        'comment' : comment
+        'self':self,
         }
 
         addenda = addenda._render(values=addenda_values).strip()

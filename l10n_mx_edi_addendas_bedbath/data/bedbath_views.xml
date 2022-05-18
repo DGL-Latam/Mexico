@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+    View of the wizard itself that set the values this view need to hold all
+    the help information necessary if needed
+    -->
+    <record id="wizard_bed_bath_view" model="ir.ui.view">
+        <field name="name">bedbathtransient.view</field>
+        <field name="model">bedbathtransient</field>
+        <field name="arch" type="xml">
+            <form>
+                <div>
+                    <p>
+                        The necessary nodes for the implementation of the Addenda of Bed Bath
+                    </p>
+                </div>
+                <group>
+                    <group>
+                        <field name="x_additional_ref_code"/>
+                        <field name="x_additional_reference"/>
+                    </group>
+                    <group>
+                        <field name="x_po_date"/>
+                        <field name="x_order_number"/>
+                    </group>
+                </group>
+                <group string="Lines">
+                    <field name="x_invoice_line_ids" nolabel="1">
+                        <tree editable="1" create="0" delete="0">
+                            <field name="name" string="Line" readonly="1"/>
+                            <field name="x_addenda_supplier_code"/>
+                        </tree>
+                    </field>
+                </group>
+
+                <footer>
+                    <button name="l10n_mx_edi_addendas_bedbath.set_addenda_bed_bath_values"
+                    type="action" string="Set Values" class="btn-primary"/>
+                    <button string="Cancel" class="btn-default" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+    <!--
+    Simple action view that is called from the invoice to open the wizard
+    After default values are set.
+    -->
+    <record id="action_addenda_bed_bath" model="ir.actions.act_window">
+        <field name="name">Addenda Bed Bath</field>
+        <field name="res_model">bedbathtransient</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="wizard_bed_bath_view"/>
+    </record>
+
+    <!--
+    Put a button on the invoice itself in order to set the value for the addenda
+    -->
+    <record id="invoice_addenda_bed_bath" model="ir.ui.view">
+        <field name="name">account.move.form.bed_bath</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <button name="l10n_mx_edi_addendas_bedbath.action_addenda_bed_bath_defaults" type="action"
+                        string="Addenda Bed Bath"
+                        context="{'move_id': id}"
+                        attrs="{'invisible': [('state', 'not in', ['draft'])]}"
+                        />
+            </xpath>
+        </field>
+    </record>
+</odoo>

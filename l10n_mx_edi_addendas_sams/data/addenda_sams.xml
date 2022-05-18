@@ -28,6 +28,8 @@
                 <t t-set="dState" t-value="partner_shipping.state_id.name.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u').replace('ñ', 'n').upper() if partner_shipping.state_id else ''"/>
                 <t t-set="dZip" t-value="partner_shipping.zip.upper() or '' "/>
 
+                <t t-set="comment" t-value="self.env['ir.fields.converter'].text_from_html(html_content=partner_shipping.comment).strip()"/>
+                
                 <t t-set="supplier_code" t-value="comment or '048471630'"/>
                 <t t-set="cedis" t-value="partner_shipping.ref or '' "/>
       

@@ -1,9 +1,9 @@
 {
     'name': 'Mexican Addendas Amazon',
-    'author': 'DGL',
+    'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
-    "version": "14.0",
+    "version": "15.0",
     'depends': [
         'base_automation',
         'l10n_mx_edi_extended',

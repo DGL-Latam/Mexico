@@ -1,5 +1,5 @@
 {
-    'name': 'Mexican Addendas SAMS',
+    'name': 'Mexican Addenda Bed Bath',
     'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
@@ -12,8 +12,11 @@
     ],
     'test': [],
     'data': [   
-        'views/account_account_views.xml',
-        'data/addenda_sams.xml'
+        'data/addenda_bedbath.xml',
+        'data/bedbath_views.xml',
+        'data/server_actions.xml',
+        'security/ir.model.access.csv',
+        
     ],
     'demo': [
     ],

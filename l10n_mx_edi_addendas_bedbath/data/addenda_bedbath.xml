@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="bedbath" name="Bed Bath and Beyond">
+        <t name="Bed Bath" t-name="l10n_mx_edi_addendas.bed_bath">
+            <t t-set="values" t-value="self._l10n_mx_edi_get_invoice_cfdi_values(record)"/>
+            <t t-set="movetype" t-value="'INVOICE' if record.move_type == 'out_invoice' else 'CREDIT_NOTE'"/>
+            <t t-set="extra_values" t-value="record.x_addenda_bed_bath.split('|') if record.x_addenda_bed_bath else ['', '', '', '', '']"/>
+            <t t-set="commentref" t-value="self.env['ir.fields.converter'].text_from_html(record.partner_shipping_id.comment).strip() or record.partner_id.ref"/>
+            <requestForPayment type="SimpleInvoiceType" contentVersion="1.3.1" documentStructureVersion="AMC7.1" documentStatus="ORIGINAL" t-att-DeliveryDate="record.invoice_date">
+                <requestForPaymentIdentification>
+                    <entityType t-out="movetype"/>
+                    <uniqueCreatorIdentification t-out="record.name.replace('/', '')"/>
+                </requestForPaymentIdentification>
+                <specialInstruction code="AAB" t-if="record.invoice_payment_term_id">
+                    <text t-out="record.invoice_payment_term_id.name"/>
+                </specialInstruction>
+                <specialInstruction code="ZZZ">
+                    <text t-out="record._l10n_mx_edi_cfdi_amount_to_text()"/>
+                </specialInstruction>
+                <orderIdentification>
+                    <referenceIdentification type="ON" t-out="extra_values[3] if extra_values[3] else '0'"/>
+                    <ReferenceDate t-out="extra_values[1]"/>
+                </orderIdentification>
+                <AdditionalInformation>
+                    <referenceIdentification t-att-type="extra_values[0]" t-out="extra_values[2]"/>
+                </AdditionalInformation>
+                <buyer>
+                    <gln t-out="record.partner_id.vat"/>
+                </buyer>
+                <seller>
+                    <gln t-out="record.company_id.vat"/>
+                    <alternatePartyIdentification type="SELLER_ASSIGNED_IDENTIFIER_FOR_A_PARTY">070009</alternatePartyIdentification>
+                </seller>
+                <shipTo>
+                    <gln t-out="commentref"/>
+                    <nameAndAddress>
+                        <name t-out="record.partner_shipping_id.country_id.l10n_mx_edi_code"/>
+                    </nameAndAddress>
+                </shipTo>
+                <paymentTerms paymentTermsEvent="DATE_OF_INVOICE" PaymentTermsRelationTime="REFERENCE_AFTER">
+                    <netPayment netPaymentTermsType="BASIC_NET">
+                        <paymentTimePeriod>
+                            <timePeriodDue timePeriod="DAYS">
+                                <value t-out="(record.invoice_date_due - record.invoice_date).days"/>
+                            </timePeriodDue>
+                        </paymentTimePeriod>
+                    </netPayment>
+                    <discountPayment discountType="ALLOWANCE_BY_PAYMENT_ON_TIME">
+                        <percentage>0.000</percentage>
+                    </discountPayment>
+                </paymentTerms>
+                <allowanceCharge settlementType="BILL_BACK" allowanceChargeType="ALLOWANCE_GLOBAL">
+                    <specialServicesType>AJ</specialServicesType>
+                    <monetaryAmountOrPercentage><rate base="INVOICE_VALUE">
+                            <percentage>0.00</percentage>
+                        </rate>
+                    </monetaryAmountOrPercentage>
+                </allowanceCharge>
+                <t t-foreach="record.invoice_line_ids" t-as="line">
+                <t t-set="supplier_info" t-value="line.sudo().product_id.seller_ids.filtered(                         lambda s:                         s.name == record.commercial_partner_id                         and s.product_id == line.product_id)[:1]"/>
+                    <lineItem type="SimpleInvoiceLineItemType" t-att-number="line_index + 1">
+                        <tradeItemIdentification>
+                            <gtin t-out="line.x_addenda_supplier_code or supplier_info.product_code or line.product_id.barcode or ''"/>
+                        </tradeItemIdentification>
+                        <alternateTradeItemIdentification type="BUYER_ASSIGNED" t-out="line.x_addenda_supplier_code or line.product_id.barcode or supplier_info.product_code or ''"/>
+                        <tradeItemDescriptionInformation>
+                            <longText t-out="values['format_string'](line.name, 1000)"/>
+                        </tradeItemDescriptionInformation>
+                        <invoicedQuantity t-att-unitOfMeasure="values['format_string'](line.product_uom_id.name, 1)" t-out="line.quantity"/>
+                        <grossPrice>
+                            <Amount t-out="'%.2f' % line.price_unit"/> 
+                        </grossPrice>
+                        <netPrice>
+                            <Amount t-out="'%.2f' % line.price_unit"/>
+                        </netPrice>
+                        <AdditionalInformation>
+                            <referenceIdentification type="ON" t-out="line.x_addenda_supplier_code or supplier_info.product_code or ''"/>
+                        </AdditionalInformation>
+                        <totalLineAmount>
+                            <grossAmount>
+                                <Amount t-out="'%.2f' % (line.price_unit * line.quantity)"/>
+                            </grossAmount>
+                            <netAmount>
+                                <Amount t-out="'%.2f' % (line.price_unit * line.quantity)"/>
+                            </netAmount>
+                        </totalLineAmount>
+                    </lineItem>
+                </t>
+                <totalAmount>
+                    <Amount t-out="record.amount_total"/>
+                </totalAmount>
+                <TotalAllowanceCharge allowanceOrChargeType="ALLOWANCE">
+                    <Amount>0.00</Amount>
+                </TotalAllowanceCharge>
+                <baseAmount>
+                    <Amount t-out="record.amount_untaxed"/>
+                </baseAmount>
+                <t t-set="tax_type" t-value="{'IEPS': 'GST', 'IVA': 'VAT', 'ISR': 'LAC'}"/>
+                <t t-if="values.get('tax_details_transferred')">
+                    <t t-foreach="values.get('tax_details_transferred')['tax_details'].values()" t-as="tax_detail_vals">
+                        <t t-set="tax" t-value="tax_detail_vals['tax']"/>
+                        <tax t-att-type="tax_type.get( tax.invoice_repartition_line_ids.tag_ids[0].name )">
+                            <taxPercentage t-out="'%.2f' % (tax_detail_vals['tax_rate_transferred'])"/>
+                            <taxAmount t-out="'%.2f' % (tax_detail_vals['tax_amount'] * -1 ) or 0.0"/>
+                            <taxCategory>TRANSFERIDO</taxCategory>
+                        </tax>
+                    </t>
+                </t>
+                <t t-if="values.get('tax_details_withholding')">
+                    <t t-foreach="values.get('tax_details_withholding')['tax_details'].values()" t-as="tax_detail_vals">
+                        <t t-set="tax" t-value="tax_detail_vals['tax']"/>
+                        <tax t-att-type="tax_type.get(tax.invoice_repartition_line_ids.tag_ids[0].name)">
+                            <taxPercentage t-out="'%.2f' % (tax.amount / 100.0 * -1)"/>
+                            <taxAmount t-out="'%.2f' % (tax_detail_vals['tax_amount']  ) or 0.0"/>
+                            <taxCategory>RETENIDO</taxCategory>
+                        </tax>
+                    </t>
+                </t>
+                <payableAmount>
+                    <Amount t-out="record.amount_total"/>
+                </payableAmount>
+            </requestForPayment>
+        </t>
+    </template>
+    <record id="bedbath" model="ir.ui.view">
+        <field name="l10n_mx_edi_addenda_flag"> True </field>
+    </record>
+</odoo>
+
+
+
+

@@ -2,12 +2,13 @@
 <odoo>
 <template id="aam" name="Amazon">
     <t name="Amazon" t-name="l10n_mx_edi_addendas.amazon">
+    <t t-set="narration" t-value="self.env['ir.fields.converter'].text_from_html(html_content=record.narration).strip()"/>
         <amazon:ElementosAmazon 
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
         xmlns:amazon="http://www.amazon.com.mx/AmazonAddenda" 
         xsi:schemaLocation="http://www.amazon.com.mx/AmazonAddenda http://repository.edicomnet.com/schemas/mx/cfd/addenda/AmazonAddenda.xsd"
         >
-            <amazon:TextoLibre t-out="record.narration"/>
+            <amazon:TextoLibre t-out="narration"/>
             <t t-if="record.move_type == 'out_invoice'">
                 <amazon:LosAtributos identificacionUnica="1" nombreDelAtributo="AmazonPO" t-att-valorDelAtributo="record.ref"/>
             </t>
