@@ -1,4 +1,4 @@
-from odoo import models,fields
+from odoo import api,models,fields, _
 from datetime import timedelta
 from odoo.addons.base.models.res_partner import WARNING_MESSAGE, WARNING_HELP
 from odoo.tools.float_utils import float_round
