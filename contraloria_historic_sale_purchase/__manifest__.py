@@ -4,7 +4,7 @@
     'author': 'DGL-Latam',
     'category': 'Reporting',
     'depends': [
-        'sales',
+        'sale_management',
         'purchase',
         'stock'
 
