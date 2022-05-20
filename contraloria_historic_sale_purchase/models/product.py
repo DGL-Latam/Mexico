@@ -24,12 +24,6 @@ class ProductProduct(models.Model):
                 continue
             product.purchased_product_qty = float_round(qty, precision_rounding=product.uom_id.rounding)
 
-        order_lines = self.env['purchase.order.line'].read_group(domain, ['product_id', 'qty_received','product_uom'], ['product_id'])
-        for data in order_lines:
-            data['product_uom']
-        purchased_data = dict([(data['product_id'][0], data['qty_received']) for data in order_lines])
-        for product in self:
-            product.purchased_product_qty = float_round(purchased_data.get(product.id, 0), precision_rounding=product.uom_id.rounding)
     def calculate_qty(self,qty,product,uom):
         realqty = qty
         if product.uom_id != uom:
