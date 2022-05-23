@@ -18,8 +18,10 @@ class ProductProduct(models.Model):
         qty = 0
         for ol in PurchaseOrderLines:
             for move in ol.move_ids:
-                if move.state in ['done'] and (move.picking_type_id != 2 or move.picking_type_id.sequence_code not in ['out','OUT','DEV','dev'] ):
+                if move.state in ['done']:
                     qty += move.product_uom_qty
+                if move.origin_returned_move_id:
+                    qty -= move.product_uom_qty
             
         for product in self:
             if not product.id:
