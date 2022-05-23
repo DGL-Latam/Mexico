@@ -17,7 +17,7 @@ class ProductProduct(models.Model):
         PurchaseOrderLines = self.env['purchase.order.line'].search(domain)
         qty = 0
         for ol in PurchaseOrderLines:
-            for move in ol.move_ids.filter:
+            for move in ol.move_ids:
                 if move.state in ['done'] and (move.picking_type_id != 2 or move.picking_type_id.sequence_code not in ['out','OUT','DEV','dev'] ):
                     qty = move.product_uom_qty
             
