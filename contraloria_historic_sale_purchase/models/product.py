@@ -18,7 +18,7 @@ class ProductProduct(models.Model):
         qty = 0
         for ol in PurchaseOrderLines:
             for move in ol.move_ids:
-                if move.state in ['done']:
+                if move.state in ['done'] and not move.origin_returned_move_id:
                     qty += move.product_uom_qty
                 if move.origin_returned_move_id:
                     qty -= move.product_uom_qty
