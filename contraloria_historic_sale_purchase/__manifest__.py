@@ -6,7 +6,8 @@
     'depends': [
         'sale_management',
         'purchase',
-        'stock'
+        'stock',
+        'mrp'
 
     ],
     'data': [

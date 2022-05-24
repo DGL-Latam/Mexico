@@ -22,8 +22,7 @@ class ProductProduct(models.Model):
                     if not move.origin_returned_move_id:
                         qty += move.product_uom_qty
                     else:
-                        qty -= move.product_uom_qty
-            
+                        qty -= move.product_uom_qty 
         for product in self:
             if not product.id:
                 product.purchased_product_qty = 0.0
@@ -50,6 +49,27 @@ class ProductProduct(models.Model):
                         qty += move.product_uom_qty
                     else:
                         qty -= move.product_uom_qty
+        domain = [
+            ('product_id', 'in' , self.ids)
+        ]
+        bundles = self.env['mrp.bom.line'].search(domain)
+        bundleIds = []
+        for bundle in bundles:
+            bundleIds.append(bundle.id)
+
+        domain = [
+            ('state', 'in', ['purchase', 'done']),
+            ('product_id', 'in', bundleIds),
+        ]
+        BundlePOL = self.env['purchase.order.line'].search(domain)
+        for sl in BundlePOL:
+            for move in sl.move_ids:
+                if move.state in ['done']:
+                    if move.product_id in self.ids:
+                        if not move.origin_returned_move_id:
+                            qty += move.product_uom_qty
+                        else:
+                            qty -= move.product_uom_qty
         for product in self:
             product.sales_count = float_round(qty, precision_rounding=product.uom_id.rounding)
         return r
