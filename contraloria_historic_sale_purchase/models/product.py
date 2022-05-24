@@ -3,9 +3,7 @@ from odoo import api,models,fields, _
 from datetime import timedelta
 from odoo.addons.base.models.res_partner import WARNING_MESSAGE, WARNING_HELP
 from odoo.tools.float_utils import float_round
-import logging
 
-_logger = logging.getLogger(__name__)
 
 class ProductProduct(models.Model):
     _name = 'product.product'
@@ -56,10 +54,8 @@ class ProductProduct(models.Model):
             ('product_id', 'in' , self.ids)
         ]
         bundles = self.env['mrp.bom.line'].search(domain)
-        _logger.info(bundles)
         bundleIds = []
         for bundle in bundles:
-            _logger.info(bundle.name)
             bundleIds.append(bundle.id)
 
         domain = [
@@ -69,14 +65,11 @@ class ProductProduct(models.Model):
         BundleSOL = self.env['sale.order.line'].search(domain)
         for sl in BundleSOL:
             for move in sl.move_ids:
-                _logger.info(move.name)
-                _logger.info(move.state)
                 if move.state in ['done']:
-                    if move.product_id in self.ids:
-                        if not move.origin_returned_move_id:
-                            qty += move.product_uom_qty
-                        else:
-                            qty -= move.product_uom_qty
+                    if not move.origin_returned_move_id:
+                        qty += move.product_uom_qty
+                    else:
+                        qty -= move.product_uom_qty
         for product in self:
             product.sales_count = float_round(qty, precision_rounding=product.uom_id.rounding)
         return r
