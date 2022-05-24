@@ -61,8 +61,8 @@ class ProductProduct(models.Model):
             ('state', 'in', ['purchase', 'done']),
             ('product_id', 'in', bundleIds),
         ]
-        BundlePOL = self.env['purchase.order.line'].search(domain)
-        for sl in BundlePOL:
+        BundleSOL = self.env['sale.order.line'].search(domain)
+        for sl in BundleSOL:
             for move in sl.move_ids:
                 if move.state in ['done']:
                     if move.product_id in self.ids:
