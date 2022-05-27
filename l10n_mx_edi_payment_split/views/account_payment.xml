@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record model="ir.ui.view" id="view_account_payment_reg_invoices">
+        <field name="name">view.account.payments.register.invoices</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//field[@name='partner_id']" position="before">
+                    <label for="partner_id"/>
+                </xpath>
+                <xpath expr="//field[@name='partner_id']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                </xpath>
+                <xpath expr="//group" position="after">
+                    <notebook colspan="4">
+                        <page string="Payments on Invoices">
+                            <field name="payment_move_ids" nolabel="1">
+                            <tree editable="top" create="0" delete="0" >
+                                <field name="move_id"  readonly="1"/>
+                                <field name="partner_id" readonly="1"/>
+                                <field name="date"  readonly="1"/>
+                                <field name="date_due"  readonly="1"/>
+                                <field name="amount"  readonly="1"/>
+                                <field name="payment_amount"/>
+                            </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </xpath>
+                <xpath expr="//group/group[1]//field[@name='journal_id']" position="attributes">
+                    <attribute name="widget"/>
+                    <attribute name="options">{'no_create': True, 'no_open': True}</attribute>
+                </xpath>
+            </data>
+        </field>
+    </record>
+</odoo>
