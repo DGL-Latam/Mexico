@@ -24,7 +24,7 @@ BOM_MAP = {
 class AccountPaymentRegister(models.TransientModel):
     _inherit = 'account.payment.register'
 
-    payment_move_ids = fields.Many2many(
+    payment_move_ids = fields.One2many(
         'account.move', help='Invoices that were paid in mass', compute='_getMoves')
     dummy_amount = fields.Float(store=False, help='Technical field')
     custom_rate = fields.Float(

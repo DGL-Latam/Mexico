@@ -52,6 +52,18 @@ class AccountPaymentRegister(models.TransientModel):
             ids.append(line.move_id.id)
         return self.env['account.move'].search([('id','in', ids)])
 
+    def _create_payment_vals_from_wizard(self):
+        payment_vals = super()._create_payment_vals_from_wizard()
+        return payment_vals
+
+    @api.depends('payment_move_ids.payment_amount')
+    def _compute_amount(self):
+        sum = 0
+        for record in self:
+            for move in record.payment_move_ids:
+                sum += move.payment_amount
+            record.amount = sum
+
 class AccountRegisterInvoices(models.TransientModel):
     _name = 'account.register.invoices'
     _description = 'A model to hold invoices being paid in payment register'
