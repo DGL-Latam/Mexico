@@ -10,7 +10,6 @@
     'version': '15.0',
     'depends': [
         'l10n_mx_edi',
-        'sale_renting',
     ],
     'test': [
     ],

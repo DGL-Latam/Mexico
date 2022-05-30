@@ -9,7 +9,7 @@
                 <group name="realstate" string="Real State Data" >
                     <field name="uom_id" style="width:40%%"/>
                     <field name="isProperty"/>
-                    <field style="width:40%%" name="cuentaPredial" attrs="{'required':[('rent_ok', '=', True), ('isProperty','=',True)], 'invisible':[('isProperty','=',False)]}"/>
+                    <field style="width:40%%" name="cuentaPredial" attrs="{'required':[ ('isProperty','=',True)], 'invisible':[('isProperty','=',False)]}"/>
                 </group>
                 
             </xpath>
