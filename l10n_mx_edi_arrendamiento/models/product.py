@@ -1,6 +1,5 @@
 from datetime import date
 from odoo import api, fields, models, _
-from odoo.tools import format_amount
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
