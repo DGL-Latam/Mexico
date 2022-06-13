@@ -25,8 +25,15 @@ class AccountPaymentRegister(models.TransientModel):
     _inherit = 'account.payment.register'
     payment_move_ids = fields.One2many('account.register.invoices', 
         'register_id', help='Invoices that were paid in mass')
-    
+    partner_id = fields.Many2one('res.partner',
+        string="Customer/Vendor", store=True, copy=False, ondelete='restrict',
+        compute='_compute_from_lines', inverse = "_inv_partner")
     @api.model
+    def _inv_partner(self):
+        return
+
+    @api.model
+    @api.depends('partner_id','payment_move_ids')
     def default_get(self, fields_list):
         # OVERRIDE
         res = super().default_get(fields_list)
@@ -46,11 +53,6 @@ class AccountPaymentRegister(models.TransientModel):
                 'payment_currency_id': payment_currency_id.id,
                 'register_id' : self.id
             })
-        reginv_ids = []
-        for val in values:
-            _logger.info(val)
-            #reginv_ids.append(self.env['account.register.invoices'].create(val))
-
         res['payment_move_ids'] = [ (0, 0, val) for val in values]
 
         
@@ -59,12 +61,12 @@ class AccountPaymentRegister(models.TransientModel):
     def _getMoves(self,line_ids):
         ids = []
         for line in line_ids:
-            _logger.info(line.move_id.id)
             ids.append(line.move_id.id)
         return self.env['account.move'].search([('id','in', ids)])
 
     def _create_payment_vals_from_wizard(self):
         payment_vals = super()._create_payment_vals_from_wizard()
+        _logger.info(payment_vals)
         return payment_vals
 
     @api.depends('payment_move_ids.payment_amount','payment_move_ids')
@@ -72,29 +74,47 @@ class AccountPaymentRegister(models.TransientModel):
         sum = 0
         for record in self:
             for move in record.payment_move_ids:
-                if(move.currency_id == record.currency_id):
                     sum += move.payment_amount
-                else:
-                    sum += move.currency_id._convert(move.payment_amount,record.currency_id,record.company_id,record.payment_date)
             record.amount = sum
 
     def _create_payment_vals_from_batch(self, batch_result):
         values = super()._create_payment_vals_from_batch(batch_result)
         amount = 0
-        _logger.info("searching for ")
-        _logger.info(batch_result['lines'][0].move_id.id)
         for move in self.payment_move_ids:
-            _logger.info(move)
-            _logger.info(move.move_id)
-            _logger.info(move.move_id.id)
-            if move.move_id.id == batch_result['lines'][0].move_id.id:
-                
+            if move.move_id.id == batch_result['lines'][0].move_id.id:            
                 amount = move.payment_amount
-                _logger.info("amount found")
-                _logger.info(amount)
                 break
         values['amount'] = amount
+        values['partner_id'] = self.partner_id.id
         return values
+
+
+    def _reconcile_payments(self, to_process, edit_mode=False):
+        """ Reconcile the payments.
+
+        :param to_process:  A list of python dictionary, one for each payment to create, containing:
+                            * create_vals:  The values used for the 'create' method.
+                            * to_reconcile: The journal items to perform the reconciliation.
+                            * batch:        A python dict containing everything you want about the source journal items
+                                            to which a payment will be created (see '_get_batches').
+        :param edit_mode:   Is the wizard in edition mode.
+        """
+        domain = [('account_internal_type', 'in', ('receivable', 'payable')), ('reconciled', '=', False)]
+        for vals in to_process:
+            payment_lines = vals['payment'].line_ids.filtered_domain(domain)
+            _logger.info(payment_lines)
+            lines = vals['to_reconcile']
+            _logger.info(lines)
+            _logger.info(payment_lines + lines)
+            amounts = []
+            for move in self.payment_move_ids:           
+                amounts.append(move.payment_amount)
+            _logger.info(amounts)     
+            for account in payment_lines.account_id:
+                _logger.info( (payment_lines + lines).filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)]))
+                (payment_lines + lines)\
+                    .filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)])\
+                    .reconcile(amounts)
 
 
 class AccountRegisterInvoices(models.TransientModel):
@@ -107,18 +127,17 @@ class AccountRegisterInvoices(models.TransientModel):
     currency_id = fields.Many2one(
         'res.currency', help='Currency of this invoice',
         related='move_id.currency_id' ,store=True)
-    date = fields.Date(help="Invoice Date" ,store=True)
+    date = fields.Date(help="Invoice Date" ,store=True , related='move_id.date')
     date_due = fields.Date(string='Due Date',
-                           help="Maturity Date in the invoice" ,store=True)
+                           help="Maturity Date in the invoice" ,store=True, related='move_id.invoice_date_due')
     partner_id = fields.Many2one(
-        'res.partner', help='Partner involved in payment' ,store=True)
-    amount = fields.Float(string='Due Amount', help='Amount to pay' ,store=True)
+        'res.partner', help='Partner involved in payment' ,store=True, related='move_id.partner_id')
+    amount = fields.Monetary(string='Due Amount',currency_field='currency_id', help='Amount to pay' ,store=True, related='move_id.amount_residual_signed')
     payment_amount = fields.Monetary(
         store=True, 
-        currency_field='currency_id',
+        currency_field='payment_currency_id',
         help='Amount being paid')
-    payment_currency_id = fields.Many2one(
-        'res.currency', help='Currency which this payment is being done' ,store=True)
+    payment_currency_id = fields.Many2one(help="Currency in wich the payment is being processed", related="register_id.currency_id")
     register_id = fields.Many2one(
         'account.payment.register',
         help='Technical field to connect to Bulk Invoice',

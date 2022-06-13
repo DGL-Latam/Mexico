@@ -18,6 +18,7 @@
                 </xpath>
                 <xpath expr="//field[@name='partner_id']" position="attributes">
                     <attribute name="invisible">0</attribute>
+                    <attribute name="readonly">0</attribute>
                 </xpath>
                 
                 <xpath expr="//group" position="after">
@@ -31,6 +32,7 @@
                                 <field name="currency_id" readonly="1"/>
                                 <field name="date_due"   readonly="1"/>
                                 <field name="amount"  readonly="1"/>
+                                <field name="payment_currency_id" readonly="1"/>
                                 <field name="payment_amount"/>
                             </tree>
                             </field>
