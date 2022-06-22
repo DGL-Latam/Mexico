@@ -31,11 +31,12 @@ class AccountPaymentRegister(models.TransientModel):
     @api.model
     def _inv_partner(self):
         return
-
+    
     @api.model
     @api.depends('partner_id','payment_move_ids')
     def default_get(self, fields_list):
         # OVERRIDE
+        _logger.info("Actualizando payment_move_ids")
         res = super().default_get(fields_list)
         payment_currency_id = self.env['res.currency'].browse(res.get('currency_id'))
         move_ids = self.env['account.move'].browse(self._context.get('active_ids')).sorted('invoice_date_due')
@@ -102,17 +103,36 @@ class AccountPaymentRegister(models.TransientModel):
         domain = [('account_internal_type', 'in', ('receivable', 'payable')), ('reconciled', '=', False)]
         for vals in to_process:
             payment_lines = vals['payment'].line_ids.filtered_domain(domain)
+            _logger.info('Payment_line')
             _logger.info(payment_lines)
+            
             lines = vals['to_reconcile']
+            _logger.info('to reconcile from context')
             _logger.info(lines)
+            manual_line = self.env['account.move.line']
+            for line in self.payment_move_ids.move_id.line_ids:
+                if line.move_id.state != 'posted':
+                    raise UserError(_("You can only register payment for posted journal entries."))
+
+                if line.account_internal_type not in ('receivable', 'payable'):
+                    continue
+                if line.currency_id:
+                    if line.currency_id.is_zero(line.amount_residual_currency):
+                        continue
+                else:
+                    if line.company_currency_id.is_zero(line.amount_residual):
+                        continue
+                manual_line |= line
+            _logger.info('manual added lines')
+            _logger.info(manual_line)
             _logger.info(payment_lines + lines)
             amounts = []
-            for move in self.payment_move_ids:           
+            for move in self.payment_move_ids:
                 amounts.append(move.payment_amount)
             _logger.info(amounts)     
             for account in payment_lines.account_id:
-                _logger.info( (payment_lines + lines).filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)]))
-                (payment_lines + lines)\
+                _logger.info( (payment_lines + manual_line).filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)]))
+                (payment_lines + manual_line)\
                     .filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)])\
                     .reconcile(amounts)
 
@@ -133,16 +153,38 @@ class AccountRegisterInvoices(models.TransientModel):
     partner_id = fields.Many2one(
         'res.partner', help='Partner involved in payment' ,store=True, related='move_id.partner_id')
     amount = fields.Monetary(string='Due Amount',currency_field='currency_id', help='Amount to pay' ,store=True, related='move_id.amount_residual_signed')
+    amount_in_line_currency = fields.Monetary(string="Monto en Moneda de la factura",
+        currency_field='currency_id',
+        compute="_compute_amount_in_line_currency")
     payment_amount = fields.Monetary(
         store=True, 
         currency_field='payment_currency_id',
         help='Amount being paid')
     payment_currency_id = fields.Many2one(help="Currency in wich the payment is being processed", related="register_id.currency_id")
+    
+    
+    exchange_rate = fields.Monetary(string="Tasa de cambio",currency_field='currency_id', compute="_compute_amount_in_line_currency")
+    payment_date = fields.Date(related="register_id.payment_date")
+    company_id = fields.Many2one(related="register_id.company_id")
     register_id = fields.Many2one(
         'account.payment.register',
         help='Technical field to connect to Bulk Invoice',
         copy=False ,store=True)
-
     
+    
+    @api.onchange('move_id')
+    def _reset_payment_amount(self):
+        for record in self:
+            record.payment_amount = record.amount
+    
+    @api.depends('payment_date','payment_amount','company_id','payment_currency_id')
+    def _compute_amount_in_line_currency(self):
+        for record in self:
+            if record.company_id:
+                record.amount_in_line_currency = record.payment_currency_id._convert(record.payment_amount,record.currency_id,record.company_id,record.payment_date)
+                record.exchange_rate  = record.payment_currency_id._convert(1,record.currency_id,record.company_id,record.payment_date)
+            else:
+                record.amount_in_line_currency = 0
+                record.exchange_rate  = 0
 
 
