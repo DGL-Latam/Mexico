@@ -28,19 +28,19 @@ class AccountPaymentRegister(models.TransientModel):
     partner_id = fields.Many2one('res.partner',
         string="Customer/Vendor", store=True, copy=False, ondelete='restrict',
         compute='_compute_from_lines', inverse = "_inv_partner")
+    
+    
     @api.model
     def _inv_partner(self):
         return
     
     @api.model
-    @api.depends('partner_id','payment_move_ids')
     def default_get(self, fields_list):
         # OVERRIDE
         _logger.info("Actualizando payment_move_ids")
         res = super().default_get(fields_list)
         payment_currency_id = self.env['res.currency'].browse(res.get('currency_id'))
         move_ids = self.env['account.move'].browse(self._context.get('active_ids')).sorted('invoice_date_due')
-
         values = []
         for move in move_ids:
             values.append({
@@ -54,10 +54,10 @@ class AccountPaymentRegister(models.TransientModel):
                 'payment_currency_id': payment_currency_id.id,
                 'register_id' : self.id
             })
-        res['payment_move_ids'] = [ (0, 0, val) for val in values]
-
-        
+        res['payment_move_ids'] = [ (0, 0, val) for val in values]        
         return res
+    
+
 
     def _getMoves(self,line_ids):
         ids = []
@@ -88,7 +88,21 @@ class AccountPaymentRegister(models.TransientModel):
         values['amount'] = amount
         values['partner_id'] = self.partner_id.id
         return values
-
+    
+    
+    @api.depends('amount')    
+    def _compute_payment_difference(self):
+        for wizard in self:
+            if wizard.source_currency_id == wizard.currency_id:
+                # Same currency.
+                wizard.payment_difference = wizard.source_amount_currency - wizard.amount
+            elif wizard.currency_id == wizard.company_id.currency_id:
+                # Payment expressed on the company's currency.
+                wizard.payment_difference = wizard.source_amount - wizard.amount
+            else:
+                # Foreign currency on payment different than the one set on the journal entries.
+                amount_payment_currency = self.env.company.currency_id._convert(wizard.source_amount, wizard.currency_id, self.env.company, wizard.payment_date)
+                wizard.payment_difference = amount_payment_currency - wizard.amount
 
     def _reconcile_payments(self, to_process, edit_mode=False):
         """ Reconcile the payments.
@@ -172,10 +186,13 @@ class AccountRegisterInvoices(models.TransientModel):
         copy=False ,store=True)
     
     
-    @api.onchange('move_id')
+    @api.onchange('move_id','payment_currency_id')
     def _reset_payment_amount(self):
         for record in self:
-            record.payment_amount = record.amount
+            if record.payment_currency_id == record.currency_id:
+                record.payment_amount = record.amount
+            else:
+                record.payment_amount =  record.currency_id._convert(record.amount,record.payment_currency_id,record.company_id,record.payment_date)
     
     @api.depends('payment_date','payment_amount','company_id','payment_currency_id')
     def _compute_amount_in_line_currency(self):
