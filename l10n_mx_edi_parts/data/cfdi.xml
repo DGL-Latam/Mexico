@@ -9,9 +9,10 @@
             <t t-set="units" t-value="moves.mapped('move_line_ids') if moves else False"/>
          </xpath>
          <xpath expr="//*[local-name()='Concepto']" position="inside">
-             <t t-foreach="units" t-as="unit">
-                <t t-set="unit_value" t-value="'%.*f' % (currency_precision, line_vals['price_subtotal_before_discount']/line.quantity) if line.quantity else 0.0"/>
-                <cfdi:Parte xmlns:cfdi="http://www.sat.gob.mx/cfd/3"
+             <t t-if="line.product_id.tracking == 'serial'">
+                 <t t-foreach="units" t-as="unit">
+                    <t t-set="unit_value" t-value="'%.*f' % (currency_precision, line_vals['price_subtotal_before_discount']/line.quantity) if line.quantity else 0.0"/>
+                    <cfdi:Parte xmlns:cfdi="http://www.sat.gob.mx/cfd/3"
                     t-att-ClaveProdServ="line.product_id.unspsc_code_id.code"
                     t-att-NoIdentificacion="unit.lot_id.name"
                     t-att-Cantidad="unit.qty_done"
@@ -19,6 +20,8 @@
                     t-att-Descripcion="format_string(line.name, 1000)"
                     t-att-ValorUnitario="unit_value"
                     t-att-Importe="'%.*f' % (currency_precision, float(unit_value) * unit.qty_done)"/>
+                 
+                 </t>
             </t>
         </xpath>
     </template>
