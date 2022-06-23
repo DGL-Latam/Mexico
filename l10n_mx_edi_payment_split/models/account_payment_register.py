@@ -28,7 +28,60 @@ class AccountPaymentRegister(models.TransientModel):
     partner_id = fields.Many2one('res.partner',
         string="Customer/Vendor", store=True, copy=False, ondelete='restrict',
         compute='_compute_from_lines', inverse = "_inv_partner")
+    csv_file = fields.Binary(copy=False, help='csv con el nombre de la factura y monto')
+    csv_name = fields.Char(copy=False, help='nombre del archivo CSV')
     
+    
+    
+    @api.onchange('csv_file')
+    def _import_csv(self):
+        self.ensure_one()
+        if not self.csv_file:
+            return
+        if self.csv_name and not self.csv_name.lower().endswith('.csv'):
+            raise UserError(_("Por favor usa un archivo csv"))
+        csv_data = base64.b64decode(self.csv_file)
+        self.update({'payment_move_ids': False})
+        try:
+            encoding = chardet.detect(csv_data)['encoding'].lower()
+            bom = BOM_MAP.get(encoding)
+            if bom and csv_data.startswith(bom):
+                encoding = encoding[:-2]
+            if encoding != 'utf-8':
+                csv_data = csv_data.decode(encoding).encode('utf-8')
+            # Separator
+            separator = ','
+            csv_iterator = pycompat.csv_reader(
+                io.BytesIO(csv_data), quotechar='"', delimiter=separator)
+        except Exception:
+            raise UserError(_("Por favor usa un archivo csv"))
+        values = []
+        for row in csv_iterator:
+            move = self.env['account.move'].search([('name','=',row[0]),('state', '=','posted')])
+            if move.amount_residual == 0:
+                continue
+            try:
+                col_num = len(row)
+                amount = float(row[1]) if col_num > 1 else 0
+            except ValueError:
+                continue
+            if not move or amount <= 0:
+                continue
+            values.append({
+                'move_id': move.id,
+                'currency_id' : move.currency_id.id,    
+                'partner_id': move.partner_id.id,
+                'date': move.invoice_date,
+                'date_due': move.invoice_date_due,
+                'amount': move.amount_residual,
+                'payment_amount': amount,
+                'register_id' : self.id
+            })
+        if not values:
+            raise UserError(_('No se pudieron importar las facturas checar si se esta usando un csv'))
+        _logger.info(values)
+        self.update({'payment_move_ids': [(0, 0, val) for val in values]})
+            
     
     @api.model
     def _inv_partner(self):
