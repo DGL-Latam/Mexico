@@ -15,7 +15,7 @@ class SaleOrder(models.Model):
 
     def _prepare_invoice(self):
         invoice_vals = super()._prepare_invoice()
-        invoice_vals['journal_id'] = self._get_default_journal()
+        invoice_vals['journal_id'] = self._get_default_journal().id
         return invoice_vals
 
     
