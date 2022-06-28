@@ -229,8 +229,8 @@ class AccountRegisterInvoices(models.TransientModel):
         help='Amount being paid')
     payment_currency_id = fields.Many2one(help="Currency in wich the payment is being processed", related="register_id.currency_id")
     
-    
-    exchange_rate = fields.Monetary(string="Tasa de cambio",currency_field='currency_id', compute="_compute_amount_in_line_currency")
+    company_currency_id = fields.Many2one('res.currency',related='company_id.currency_id')
+    exchange_rate = fields.Monetary(string="Tasa de cambio",currency_field='company_currency_id', compute="_compute_amount_in_line_currency")
     payment_date = fields.Date(related="register_id.payment_date")
     company_id = fields.Many2one(related="register_id.company_id")
     register_id = fields.Many2one(
@@ -252,7 +252,7 @@ class AccountRegisterInvoices(models.TransientModel):
         for record in self:
             if record.company_id:
                 record.amount_in_line_currency = record.payment_currency_id._convert(record.payment_amount,record.currency_id,record.company_id,record.payment_date)
-                record.exchange_rate  = record.payment_currency_id._convert(1,record.currency_id,record.company_id,record.payment_date)
+                record.exchange_rate  = record.payment_currency_id._convert(1,record.company_id.currency_id,record.company_id,record.payment_date)
             else:
                 record.amount_in_line_currency = 0
                 record.exchange_rate  = 0

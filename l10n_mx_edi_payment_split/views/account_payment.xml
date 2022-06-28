@@ -31,12 +31,16 @@
                                 <field name="currency_id" readonly="1"/>
                                 <field name="amount"  readonly="1"/>
                                 <field name="amount_in_line_currency" readonly="1"/>                              
-                                <field name="exchange_rate" readonly="1"/>
+                                <field name="exchange_rate" readonly="1" widget='monetary' options="{'currency_field': 'company_currency_id'}"/>
                                 <field name="payment_currency_id" readonly="1"/>
                                 <field name="payment_amount"/>
                             </tree>
                             </field>
+                            <group style="display: flex;justify-content: right; ">
+                            <field name="amount" readonly="1"/>
+                            </group>
                         </page>
+                        
                     </notebook>
                 </xpath>
                 <xpath expr="//group/group[1]//field[@name='journal_id']" position="attributes">
