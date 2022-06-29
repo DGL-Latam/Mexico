@@ -24,7 +24,7 @@
                         <page string="Payments on Invoices">
                             <field name="payment_move_ids" nolabel="1">
                             <tree editable="top">
-                                <field name="move_id" domain="['&amp;', ('state', 'not in', ('draft','cancel')), ('move_type','=','out_invoice')]" />
+                                <field name="move_id" domain="['&amp;', ('state', 'not in', ('draft','cancel')), ('move_type','in',('out_invoice','in_invoice'))]" />
                                 <field name="partner_id"  readonly="1"/>
                                 <field name="date"  readonly="1" />
                                 <field name="date_due"   readonly="1"/>

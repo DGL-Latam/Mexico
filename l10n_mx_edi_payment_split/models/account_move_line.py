@@ -131,6 +131,9 @@ class AccountMoveLine(models.Model):
         _logger.info("ejecutando x vez")
         debit_lines = iter(self.filtered(lambda line: line.balance > 0.0 or line.amount_currency > 0.0))
         credit_lines = iter(self.filtered(lambda line: line.balance < 0.0 or line.amount_currency < 0.0))
+        
+        _logger.info(debit_lines)
+        _logger.info(credit_lines)
         debit_line = None
         credit_line = None
        
@@ -151,10 +154,23 @@ class AccountMoveLine(models.Model):
                 debit_line = next(debit_lines, None)
                 if not debit_line:
                     break
-                debit_amount_residual = debit_line.amount_residual
+                debit_amount_residual = 0
+                custom_debit_amount = debit_line.move_id.move_type in ['entry']
+                _logger.info(debit_line.move_id.move_type)
+                
+                if custom_debit_amount:
+                    debit_amount_residual = debit_line.currency_id._convert(
+                        amounts[indexAmount],
+                        debit_line.company_currency_id,
+                        debit_line.company_id,
+                        debit_line.date,
+                    )
+                else:
+                   debit_amount_residual = debit_line.amount_residual
+                _logger.info(debit_amount_residual)
 
                 if debit_line.currency_id:
-                    debit_amount_residual_currency = debit_line.amount_residual_currency
+                    debit_amount_residual_currency = amounts[indexAmount] if custom_debit_amount else debit_line.amount_residual_currency
                     debit_line_currency = debit_line.currency_id
                 else:
                     debit_amount_residual_currency = debit_amount_residual
@@ -165,14 +181,22 @@ class AccountMoveLine(models.Model):
                 credit_line = next(credit_lines, None)
                 if not credit_line:
                     break
-                credit_amount_residual = - credit_line.currency_id._convert(
-                    amounts[indexAmount],
-                    credit_line.company_currency_id,
-                    credit_line.company_id,
-                    credit_line.date,
-                )  
+                    
+                _logger.info(credit_line.amount_residual)
+                custom_credit_amount = credit_line.move_id.move_type in ['entry']
+                _logger.info(credit_line.move_id.move_type)
+                credit_amount_residual = 0
+                if custom_credit_amount:
+                    credit_amount_residual = - credit_line.currency_id._convert(
+                        amounts[indexAmount],
+                        credit_line.company_currency_id,
+                        credit_line.company_id,
+                        credit_line.date,
+                    )
+                else:
+                    credit_amount_residual = credit_line.amount_residual
                 if credit_line.currency_id:
-                    credit_amount_residual_currency = - amounts[indexAmount]
+                    credit_amount_residual_currency = - amounts[indexAmount] if custom_credit_amount else credit_line.amount_residual_currency
                     credit_line_currency = credit_line.currency_id
 
                 else:
@@ -223,20 +247,45 @@ class AccountMoveLine(models.Model):
             })
             indexAmount += 1
             if indexAmount < len(amounts):
-                debit_line = None
-                credit_amount_residual = - credit_line.currency_id._convert(
-                    amounts[indexAmount],
-                    credit_line.company_currency_id,
-                    credit_line.company_id,
-                    credit_line.date,
-                )  
-                if credit_line.currency_id:
-                    credit_amount_residual_currency = - amounts[indexAmount]
-                    credit_line_currency = credit_line.currency_id
-
+                if custom_debit_amount:
+                    credit_line = None
+                    custom_debit_amount = debit_line.move_id.move_type in ['entry']
+                if custom_debit_amount:
+                    debit_amount_residual = debit_line.currency_id._convert(
+                        amounts[indexAmount],
+                        debit_line.company_currency_id,
+                        debit_line.company_id,
+                        debit_line.date,
+                    )
                 else:
-                    credit_amount_residual_currency = credit_amount_residual
-                    credit_line_currency = credit_line.company_currency_id
+                    debit_amount_residual = debit_line.amount_residual
+
+                if debit_line.currency_id:
+                    debit_amount_residual_currency = amounts[indexAmount] if custom_debit_amount else debit_line.amount_residual_currency
+                    debit_line_currency = debit_line.currency_id
+                else:
+                    debit_amount_residual_currency = debit_amount_residual
+                    debit_line_currency = debit_line.company_currency_id
+                if custom_credit_amount:
+                    debit_line = None
+                    custom_credit_amount = credit_line.move_id.move_type in ['entry']
+                    credit_amount_residual = 0
+                    if custom_credit_amount:
+                        credit_amount_residual = - credit_line.currency_id._convert(
+                            amounts[indexAmount],
+                            credit_line.company_currency_id,
+                            credit_line.company_id,
+                            credit_line.date,
+                        )
+                    else:
+                        credit_amount_residual = credit_line.amount_residual
+                    if credit_line.currency_id:
+                        credit_amount_residual_currency = - amounts[indexAmount] if custom_credit_amount else credit_line.amount_residual_currency
+                        credit_line_currency = credit_line.currency_id
+
+                    else:
+                        credit_amount_residual_currency = credit_amount_residual
+                        credit_line_currency = credit_line.company_currency_id
                 continue
             else:
                 break
@@ -256,7 +305,7 @@ class AccountMoveLine(models.Model):
                 return abs_residual
             else:
                 return partial_amount
-        _logger.info("ejecutando x vez")
+
         debit_lines = iter(self.filtered(lambda line: line.balance > 0.0 or line.amount_currency > 0.0))
         credit_lines = iter(self.filtered(lambda line: line.balance < 0.0 or line.amount_currency < 0.0))
         debit_line = None
@@ -363,12 +412,6 @@ class AccountMoveLine(models.Model):
                     -credit_amount_residual_currency,
                     min_credit_amount_residual_currency,
                 )
-            _logger.info(debit_line.id)
-            _logger.info(debit_amount_residual)
-            _logger.info(credit_amount_residual)
-            _logger.info(min_amount_residual)
-            _logger.info(debit_amount_residual - min_amount_residual)
-            _logger.info(credit_amount_residual + min_amount_residual)
 
             debit_amount_residual -= min_amount_residual
             debit_amount_residual_currency -= min_debit_amount_residual_currency
@@ -382,6 +425,5 @@ class AccountMoveLine(models.Model):
                 'debit_move_id': debit_line.id,
                 'credit_move_id': credit_line.id,
             })
-        _logger.info(partials_vals_list)
 
         return partials_vals_list
