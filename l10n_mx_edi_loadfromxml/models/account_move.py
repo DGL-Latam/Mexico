@@ -5,6 +5,7 @@ from lxml import etree
 
 import logging
 import base64
+from dateutil import parser
 
 _logger = logging.getLogger(__name__)
 
@@ -30,4 +31,5 @@ class AccountMove(models.Model):
                 'attachment_id' : attach.id,
                 'state' : 'sent',
             }
+            self.l10n_mx_edi_post_time = parser.parse(root.get('Fecha'))
             self.env['account.edi.document'].create(values)
