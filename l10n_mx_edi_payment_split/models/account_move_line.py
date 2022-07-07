@@ -84,7 +84,7 @@ class AccountMoveLine(models.Model):
             is_full_needed = all(line.currency_id.is_zero(line.amount_residual_currency) for line in involved_lines)
         else:
             is_full_needed = all(line.company_currency_id.is_zero(line.amount_residual) for line in involved_lines)
-
+        is_full_needed = True
         if is_full_needed:
 
             # ==== Create the exchange difference move ====
@@ -92,7 +92,9 @@ class AccountMoveLine(models.Model):
             if self._context.get('no_exchange_difference'):
                 exchange_move = None
             else:
-                exchange_move = involved_lines._create_exchange_difference_move()
+                lines_to_exch_rate = involved_lines.filtered(lambda line : line.amount_residual_currency == 0)
+                exchange_move = lines_to_exch_rate._create_exchange_difference_move()
+
                 if exchange_move:
                     exchange_move_lines = exchange_move.line_ids.filtered(lambda line: line.account_id == account)
 
@@ -121,6 +123,8 @@ class AccountMoveLine(models.Model):
             .action_invoice_paid()
 
         return results
+     
+    
     def _prepare_reconciliation_partials_amount(self,amounts):
         #note amounts are given on the currency of payment, not the main one (db)
         def fix_remaining_cent(currency, abs_residual, partial_amount):
@@ -157,6 +161,8 @@ class AccountMoveLine(models.Model):
                 debit_amount_residual = 0
                 custom_debit_amount = debit_line.move_id.move_type in ['entry']
                 _logger.info(debit_line.move_id.move_type)
+                _logger.info("debit line currency")
+                _logger.info(debit_line.currency_id.name)
                 
                 if custom_debit_amount:
                     debit_amount_residual = debit_line.currency_id._convert(
@@ -165,6 +171,9 @@ class AccountMoveLine(models.Model):
                         debit_line.company_id,
                         debit_line.date,
                     )
+                    _logger.info("custom debit amount")
+                    _logger.info(debit_amount_residual)
+                    _logger.info(debit_line.date)
                 else:
                    debit_amount_residual = debit_line.amount_residual
                 _logger.info(debit_amount_residual)
@@ -182,7 +191,8 @@ class AccountMoveLine(models.Model):
                 if not credit_line:
                     break
                     
-                _logger.info(credit_line.amount_residual)
+                _logger.info("credit line currency")
+                _logger.info(credit_line.currency_id.name)
                 custom_credit_amount = credit_line.move_id.move_type in ['entry']
                 _logger.info(credit_line.move_id.move_type)
                 credit_amount_residual = 0
@@ -193,6 +203,9 @@ class AccountMoveLine(models.Model):
                         credit_line.company_id,
                         credit_line.date,
                     )
+                    _logger.info("custom debit amount")
+                    _logger.info(credit_amount_residual)
+                    _logger.info(credit_line.date)
                 else:
                     credit_amount_residual = credit_line.amount_residual
                 if credit_line.currency_id:
@@ -202,7 +215,23 @@ class AccountMoveLine(models.Model):
                 else:
                     credit_amount_residual_currency = credit_amount_residual
                     credit_line_currency = credit_line.company_currency_id
-
+            if debit_line.currency_id != debit_line.company_currency_id and credit_line.move_id.move_type in ['entry']:
+                debit_amount_residual = debit_line.currency_id._convert(
+                        debit_amount_residual,
+                        debit_line.company_currency_id,
+                        debit_line.company_id,
+                        credit_line.date,
+                    )
+            
+            if credit_line.currency_id != credit_line.company_currency_id and debit_line.move_id.move_type in ['entry']:
+                credit_amount_residual = credit_line.currency_id._convert(
+                        credit_amount_residual,
+                        credit_line.company_currency_id,
+                        credit_line.company_id,
+                        debit_line.date,
+                    )
+            
+              
             min_amount_residual = min(debit_amount_residual, -credit_amount_residual)
             if debit_line_currency == credit_line_currency:
                 min_amount_residual_currency =  min(debit_amount_residual_currency, -credit_amount_residual_currency)# 100 #custom amount [x] in foreign currency
@@ -290,7 +319,7 @@ class AccountMoveLine(models.Model):
             else:
                 break
         _logger.info(partials_vals_list)
-
+        
         return partials_vals_list
 
 

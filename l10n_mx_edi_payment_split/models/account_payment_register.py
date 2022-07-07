@@ -201,7 +201,7 @@ class AccountPaymentRegister(models.TransientModel):
                 _logger.info( (payment_lines + manual_line).filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)]))
                 (payment_lines + manual_line)\
                     .filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)])\
-                    .reconcile(amounts)
+                    .with_context(no_exchange_difference = False).reconcile(amounts)
 
 
 class AccountRegisterInvoices(models.TransientModel):
@@ -230,13 +230,15 @@ class AccountRegisterInvoices(models.TransientModel):
     payment_currency_id = fields.Many2one(help="Currency in wich the payment is being processed", related="register_id.currency_id")
     
     company_currency_id = fields.Many2one('res.currency',related='company_id.currency_id')
-    exchange_rate = fields.Monetary(string="Tasa de cambio",currency_field='company_currency_id', compute="_compute_amount_in_line_currency")
+    exchange_rate = fields.Float(string="Tasa de cambio",currency_field='company_currency_id', compute="_compute_amount_in_line_currency", digits=(16, 4))
     payment_date = fields.Date(related="register_id.payment_date")
     company_id = fields.Many2one(related="register_id.company_id")
     register_id = fields.Many2one(
         'account.payment.register',
         help='Technical field to connect to Bulk Invoice',
         copy=False ,store=True)
+    
+    
     
     
     @api.onchange('move_id','payment_currency_id')
@@ -252,9 +254,15 @@ class AccountRegisterInvoices(models.TransientModel):
         for record in self:
             if record.company_id:
                 record.amount_in_line_currency = record.payment_currency_id._convert(record.payment_amount,record.currency_id,record.company_id,record.payment_date)
-                record.exchange_rate  = record.payment_currency_id._convert(1,record.company_id.currency_id,record.company_id,record.payment_date)
+                if record.payment_currency_id != record.company_currency_id:
+                    record.exchange_rate  = record.payment_currency_id._convert(1,record.company_currency_id,record.company_id,record.payment_date,round=False)
+                elif record.currency_id != record.company_currency_id:
+                    record.exchange_rate  = record.currency_id._convert(1,record.company_currency_id,record.company_id,record.payment_date,round=False)
+                else:
+                    record.exchange_rate  = 1
             else:
                 record.amount_in_line_currency = 0
                 record.exchange_rate  = 0
+
 
 
