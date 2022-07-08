@@ -213,7 +213,7 @@ class AccountRegisterInvoices(models.TransientModel):
         'account.move', help='Invoice being paid' ,store=True)
     currency_id = fields.Many2one(
         'res.currency', help='Currency of this invoice',
-        related='move_id.currency_id' ,store=True)
+        related='move_id.currency_id' ,store=True, string="Currency of invoice")
     date = fields.Date(help="Invoice Date" ,store=True , related='move_id.date')
     date_due = fields.Date(string='Due Date',
                            help="Maturity Date in the invoice" ,store=True, related='move_id.invoice_date_due')
@@ -229,7 +229,7 @@ class AccountRegisterInvoices(models.TransientModel):
         help='Amount being paid')
     payment_currency_id = fields.Many2one(help="Currency in wich the payment is being processed", related="register_id.currency_id")
     
-    company_currency_id = fields.Many2one('res.currency',related='company_id.currency_id')
+    company_currency_id = fields.Many2one('res.currency',related='company_id.currency_id', string="Company currency")
     exchange_rate = fields.Float(string="Tasa de cambio",currency_field='company_currency_id', compute="_compute_amount_in_line_currency", digits=(16, 4))
     payment_date = fields.Date(related="register_id.payment_date")
     company_id = fields.Many2one(related="register_id.company_id")
