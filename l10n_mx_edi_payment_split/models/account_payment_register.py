@@ -32,6 +32,17 @@ class AccountPaymentRegister(models.TransientModel):
     csv_name = fields.Char(copy=False, help='nombre del archivo CSV')
     
     
+    @api.depends('can_edit_wizard')
+    def _compute_group_payment(self):
+        for wizard in self:
+            wizard.group_payment = True
+    
+    @api.depends('line_ids')
+    def _compute_from_lines(self):
+        super()._compute_from_lines()
+        for wizard in self:
+            wizard.can_edit_wizard = True
+            wizard.can_group_payments = True
     
     @api.onchange('csv_file')
     def _import_csv(self):
@@ -121,6 +132,7 @@ class AccountPaymentRegister(models.TransientModel):
     def _create_payment_vals_from_wizard(self):
         payment_vals = super()._create_payment_vals_from_wizard()
         _logger.info(payment_vals)
+        payment_vals['partner_type'] = 'customer' if self.payment_move_ids[0].move_id.invoice_line_ids[0].account_internal_type == 'receivable' else 'supplier'
         return payment_vals
 
     @api.depends('payment_move_ids.payment_amount','payment_move_ids')
@@ -134,12 +146,15 @@ class AccountPaymentRegister(models.TransientModel):
     def _create_payment_vals_from_batch(self, batch_result):
         values = super()._create_payment_vals_from_batch(batch_result)
         amount = 0
+        self.payment_move_ids[0].move_id.invoice_line_ids[0].account_internal_type
         for move in self.payment_move_ids:
             if move.move_id.id == batch_result['lines'][0].move_id.id:            
                 amount = move.payment_amount
                 break
+            
         values['amount'] = amount
         values['partner_id'] = self.partner_id.id
+        values['partner_type'] = 'customer' if self.payment_move_ids[0].move_id.invoice_line_ids[0].account_internal_type == 'receivable' else 'supplier'
         return values
     
     
@@ -192,15 +207,15 @@ class AccountPaymentRegister(models.TransientModel):
                 manual_line |= line
             _logger.info('manual added lines')
             _logger.info(manual_line)
-            _logger.info(payment_lines + lines)
+            _logger.info(payment_lines + manual_line)
             amounts = []
             for move in self.payment_move_ids:
                 amounts.append(move.payment_amount)
             _logger.info(amounts)     
             for account in payment_lines.account_id:
-                _logger.info( (payment_lines + manual_line).filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)]))
+                _logger.info( (payment_lines + manual_line).filtered_domain([('reconciled', '=', False)]))
                 (payment_lines + manual_line)\
-                    .filtered_domain([('account_id', '=', account.id), ('reconciled', '=', False)])\
+                    .filtered_domain([('reconciled', '=', False)])\
                     .with_context(no_exchange_difference = False).reconcile(amounts)
 
 
@@ -213,7 +228,7 @@ class AccountRegisterInvoices(models.TransientModel):
         'account.move', help='Invoice being paid' ,store=True)
     currency_id = fields.Many2one(
         'res.currency', help='Currency of this invoice',
-        related='move_id.currency_id' ,store=True, string="Currency of invoice")
+        related='move_id.currency_id' ,store=True)
     date = fields.Date(help="Invoice Date" ,store=True , related='move_id.date')
     date_due = fields.Date(string='Due Date',
                            help="Maturity Date in the invoice" ,store=True, related='move_id.invoice_date_due')
@@ -226,11 +241,15 @@ class AccountRegisterInvoices(models.TransientModel):
     payment_amount = fields.Monetary(
         store=True, 
         currency_field='payment_currency_id',
-        help='Amount being paid')
+        help='Amount being paid', compute="_reset_payment_amount" , inverse = "_inv_pay_amount")
+    
+    
+    prev_currency = fields.Many2one('res.currency',string="previous currency", help="only for calculations")
+    prev_payment_date = fields.Date(string="prev date", help="only to help make calculations")
     payment_currency_id = fields.Many2one(help="Currency in wich the payment is being processed", related="register_id.currency_id")
     
-    company_currency_id = fields.Many2one('res.currency',related='company_id.currency_id', string="Company currency")
-    exchange_rate = fields.Float(string="Tasa de cambio",currency_field='company_currency_id', compute="_compute_amount_in_line_currency", digits=(16, 4))
+    company_currency_id = fields.Many2one('res.currency',related='company_id.currency_id')
+    exchange_rate = fields.Float(string="Tasa de cambio", compute="_compute_amount_in_line_currency", digits=(16, 4))
     payment_date = fields.Date(related="register_id.payment_date")
     company_id = fields.Many2one(related="register_id.company_id")
     register_id = fields.Many2one(
@@ -239,16 +258,36 @@ class AccountRegisterInvoices(models.TransientModel):
         copy=False ,store=True)
     
     
+    def _inv_pay_amount(self):
+        return
     
-    
-    @api.onchange('move_id','payment_currency_id')
+    @api.depends('move_id','payment_currency_id','payment_date')
     def _reset_payment_amount(self):
         for record in self:
+            _logger.info(record.payment_amount)
+            _logger.info(record.company_id)
+           
+            if not record.prev_payment_date:
+                record.prev_payment_date = record.payment_date
             if record.payment_currency_id == record.currency_id:
-                record.payment_amount = record.amount
+                if not record.prev_currency:
+                    _logger.info("no prevoues id")
+                    record.prev_currency = record.payment_currency_id
+                record.payment_amount = record.prev_currency._convert(record.payment_amount,record.payment_currency_id,record.company_id,record.payment_date)
             else:
-                record.payment_amount =  record.currency_id._convert(record.amount,record.payment_currency_id,record.company_id,record.payment_date)
-    
+                if not record.prev_currency:
+                    record.payment_amount = record.currency_id._convert(record.amount,record.payment_currency_id,record.company_id,record.payment_date)
+                else:
+                    _logger.info(record.amount_in_line_currency)
+                    value_in_line_curr = record.prev_currency._convert(record.payment_amount,record.currency_id,record.company_id,record.prev_payment_date)
+
+                    record.payment_amount =  record.currency_id._convert(value_in_line_curr,record.payment_currency_id,record.company_id,record.payment_date)
+
+            record.prev_payment_date = record.payment_date
+            record.prev_currency = record.payment_currency_id
+            self._compute_amount_in_line_currency()
+            
+            
     @api.depends('payment_date','payment_amount','company_id','payment_currency_id')
     def _compute_amount_in_line_currency(self):
         for record in self:
@@ -263,6 +302,5 @@ class AccountRegisterInvoices(models.TransientModel):
             else:
                 record.amount_in_line_currency = 0
                 record.exchange_rate  = 0
-
 
 

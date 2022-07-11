@@ -22,8 +22,10 @@
                 <xpath expr="//group" position="after">
                     <notebook colspan="4">
                         <page string="Payments on Invoices">
-                            <field name="payment_move_ids" nolabel="1">
-                            <tree editable="top">
+                            <field name="payment_move_ids" nolabel="1" widget="Many2one">
+                            <tree editable="top" decoration-danger="amount_in_line_currency &gt; amount" decoration-info="amount_in_line_currency &lt; amount">
+                                <field name="prev_currency" invisible="1"/>
+                                <field name="prev_payment_date" invisible="1"/>
                                 <field name="move_id" domain="['&amp;', ('state', 'not in', ('draft','cancel')), ('move_type','in',('out_invoice','in_invoice'))]" />
                                 <field name="partner_id"  readonly="1"/>
                                 <field name="date"  readonly="1" />
@@ -51,4 +53,3 @@
         </field>
     </record>
 </odoo>
-
