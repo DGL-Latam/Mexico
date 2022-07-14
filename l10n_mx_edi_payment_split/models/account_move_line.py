@@ -232,7 +232,7 @@ class AccountMoveLine(models.Model):
                     )
             
               
-            min_amount_residual = min(debit_amount_residual, -credit_amount_residual)
+            min_amount_residual = min(abs(debit_amount_residual), abs(credit_amount_residual))
             if debit_line_currency == credit_line_currency:
                 min_amount_residual_currency =  min(debit_amount_residual_currency, -credit_amount_residual_currency)# 100 #custom amount [x] in foreign currency
                 min_debit_amount_residual_currency = min_amount_residual_currency
