@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_bank_statement_inh_edit_posted_base" model="ir.ui.view">
+        <field name="name">view.bank.statement.inherit.edit_posted_base</field>
+        <field name="model">account.bank.statement</field>
+        <field name="inherit_id" ref="account.view_bank_statement_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'not in', ['open','posted'])]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='date']" position="attributes">
+                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='partner_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='amount_currency']" position="attributes">
+                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='foreign_currency_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='amount']" position="attributes">
+                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_bank_statement_inh_edit_posted_l10n_mx" model="ir.ui.view">
+        <field name="name">view.bank.statement.inherit.edit_posted_l10n_mx</field>
+        <field name="model">account.bank.statement</field>
+        <field name="inherit_id" ref="l10n_mx_edi.view_bank_statement_inh_l10n_mx"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_mx_edi_payment_method_id']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.country_code', '!=', 'MX')], 'readonly': [('state', 'in', ('confirm'))]}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
