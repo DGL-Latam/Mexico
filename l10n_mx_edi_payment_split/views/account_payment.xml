@@ -29,7 +29,7 @@
                                 <field name="move_id" domain="['&amp;', ('state', 'not in', ('draft','cancel')), ('move_type','in',('out_invoice','in_invoice'))]" />
                                 <field name="partner_id"  readonly="1"/>
                                 <field name="date"  readonly="1" />
-                                <field name="date_due"   readonly="1"/>
+                                <field name="date_due"   readonly="1" invisible="1"/>
                                 <field name="currency_id" readonly="1"/>
                                 <field name="amount"  readonly="1"/>
                                 <field name="amount_in_line_currency" readonly="1"/>                              
