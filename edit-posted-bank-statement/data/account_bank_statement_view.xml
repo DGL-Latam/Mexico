@@ -9,19 +9,27 @@
                 <attribute name="attrs">{'readonly': [('state', 'not in', ['open','posted'])]}</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='date']" position="attributes">
-                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='partner_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='amount_currency']" position="attributes">
-                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='foreign_currency_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='amount']" position="attributes">
-                <attribute name="attrs">{'readonly': [('parent.state', 'not in', ['open','posted'])]}</attribute>
+                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='payment_ref']" position="attributes">
+                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//button[@name='button_undo_reconciliation']" position="after">
+                            <button name="action_open_journal_entry" type="object"
+                attrs="{'invisible': [('is_reconciled', '=', False)], 'column_invisible': [('parent.state', '!=', 'posted')]}"
+            string="Open Journal Entry" />
             </xpath>
         </field>
     </record>

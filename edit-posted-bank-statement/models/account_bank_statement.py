@@ -7,6 +7,13 @@ _logger = logging.getLogger(__name__)
 class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
     
+    def action_open_journal_entry(self):
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web#id=%s&model=account.move' % (self.move_id.id),
+            'target': 'current',
+            'res_id': self.id,
+        }
     
     @api.model_create_multi
     def create(self, vals_list):
