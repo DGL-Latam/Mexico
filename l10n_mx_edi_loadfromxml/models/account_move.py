@@ -32,20 +32,28 @@ class AccountMove(models.Model):
     def _logic_for_in_invoice(self,attachments):
         for attach in attachments:
             root = self.get_etree(attach)
-            values = {
-                'move_id' : self.id,
-                'edi_format_id' : self.env.ref('l10n_mx_edi.edi_cfdi_3_3').id,
-                'attachment_id' : attach.id,
-                'state' : 'sent',
-            }
-            self.l10n_mx_edi_post_time = parser.parse(root.get('Fecha'))
-            self.env['account.edi.document'].create(values)
+            edi_document = self.recover_edi_document(self.id)
+            if not edi_document:
+                values = {
+                    'move_id' : self.id,
+                    'edi_format_id' : self.env.ref('l10n_mx_edi.edi_cfdi_3_3').id,
+                    'attachment_id' : attach.id,
+                    'state' : 'sent',
+                }
+                self.l10n_mx_edi_post_time = parser.parse(root.get('Fecha'))
+                self.env['account.edi.document'].create(values)
+            else:
+                edi_document.write({'attachment_id': attach.id, 'state' : 'sent'})
+                self.l10n_mx_edi_post_time = parser.parse(root.get('Fecha'))
+
+    def recover_edi_document(self,id):
+        return self.env['account.edi.document'].search([('move_id','=',id),('edi_format_id','=',self.env.ref('l10n_mx_edi.edi_cfdi_3_3').id)])
         
     def _logic_for_out_invoice(self,attachments): 
         if self.state != 'posted':
             super()._post()
         for attach in attachments:
-            edi_document = self.env['account.edi.document'].search([('move_id','=',self.id),('edi_format_id','=',self.env.ref('l10n_mx_edi.edi_cfdi_3_3').id)])
+            edi_document = self.recover_edi_document(self.id)
             root = self.get_etree(attach)
             edi_document.write({'attachment_id': attach.id, 'state' : 'sent'})
             self.l10n_mx_edi_post_time = parser.parse(root.get('Fecha'))
