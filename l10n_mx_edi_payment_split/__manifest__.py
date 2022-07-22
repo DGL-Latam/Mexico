@@ -20,6 +20,7 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'views/account_payment.xml',
+        'views/account_move_views.xml',
     ],
     'demo': [
     ],
