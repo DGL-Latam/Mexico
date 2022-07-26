@@ -46,10 +46,6 @@ class AccountBankStatementLine(models.Model):
                 to_write['line_ids'] = [(0, 0, line_vals) for line_vals in st_line._prepare_move_line_default_vals(counterpart_account_id=counterpart_account_id)]
 
             st_line.move_id.write(to_write)
-            if statement.state == 'posted':
-                _logger.info("posting stuff")
-                st_line.move_id._post(soft=False)
-
             # Otherwise field narration will be recomputed silently (at next flush) when writing on partner_id
             self.env.remove_to_compute(st_line.move_id._fields['narration'], st_line.move_id)
         return st_lines

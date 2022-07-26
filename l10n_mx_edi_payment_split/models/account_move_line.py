@@ -34,7 +34,10 @@ class AccountMoveLine(models.Model):
                 raise UserError(_("Account %s does not allow reconciliation. First change the configuration of this account to allow it.")
                                 % line.account_id.display_name)
             if line.move_id.state != 'posted':
-                raise UserError(_('You can only reconcile posted entries.'))
+                if line.move_id.type == 'entry':
+                    line.move_id._post(soft=False)
+                else:
+                    raise UserError(_('You can only reconcile posted entries.'))
             if company is None:
                 company = line.company_id
             elif line.company_id != company:
