@@ -131,8 +131,7 @@ class AccountPaymentRegister(models.TransientModel):
 
     def _create_payment_vals_from_wizard(self):
         payment_vals = super()._create_payment_vals_from_wizard()
-        _logger.info(payment_vals)
-        payment_vals['partner_type'] = 'customer' if self.payment_move_ids[0].move_id.invoice_line_ids[0].account_internal_type == 'receivable' else 'supplier'
+        payment_vals['partner_type'] = 'customer' if self.payment_move_ids[0].move_id.line_ids.filtered(lambda r: r.account_internal_type in ('receivable','payable')).account_internal_type == 'receivable' else 'supplier'
         return payment_vals
 
     @api.depends('payment_move_ids.payment_amount','payment_move_ids')
@@ -154,7 +153,7 @@ class AccountPaymentRegister(models.TransientModel):
             
         values['amount'] = amount
         values['partner_id'] = self.partner_id.id
-        values['partner_type'] = 'customer' if self.payment_move_ids[0].move_id.invoice_line_ids[0].account_internal_type == 'receivable' else 'supplier'
+        values['partner_type'] = 'customer' if self.payment_move_ids[0].move_id.line_ids.filtered(lambda r: r.account_internal_type in ('receivable','payable')).account_internal_type == 'receivable' else 'supplier'
         return values
     
     
