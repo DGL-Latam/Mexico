@@ -1,5 +1,5 @@
 <odoo>
-    <template id="cfdiv33_inherit" inherit_id="l10n_mx_edi.cfdiv33">
+    <template id="cfdiv40_arrendamiento" inherit_id="l10n_mx_edi_40.cfdiv40">
         <xpath expr="//*[local-name()='Concepto']" position="inside">
             <t t-if="line.product_id.isProperty">
                 <t t-set="cuentaPredial" t-value="line.product_id.cuentaPredial"/>

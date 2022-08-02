@@ -7,7 +7,7 @@
     'author': 'DGL-Latam',
     'license': 'AGPL-3',
     'category': 'Installer',
-    'version': '2.0',
+    'version': '2.0.1',
     'depends': [
         'l10n_mx_edi',
     ],
