@@ -45,9 +45,7 @@ class AccountMoveLine(models.Model):
                                 % (company.display_name, line.company_id.display_name))
             if account is None:
                 account = line.account_id
-            elif line.account_id != account:
-                raise UserError(_("Entries are not from the same account: %s != %s")
-                                % (account.display_name, line.account_id.display_name))
+
 
         sorted_lines = self.sorted(key=lambda line: (line.date_maturity or line.date, line.currency_id))
         _logger.info(sorted_lines)
