@@ -1,9 +1,9 @@
 <odoo>
     <template id="cfdiv33_inherit" inherit_id="l10n_mx_edi.cfdiv33">
         <xpath expr="//*[local-name()='Concepto']" position="inside">
-            <t t-if="line.product_id.rent_ok and line.product_id.isProperty">
+            <t t-if="line.product_id.isProperty">
                 <t t-set="cuentaPredial" t-value="line.product_id.cuentaPredial"/>
-                <cfdi:CuentaPredial xmlns:cfdi="http://www.sat.gob.mx/cfd/3"
+                <cfdi:CuentaPredial xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
                     t-att-Numero="cuentaPredial"/>
             </t>
         </xpath>
