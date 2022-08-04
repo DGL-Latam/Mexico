@@ -3,6 +3,10 @@ import json
 import requests
 import datetime
 
+import logging
+_logger = logging.getLogger(__name__)
+
+
 class MercadoLibre(Controller):
     @route('/ML/so', type='json', auth='public', methods=['POST'], csrf=False)
     def handleOrdersNotif(self):
@@ -45,7 +49,9 @@ class MercadoLibre(Controller):
                     'code': 200
                 }
         shipping_details = self._getShippingDetails(order_details['shipping']['id'] , company_id)
-                
+        _logger.critical("ship id vs")
+        _logger.critical(order_details['shipping']['id'])
+        _logger.critical(shipping_details['id'])
         if len(shipping_details['substatus_history']) == 0:
             return{
                 'success': True,
@@ -53,10 +59,16 @@ class MercadoLibre(Controller):
                 'code': 200
             }
         latest_ship_substatus = max(shipping_details['substatus_history'], key = lambda x : datetime.datetime.strptime(x['date'],'%Y-%m-%dT%H:%M:%S.%f%z'))
-
+        _logger.critical(order_id.id)
+        _logger.critical("ultimo ship substatus")
+        _logger.critical(latest_ship_substatus)
+        created_so = None
         if (latest_ship_substatus['substatus'] == 'ready_to_print' and not order_id.id):
-            self.create_so(order_details,shipping_details['tracking_number'], company_id)
-
+            self.create_so(order_details,shipping_details, company_id)
+        
+        _logger.critical(ml_order_id)
+        _logger.critical(order_details)
+        _logger.critical(shipping_details)
         return {
                     'success': True,
                     'status': 'OK',
@@ -76,13 +88,13 @@ class MercadoLibre(Controller):
     # then for each item request by ML we create the sale order line,
     # if one product cannot be found via internal reference, it shall be added as a note to the sale order, if this occurs
     # the sale order will not be automatically published
-    def create_so(self, order_details, tracking_number, company_id):
+    def create_so(self, order_details, shipping_details, company_id):
         values = {
             'origin' : 'MP-ML',
             'team_id' : request.env['crm.team'].sudo().search([('name','=', 'MP-ML'),('company_id','=',company_id.id)]).id,
             'company_id' : company_id.id,
             'client_order_ref' : order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'],
-            'carrier_tracking_ref' : tracking_number,
+            'carrier_tracking_ref' : shipping_details['tracking_number'],
             'partner_id' : request.env['res.partner'].sudo().search([('name','=','VENTAS PUBLICO GENERAL (ML)')]).id,
             'journal_id' : request.env['account.journal'].sudo().search([('name','=','MKP MERCADO LIBRE'), ('company_id','=',company_id.id)]).id,
             'name' : order_details['id'],
@@ -97,7 +109,7 @@ class MercadoLibre(Controller):
         message = ''
         for order_item in order_details['order_items']:
             message += 'sku registrado '+ order_item['item']['seller_sku'] + ' ' + order_item['item']['title'] + ' precio unitario sin IVA '  + str( order_item['unit_price'] / 1.16 ) + ' cantidad ' + str(order_item['quantity']) + '\n'
-
+            _logger.critical(order_item['item']['seller_sku'])
             product_id = request.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'])])
             if product_id.id:
                 so_lines_values.append({
@@ -123,6 +135,15 @@ class MercadoLibre(Controller):
         if not error:
             sale_order.sudo().with_user(1).action_confirm()
             sale_order.picking_ids[0].sudo().with_user(1).message_post(body = message)
+        
+        label_data = self.get_shipment_label(order_details['shipping']['id'],company_id)
+        request.env['ir.attachment'].sudo().create({
+            'name' : 'Guia ' + shipping_details['tracking_number'] + '.pdf',
+            'type' : 'binary',
+            'raw' : label_data,
+            'res_model' : 'sale.order',
+            'res_id' : sale_order.id,
+        })
         return sale_order
     
     # we recover the SO if it exists on the company selected
@@ -167,3 +188,14 @@ class MercadoLibre(Controller):
     def get_company_to_use(self,seller_id):
         company_id = request.env['res.company'].sudo().search([('ml_seller_id','=',str(seller_id))])
         return company_id
+    
+    #We recover the shipment_label as a pdf file (to attach to a sale order)
+    def get_shipment_label(self,shipment_id, company_id):
+        auth = "Bearer "
+        auth += company_id.ml_access_token
+        headers = {
+            "Authorization" : auth,
+        }
+        url = "https://api.mercadolibre.com/shipment_labels?shipment_ids={}&response_type=pdf".format(shipment_id)
+        res = requests.get(url,headers=headers)
+        return res.content
