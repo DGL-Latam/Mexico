@@ -15,7 +15,7 @@ class ResConfigSettings(models.TransientModel):
     
     def but_refresh_code(self):
         self.ensure_one()
-        _logger.critical(http.request.env['ir.config_parameter'].get_param('web.base.url'))
+
         if self.ml_refresh_token:
             if not (self.company_id.renew_access_token()):
                 raise UserError("Error favor de checar los datos o intentar de nuevo")

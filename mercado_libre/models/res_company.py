@@ -26,7 +26,7 @@ class ResCompany(models.Model):
     
     
     def renew_access_token(self):
-        _logger.critical("Renovando token")
+
         url = "https://api.mercadolibre.com/oauth/token"
         headers = {
             "Accept" : "application/json",
@@ -39,7 +39,7 @@ class ResCompany(models.Model):
             'refresh_token' : self.ml_refresh_token,
         }
         res = requests.post(url = url, data = data, headers = headers)
-        _logger.info(res.text)
+
         data =  json.loads(res.text)
         if 'status' in data:
             raise UserError(data['message'] + '\n' + data['error'])
@@ -54,7 +54,7 @@ class ResCompany(models.Model):
         
     def get_first_access_code(self):
         self.ensure_one()
-        _logger.critical("obtiendo el codigo primera vez")
+
         url = "https://api.mercadolibre.com/oauth/token"
         redirect_url = http.request.env['ir.config_parameter'].get_param('web.base.url') + "/ML/so"
         data = {
@@ -64,13 +64,13 @@ class ResCompany(models.Model):
             'code' : self.ml_access_token,
             'redirect_uri' : redirect_url,
         }
-        _logger.critical(data)
+
         headers = {
             'Accept' : 'application/json',
             "Content-Type" : "application/x-www-form-urlencoded",
         }
         res = requests.post(url = url, data = data, headers = headers)
-        _logger.info(res.text)
+
         data =  json.loads(res.text)
         if 'status' in data:
             raise UserError(data['message'] + '\n' + data['error'])
