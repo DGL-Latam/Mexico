@@ -75,22 +75,33 @@ class MercadoLibre(Controller):
                     'code': 200
                 }
     
-    def cancelation_email(self):
-        # create a mail_mail based on values, without attachments
+    #check wheter an email should be sent to the warehouse responsible and seller, 
+    #about not delivering the product to the mailers from SO wich already has delivery done
+    def check_cancel_mail(self,order_id):
+        for delivery in order_id.picking_ids:
+            if delivery.state == 'done':
+                self.cancelation_email( order_id.company_id )
+                break
+        
+        
+    #Send the actual email
+    def cancelation_email(self, order_id):
+        email_to = order_id.company_id.ml_responsible_deliveries
         mail_values = {
             'auto_delete': True,
-            'email_to': 'diego.rojas@digicellmx.com,itdgl@digicellmx.com',
-            'body_html': "Prueba de email",
+            'email_to': email_to,
+            'body_html': "No entregar productos orden de venta " + order_id.name + ' numero de rastreo ' + order_id.carrier_tracking_ref ,
             'state': 'outgoing',
-            'subject': 'Prueba salida email',
+            'subject': "No entregar productos orden de venta " + order_id.name + ' numero de rastreo ' + order_id.carrier_tracking_ref ,
         }
-        mail = request.env['mail.mail'].sudo().create(mail_values)
+        mail = request.env['mail.mail'].sudo().with_user(1).create(mail_values)
         mail.send([mail.id])
     
     #to cancel the sale order in case ML told us is needed
     def cancel_order(self,order_id):
         if order_id:
             order_id.sudo().with_user(1)._action_cancel()
+            self.check_cancel_mail(order_id)
     
     
     # Creation of sale order,
