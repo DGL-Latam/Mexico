@@ -63,7 +63,7 @@ class MercadoLibre(Controller):
         _logger.critical("ultimo ship substatus")
         _logger.critical(latest_ship_substatus)
         created_so = None
-        if (latest_ship_substatus['substatus'] == 'ready_to_print' and not order_id.id):
+        if (latest_ship_substatus['substatus'] in ['ready_to_print','shipment_paid'] and not order_id.id):
             self.create_so(order_details,shipping_details, company_id)
         
         _logger.critical(ml_order_id)
@@ -75,7 +75,17 @@ class MercadoLibre(Controller):
                     'code': 200
                 }
     
-    # we ask the mercado libre API to bring back the printable guide as a pdf, and store it as an attachment to the sale order
+    def cancelation_email(self):
+        # create a mail_mail based on values, without attachments
+        mail_values = {
+            'auto_delete': True,
+            'email_to': 'diego.rojas@digicellmx.com,itdgl@digicellmx.com',
+            'body_html': "Prueba de email",
+            'state': 'outgoing',
+            'subject': 'Prueba salida email',
+        }
+        mail = request.env['mail.mail'].sudo().create(mail_values)
+        mail.send([mail.id])
     
     #to cancel the sale order in case ML told us is needed
     def cancel_order(self,order_id):
