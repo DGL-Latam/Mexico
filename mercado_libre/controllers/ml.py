@@ -49,9 +49,6 @@ class MercadoLibre(Controller):
                     'code': 200
                 }
         shipping_details = self._getShippingDetails(order_details['shipping']['id'] , company_id)
-        _logger.critical("ship id vs")
-        _logger.critical(order_details['shipping']['id'])
-        _logger.critical(shipping_details['id'])
         if len(shipping_details['substatus_history']) == 0:
             return{
                 'success': True,
@@ -59,21 +56,21 @@ class MercadoLibre(Controller):
                 'code': 200
             }
         latest_ship_substatus = max(shipping_details['substatus_history'], key = lambda x : datetime.datetime.strptime(x['date'],'%Y-%m-%dT%H:%M:%S.%f%z'))
-        _logger.critical(order_id.id)
-        _logger.critical("ultimo ship substatus")
-        _logger.critical(latest_ship_substatus)
         created_so = None
         if (latest_ship_substatus['substatus'] in ['ready_to_print','shipment_paid'] and not order_id.id):
-            self.create_so(order_details,shipping_details, company_id)
-        
-        _logger.critical(ml_order_id)
-        _logger.critical(order_details)
-        _logger.critical(shipping_details)
+            sale = self.create_so(order_details,shipping_details, company_id)
+            if len(sale.order_line) == 0:
+                self.create_so_lines(sale,order_details)
+
         return {
                     'success': True,
                     'status': 'OK',
                     'code': 200
                 }
+    
+    #check wheter a record has been created for this order (tracking purposes)
+    def check_ml_table(self, ml_order_id):
+        return request.env['mercadolibre.sale'].sudo().with_user(1).search([('ml_order_id','=',ml_order_id)])
     
     #check wheter an email should be sent to the warehouse responsible and seller, 
     #about not delivering the product to the mailers from SO wich already has delivery done
@@ -121,10 +118,12 @@ class MercadoLibre(Controller):
             'name' : order_details['id'],
             'user_id' : 1,
         }
-        check_order_id = self.get_order(order_details['id'],company_id)
-        if check_order_id.id:
-            return None
-        sale_order = request.env['sale.order'].sudo().with_user(1).create(values)
+        sale_order = self.get_order(order_details['id'],company_id)
+        if not sale_order.id:
+            sale_order = request.env['sale.order'].sudo().with_user(1).create(values)    
+        return sale_order
+        
+    def create_so_lines(self,sale_order,order_details):
         so_lines_values = []
         error = False
         message = ''
