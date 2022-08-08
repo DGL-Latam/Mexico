@@ -15,7 +15,7 @@ for company in env['res.company'].sudo().search([('ml_access_token','!=',False)]
             <field name="interval_number">5</field>
             <field name="interval_type">hours</field>
             <field name="numbercall">-1</field>
-            <field name="doall" eval="False"/>
+            <field name="doall" eval="True"/>
             <field name="nextcall" eval="(DateTime.now() + timedelta(hours=5)).strftime('%Y-%m-%d %H:%m:%S')"/>
         </record>
 
