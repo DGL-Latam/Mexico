@@ -3,10 +3,6 @@ import json
 import requests
 import datetime
 
-import logging
-_logger = logging.getLogger(__name__)
-
-
 class MercadoLibre(Controller):
     @route('/ML/so', type='json', auth='public', methods=['POST'], csrf=False)
     def handleOrdersNotif(self):
@@ -22,7 +18,6 @@ class MercadoLibre(Controller):
         ml_order_id = data['resource'].split('/')[2]
         company_id = self.get_company_to_use(data['user_id'])
         mls = self.check_ml_table(ml_order_id,company_id.id)
-        _logger.critical(company_id.name)
         mls.sudo().with_user(1).check_order()
         return {
             'success': True,

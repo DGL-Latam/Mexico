@@ -1,7 +1,6 @@
 from odoo import api, models, fields, http
 from odoo.exceptions import UserError
-import logging
-_logger = logging.getLogger(__name__)
+
 
 
 class ResConfigSettings(models.TransientModel):

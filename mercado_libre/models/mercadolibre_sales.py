@@ -43,7 +43,6 @@ class MercadoLibreSales(models.Model):
 
     def check_order(self):
         order_details = self._getOrderDetails()
-        _logger.critical(order_details)
         if 'error' in order_details:
             return {
                 'success': True,
@@ -58,7 +57,6 @@ class MercadoLibreSales(models.Model):
                 'code': 200
             }
         shipping_details = self._getShippingDetails(order_details['shipping']['id'])
-        _logger.critical(shipping_details)
         if not self.ml_shipping_id:
             self.write({'ml_shipping_id' : shipping_details['id']})
             
@@ -85,7 +83,6 @@ class MercadoLibreSales(models.Model):
                     'tracking_reference' : shipping_details['tracking_number'],
                     'client_name' : client_name
                 })
-                _logger.critical(client_name)
                 self.create_so()
                 self.create_so_lines(self.sale_order_id,order_details,shipping_details)
 
@@ -101,7 +98,6 @@ class MercadoLibreSales(models.Model):
    
     #Get the json of the order info whenever an event has ocurred, 
     def _getOrderDetails(self):
-        _logger.critical(self.company_id)
         headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
         url = "https://api.mercadolibre.com/orders/{order_id}".format( order_id = self.ml_order_id)
         res = requests.get(url,headers=headers)
