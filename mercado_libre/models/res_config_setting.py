@@ -12,7 +12,10 @@ class ResConfigSettings(models.TransientModel):
     ml_app_secret = fields.Char(string="App secret", help="Secret key, se puede checar en la configuracion de la app en la pagina de developers de ML", related="company_id.ml_app_secret", readonly=False)
     ml_access_token = fields.Char(string="Access Token", help="Token para poder acceder a los servicios del api", related="company_id.ml_access_token", readonly=False)
     ml_refresh_token = fields.Char(string="Refresh Token", help="Token para refrescar nuestro token de acceso", related="company_id.ml_refresh_token", readonly=False)
-    
+    ml_responsible_deliveries = fields.Char(string="Correos Responsables entrega", related="company_id.ml_responsible_deliveries", readonly=False)
+    ml_responsible_products = fields.Char(string="Correos Responsables entrega", related="company_id.ml_responsible_deliveries", readonly=False)
+
+
     def but_refresh_code(self):
         self.ensure_one()
 
