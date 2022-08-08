@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.mercado_libre</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='invoicing_settings']" position="after">
+                <h2>Configuracion Mercado Libre </h2>
+                <div class="row mt16 o_settings_container" id="ml_settings">
+                    <div class="col-12 col-lg-6 o_setting_box" title="Campos requeridos para configurar API Mercado Libre">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label">Credenciales</span>
+                            <div class="text-muted">
+                                Credenciales para la configuracion
+                            </div>
+                            <div class="row mt16">
+                                <label for="ml_seller_id" class="col-lg-3 o_light_label"/>
+                                <field name="ml_seller_id" readonly="True"/>
+                                <label for="ml_app_id" class="col-lg-3 o_light_label"/>
+                                <field name="ml_app_id"  readonly="False"/>
+                                <label for="ml_app_secret" class="col-lg-3 o_light_label"/>
+                                <field name="ml_app_secret"  readonly="False" password="True"/>
+                                
+                                
+                                <label for="ml_access_token" class="col-lg-3 o_light_label"/>
+                                <field name="ml_access_token"  readonly="False"/>
+                                
+                                <label for="ml_refresh_token" class="col-lg-3 o_light_label"/>
+                                <field name="ml_refresh_token" readonly="True"/>
+                                
+                                <button name="but_refresh_code" type="object" class="btn-link">
+                                    <i title="Update now" role="img" aria-label="Update now" class="fa fa-fw fa-refresh"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    
+</odoo>

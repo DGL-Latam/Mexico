@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<odoo>
+    <data>
+
+        <record id="ir_cron_update_access_token_ml" model="ir.cron">
+            <field name="name">Refrescar token de acceso ML</field>
+            <field name="model_id" ref="account.model_res_company"/>
+            <field name="state">code</field>
+            <field name="code">
+for company in env['res.company'].sudo().search([('ml_access_token','!=',False)]):
+    company.renew_access_token()
+            
+            </field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="interval_number">5</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(hours=5)).strftime('%Y-%m-%d %H:%m:%S')"/>
+        </record>
+
+        <record id="ir_cron_update_ml_orders" model="ir.cron">
+            <field name="name">Generar ordenes ML</field>
+            <field name="model_id" ref="model_mercadolibre_sales"/>
+            <field name="state">code</field>
+            <field name="code">
+for sale in env['mercadolibre.sales'].sudo().search([('sale_order_id','=',False),('ml_is_order_full', '=', False)]):
+    sale.check_order()
+            
+            </field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%m:%S')"/>
+        </record>
+     </data>
+</odoo>
