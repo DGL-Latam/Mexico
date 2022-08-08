@@ -7,7 +7,7 @@
             <field name="model_id" ref="account.model_res_company"/>
             <field name="state">code</field>
             <field name="code">
-for company in env['res.company'].search([('ml_access_token','!=',False)]):
+for company in env['res.company'].sudo().search([('ml_access_token','!=',False)]):
     company.renew_access_token()
             
             </field>
@@ -21,10 +21,10 @@ for company in env['res.company'].search([('ml_access_token','!=',False)]):
 
         <record id="ir_cron_update_ml_orders" model="ir.cron">
             <field name="name">Generar ordenes ML</field>
-            <field name="model_id" ref="mercadolibre_sales"/>
+            <field name="model_id" ref="model_mercadolibre_sales"/>
             <field name="state">code</field>
             <field name="code">
-for sale in env['mercadolibre_sales'].search([('sale_order_id','=',False),('ml_is_order_full', '=', False)]):
+for sale in env['mercadolibre.sales'].sudo().search([('sale_order_id','=',False),('ml_is_order_full', '=', False)]):
     sale.check_order()
             
             </field>
@@ -33,7 +33,7 @@ for sale in env['mercadolibre_sales'].search([('sale_order_id','=',False),('ml_i
             <field name="interval_type">minutes</field>
             <field name="numbercall">-1</field>
             <field name="doall" eval="False"/>
-            <field name="nextcall" eval="(DateTime.now() + timedelta(hours=5)).strftime('%Y-%m-%d %H:%m:%S')"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%m:%S')"/>
         </record>
      </data>
 </odoo>

@@ -5,6 +5,9 @@ import json
 import requests
 import datetime
 
+
+_logger = logging.getLogger(__name__)
+
 class MercadoLibreSales(models.Model):
     _name = "mercadolibre.sales"
     
@@ -18,19 +21,29 @@ class MercadoLibreSales(models.Model):
     tracking_reference = fields.Char(string="Guia de envio", help="Numero de guia del envio")
     sale_order_id = fields.Many2one('sale.order',string="Orden de venta", help="Orden de venta Generada en Odoo")
     ml_pack_id = fields.Char(string="ID del paquete", help="Este ID es el que se usa como nombre en la orden de venta", index=True)
-    company_id =  fields.Many2one(string="Empresa", help="Empresa en donde se va a realizar la orden de venta", required=True)
+    company_id =  fields.Many2one('res.company', string="Empresa", help="Empresa en donde se va a realizar la orden de venta", required=True)
     client_name = fields.Char(string="Nombre cliente", help="Nombre del individuo que realizo la compra en ML")
 
     status = fields.Selection([
-        ('crear', 'Crear OV')
-        ('venta', 'Venta'),
-        ('cancelada', 'Cancelada'),
-        ('reclamo', 'Reclamo'),
-    ], default="crear")
-
+        ('tocrear' , 'Crear OV'),
+        ('venta' , 'Venta'),
+        ('cancelada' , 'Cancelada'),
+        ('reclamo' , 'Reclamo'),
+    ], default="tocrear")
+    
+    
+    _sql_constraints = [
+        ('ml_order_id_unique',
+        'unique(ml_order_id)', 'No se deben repetir order ID para evitar duplicidad')
+    ]
+    
+    
+    def _print_info(self):
+       _logger.critical( '{},{},{},{}, Full: {}'.format(self.ml_order_id, self.ml_shipping_id, self.sale_order_id.id, self.tracking_reference, self.ml_is_order_full) ) 
 
     def check_order(self):
         order_details = self._getOrderDetails()
+        _logger.critical(order_details)
         if 'error' in order_details:
             return {
                 'success': True,
@@ -45,18 +58,26 @@ class MercadoLibreSales(models.Model):
                 'code': 200
             }
         shipping_details = self._getShippingDetails(order_details['shipping']['id'])
+        _logger.critical(shipping_details)
         if not self.ml_shipping_id:
             self.write({'ml_shipping_id' : shipping_details['id']})
-        latest_ship_substatus = max(shipping_details['substatus_history'], key = lambda x : datetime.datetime.strptime(x['date'],'%Y-%m-%dT%H:%M:%S.%f%z'))
-
-        if latest_ship_substatus['substatus'] in ['in warehouse']:
+            
+        if len(shipping_details['substatus_history']) == 0:
+            return {
+                'success': True,
+                'status': 'no substatus to check',
+                'code': 200
+            }
+        if any(obj['substatus'] == 'in_warehouse' for obj in shipping_details['substatus_history']):
             self.write({'ml_is_order_full' : True})
             return {
                 'success': True,
                 'status': 'marked as full',
                 'code': 200
             }
-        elif latest_ship_substatus['substatus'] in ['ready_to_print']:
+        #2022-08-03T22:51:33.675-04:00
+        last_shipping = max(shipping_details['substatus_history'], key = lambda substatus :  datetime.datetime.strptime(substatus['date'], "%Y-%m-%dT%H:%M:%S.%f%z") )
+        if last_shipping['substatus'] == 'ready_to_print':
             if not self.sale_order_id:
                 client_name = order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name']
                 self.write({
@@ -64,8 +85,9 @@ class MercadoLibreSales(models.Model):
                     'tracking_reference' : shipping_details['tracking_number'],
                     'client_name' : client_name
                 })
+                _logger.critical(client_name)
                 self.create_so()
-                self.create_so_lines(self.sale_order_id,order_details)
+                self.create_so_lines(self.sale_order_id,order_details,shipping_details)
 
         return {
             'success': True,
@@ -79,6 +101,7 @@ class MercadoLibreSales(models.Model):
    
     #Get the json of the order info whenever an event has ocurred, 
     def _getOrderDetails(self):
+        _logger.critical(self.company_id)
         headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
         url = "https://api.mercadolibre.com/orders/{order_id}".format( order_id = self.ml_order_id)
         res = requests.get(url,headers=headers)
@@ -106,6 +129,10 @@ class MercadoLibreSales(models.Model):
     # if one product cannot be found via internal reference, it shall be added as a note to the sale order, if this occurs
     # the sale order will not be automatically published
     def create_so(self):
+        sale_order = self.env['sale.order'].sudo().with_user(1).search([('name','=',self.ml_pack_id),('company_id','=',self.company_id.id)])
+        if sale_order.id:
+            self.write({'sale_order_id' : sale_order.id })
+            return 
         values = {
             'origin' : 'MP-ML',
             'team_id' : self.env['crm.team'].sudo().search([('name','=', 'MP-ML'),('company_id','=',self.company_id.id)]).id,
@@ -143,7 +170,9 @@ class MercadoLibreSales(models.Model):
         mail = self.env['mail.mail'].sudo().with_user(1).create(mail_values)
         mail.send([mail.id])
 
-    def create_so_lines(self,sale_order,order_details):
+    def create_so_lines(self,sale_order,order_details,shipping_details):
+        if sale_order.amount_total == shipping_details['order_cost']:
+            return sale_order
         so_lines_values = []
         error = False
         message = ''
@@ -176,12 +205,16 @@ class MercadoLibreSales(models.Model):
             sale_order.picking_ids[0].sudo().with_user(1).message_post(body = message)
         
         label_data = self.get_shipment_label(order_details['shipping']['id'],self.company_id)
-        self.env['ir.attachment'].sudo().create({
-            'name' : 'Guia ' + self.tracking_reference + '.pdf',
-            'type' : 'binary',
-            'raw' : label_data,
-            'res_model' : 'sale.order',
+        attach = self.env['ir.attachment'].sudo().search([('res_id','=',sale_order.id),('res_model','=','sale.order')])
+        if attach.id:
+            attach.write({'raw' : label_data})
+        else:
+            self.env['ir.attachment'].sudo().create({
+                'name' : 'Guia ' + self.tracking_reference + '.pdf',
+                'type' : 'binary',
+                'raw' : label_data,
+                'res_model' : 'sale.order',
             'res_id' : sale_order.id,
-        })
+            })
         return sale_order
 

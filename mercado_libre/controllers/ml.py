@@ -22,6 +22,7 @@ class MercadoLibre(Controller):
         ml_order_id = data['resource'].split('/')[2]
         company_id = self.get_company_to_use(data['user_id'])
         mls = self.check_ml_table(ml_order_id,company_id.id)
+        _logger.critical(company_id.name)
         mls.sudo().with_user(1).check_order()
         return {
             'success': True,
@@ -32,9 +33,9 @@ class MercadoLibre(Controller):
         
     #check wheter a record has been created for this order (tracking purposes) if not create it
     def check_ml_table(self, ml_order_id, company_id):
-        mls = request.env['mercadolibre.sale'].sudo().with_user(1).search([('ml_order_id','=',ml_order_id),('company_id','=', company_id)])
+        mls = request.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_order_id','=',ml_order_id),('company_id','=', company_id)])
         if not mls.id:
-            mls = request.env['mercadolibre.sale'].sudo().with_user(1).create([('ml_order_id','=',ml_order_id),('company_id','=', company_id)])
+            mls = request.env['mercadolibre.sales'].sudo().with_user(1).create({'ml_order_id' : ml_order_id,'company_id' : company_id})
         return mls
            
     # we recover the seller access tokens
