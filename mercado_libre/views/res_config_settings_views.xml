@@ -36,10 +36,10 @@
                                 </button>
 
                                 <label for="ml_responsible_deliveries" class="col-lg-3 o_light_label"/>
-                                <field name="ml_responsible_deliveries" readonly="True"/>
+                                <field name="ml_responsible_deliveries" readonly="False"/>
 
                                 <label for="ml_responsible_products" class="col-lg-3 o_light_label"/>
-                                <field name="ml_responsible_products" readonly="True"/>
+                                <field name="ml_responsible_products" readonly="False"/>
                             </div>
                         </div>
                     </div>

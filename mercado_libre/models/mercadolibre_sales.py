@@ -24,6 +24,9 @@ class MercadoLibreSales(models.Model):
     company_id =  fields.Many2one('res.company', string="Empresa", help="Empresa en donde se va a realizar la orden de venta", required=True)
     client_name = fields.Char(string="Nombre cliente", help="Nombre del individuo que realizo la compra en ML")
 
+    printed = fields.Boolean(default=False, help="¿La guia de esta orden ha sido impresa anteriormente?")
+    
+    
     status = fields.Selection([
         ('tocrear' , 'Crear OV'),
         ('venta' , 'Venta'),
@@ -43,7 +46,6 @@ class MercadoLibreSales(models.Model):
 
     def check_order(self):
         order_details = self._getOrderDetails()
-        _logger.critical(order_details)
         if 'error' in order_details:
             return {
                 'success': True,
@@ -58,7 +60,6 @@ class MercadoLibreSales(models.Model):
                 'code': 200
             }
         shipping_details = self._getShippingDetails(order_details['shipping']['id'])
-        _logger.critical(shipping_details)
         if not self.ml_shipping_id:
             self.write({'ml_shipping_id' : shipping_details['id']})
             
@@ -85,7 +86,6 @@ class MercadoLibreSales(models.Model):
                     'tracking_reference' : shipping_details['tracking_number'],
                     'client_name' : client_name
                 })
-                _logger.critical(client_name)
                 self.create_so()
                 self.create_so_lines(self.sale_order_id,order_details,shipping_details)
 
@@ -101,7 +101,6 @@ class MercadoLibreSales(models.Model):
    
     #Get the json of the order info whenever an event has ocurred, 
     def _getOrderDetails(self):
-        _logger.critical(self.company_id)
         headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
         url = "https://api.mercadolibre.com/orders/{order_id}".format( order_id = self.ml_order_id)
         res = requests.get(url,headers=headers)
@@ -181,7 +180,7 @@ class MercadoLibreSales(models.Model):
             'subject': "Productos no encontrados en Odoo: \n" + message + ' revisar la orden ' + self.sale_order_id.name,
         }
         mail = self.env['mail.mail'].sudo().with_user(1).create(mail_values)
-        mail.send([mail.id])
+        #mail.send([mail.id])
 
     def create_so_lines(self,sale_order,order_details,shipping_details):
         if sale_order.amount_total == shipping_details['order_cost']:

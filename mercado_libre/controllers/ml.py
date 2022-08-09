@@ -8,6 +8,30 @@ _logger = logging.getLogger(__name__)
 
 
 class MercadoLibre(Controller):
+    
+    @route('/ML/Guias', auth='user', type='http', methods=['GET'])
+    def getGuias(self):
+        orders =  request.env['mercadolibre.sales'].sudo().search([ ('printed','=', False), ('sale_order_id','!=',False), ('company_id', 'in', request.env.user.company_id.ids), ('ml_shipping_id' ,'!=', False) ])
+
+        ships_ids = []
+        for order in orders:
+            ships_ids.append(order.ml_shipping_id)
+
+        ids_str = ''
+        for id in ships_ids:
+            ids_str += '{},'.format(id) 
+        
+        headers = { "Authorization" : "Bearer " + request.env.user.company_id.ml_access_token }
+
+        url = "https://api.mercadolibre.com/shipment_labels?shipment_ids={}&response_type=pdf".format(ids_str)
+        res = requests.get(url,headers=headers)
+        
+        pdf_http_headers = [('Content-Type', 'application/pdf'), ('Content-Length', len(res.content))]
+
+        return request.make_response(res.content, headers=pdf_http_headers)
+    
+    
+    
     @route('/ML/so', type='json', auth='public', methods=['POST'], csrf=False)
     def handleOrdersNotif(self):
         
