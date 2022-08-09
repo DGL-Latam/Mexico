@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="action_mercadolibre_guias" model="ir.actions.act_url">
+            <field name="name">mercadolibre_guias</field>
+            <field name="url">/ML/Guias</field>
+            <field name="target">self</field>
+        </record>
+
+        <menuitem id="sales_mercadolibre_guias"
+                  name="Guias Mercado Libre"
+                  action="action_mercadolibre_guias"
+                  parent="sale.sale_order_menu"
+                  sequence="1000"/>
+</odoo>
