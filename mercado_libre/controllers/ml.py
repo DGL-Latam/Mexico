@@ -24,6 +24,9 @@ class MercadoLibre(Controller):
         
         pdf_http_headers = [('Content-Type', 'application/pdf'), ('Content-Length', len(res.content))]
 
+        for order in orders:
+            order.sudo().write({'printed' : True})
+
         return request.make_response(res.content, headers=pdf_http_headers)
     
     
