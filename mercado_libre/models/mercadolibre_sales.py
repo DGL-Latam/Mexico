@@ -78,7 +78,7 @@ class MercadoLibreSales(models.Model):
             }
         #2022-08-03T22:51:33.675-04:00
         last_shipping = max(shipping_details['substatus_history'], key = lambda substatus :  datetime.datetime.strptime(substatus['date'], "%Y-%m-%dT%H:%M:%S.%f%z") )
-        if last_shipping['substatus'] == 'ready_to_print':
+        if last_shipping['substatus'] in ['ready_to_print','regenerating']:
             if not self.sale_order_id:
                 client_name = order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name']
                 self.write({
@@ -86,7 +86,13 @@ class MercadoLibreSales(models.Model):
                     'tracking_reference' : shipping_details['tracking_number'],
                     'client_name' : client_name
                 })
-                self.create_so()
+                so = self.create_so()
+                if not so.id:
+                    return {
+                        'success' : True,
+                        'status' : 'orden no generada',
+                        'code' : 200
+                    }
                 self.create_so_lines(self.sale_order_id,order_details,shipping_details)
 
         return {
@@ -131,7 +137,15 @@ class MercadoLibreSales(models.Model):
         sale_order = self.env['sale.order'].sudo().with_user(1).search([('name','=',self.ml_pack_id),('company_id','=',self.company_id.id)])
         if sale_order.id:
             self.write({'sale_order_id' : sale_order.id })
-            return 
+            return sale_order
+        if not sale_order.id:
+            prev_order = self.env['mercadolibre.sales'].search( [('ml_pack_id', '=',self.ml_pack_id ), ('ml_order_id', '!=', self.ml_order_id), ('create_date','<', self.create_date) ] )
+            if prev_order.id:
+                sale_order = prev_order.sale_order_id
+                return sale_order
+        if sale_order.id:
+            self.write({'sale_order_id' : sale_order.id })
+            return sale_order
         values = {
             'origin' : 'MP-ML',
             'team_id' : self.env['crm.team'].sudo().search([('name','=', 'MP-ML'),('company_id','=',self.company_id.id)]).id,
@@ -145,6 +159,7 @@ class MercadoLibreSales(models.Model):
         }
         sale_order = self.env['sale.order'].sudo().with_user(1).create(values)    
         self.write({'sale_order_id' : sale_order.id })
+        return sale_order
     
     # Cancelar orden de venta
     def cancel_order(self):
