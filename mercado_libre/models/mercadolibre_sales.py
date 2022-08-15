@@ -207,7 +207,7 @@ class MercadoLibreSales(models.Model):
         for order_item in order_details['order_items']:
             mail_body = 'sku registrado '+ order_item['item']['seller_sku'] + ' ' + order_item['item']['title'] + ' precio unitario sin IVA '  + str( order_item['unit_price'] / 1.16 ) + ' cantidad ' + str(order_item['quantity']) + '\n'
             message += 'sku registrado '+ order_item['item']['seller_sku'] + ' ' + order_item['item']['title'] + ' precio unitario sin IVA '  + str( order_item['unit_price'] / 1.16 ) + ' cantidad ' + str(order_item['quantity']) + '\n'
-            product_id = self.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'])])
+            product_id = self.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'].replace('-',''))])
             if product_id.id:
                 so_lines_values.append({
                     'name' : product_id.description_sale if product_id.description_sale else '[{}] {}'.format(product_id.default_code, product_id.name),
