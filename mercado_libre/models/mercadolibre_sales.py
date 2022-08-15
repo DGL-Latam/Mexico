@@ -192,10 +192,10 @@ class MercadoLibreSales(models.Model):
             'email_to': email_to,
             'body_html': "Productos no encontrados en Odoo: \n" + message + ' revisar la orden ' + self.sale_order_id.name ,
             'state': 'outgoing',
-            'subject': "Productos no encontrados en Odoo: \n" + message + ' revisar la orden ' + self.sale_order_id.name,
+            'subject': "Productos no encontrados en Odoo," + ' revisar la orden ' + self.sale_order_id.name,
         }
         mail = self.env['mail.mail'].sudo().with_user(1).create(mail_values)
-        #mail.send([mail.id])
+        mail.send([mail.id])
 
     def create_so_lines(self,sale_order,order_details,shipping_details):
         if sale_order.amount_total == shipping_details['order_cost']:
@@ -203,7 +203,9 @@ class MercadoLibreSales(models.Model):
         so_lines_values = []
         error = False
         message = ''
+        mail_body = ''
         for order_item in order_details['order_items']:
+            mail_body = 'sku registrado '+ order_item['item']['seller_sku'] + ' ' + order_item['item']['title'] + ' precio unitario sin IVA '  + str( order_item['unit_price'] / 1.16 ) + ' cantidad ' + str(order_item['quantity']) + '\n'
             message += 'sku registrado '+ order_item['item']['seller_sku'] + ' ' + order_item['item']['title'] + ' precio unitario sin IVA '  + str( order_item['unit_price'] / 1.16 ) + ' cantidad ' + str(order_item['quantity']) + '\n'
             product_id = self.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'])])
             if product_id.id:
@@ -219,7 +221,7 @@ class MercadoLibreSales(models.Model):
             else:
                 error = True
                 so_lines_values.append({
-                    'name' : message ,
+                    'name' : mail_body ,
                     'order_id' : sale_order.id,
                     'display_type' : 'line_note',
                 })
@@ -231,8 +233,8 @@ class MercadoLibreSales(models.Model):
             sale_order.sudo().with_user(1).action_confirm()
             sale_order.picking_ids[0].sudo().with_user(1).message_post(body = message)
         
-
-        self.not_found_email(message)
+        if error:
+            self.not_found_email(message)
         label_data = self.get_shipment_label(order_details['shipping']['id'],self.company_id)
         attach = self.env['ir.attachment'].sudo().search([('res_id','=',sale_order.id),('res_model','=','sale.order')])
         if attach.id:
