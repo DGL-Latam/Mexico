@@ -7,7 +7,7 @@ class MercadoLibre(Controller):
     
     @route('/ML/Guias', auth='user', type='http', methods=['GET'])
     def getGuias(self):
-        orders =  request.env['mercadolibre.sales'].sudo().search([ ('printed','=', False), ('sale_order_id','!=',False), ('company_id', 'in', request.env.user.company_id.ids), ('ml_shipping_id' ,'!=', False) ])
+        orders =  request.env['mercadolibre.sales'].sudo().search([ ('printed','=', False), ('sale_order_id','!=',False), ('sale_order_id.state', 'not in', ['cancel','draft']), ('company_id', 'in', request.env.user.company_id.ids), ('ml_shipping_id' ,'!=', False) ], limit=40 )
 
         ships_ids = []
         for order in orders:
