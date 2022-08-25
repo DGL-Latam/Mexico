@@ -13,7 +13,7 @@ class Picking(models.Model):
             to_process = self.sudo().sale_logic_int(action)
         elif self.purchase_id:
             to_process = self.sudo().purchase_logic_int(action)
-        if type(action) != bool:
+        if type(action) != bool and to_process:
             action['context'].pop('quotation_only',None)
             action['context'].pop('default_partner_id',None)
             action['context'].pop('default_origin',None)
