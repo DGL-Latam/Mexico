@@ -6,7 +6,7 @@ Cuando se registra la entrada/salida de una orden de compra/venta intercompañia
 reduciendo el trabajo de almacen.
 """,
     "author": "DGL-Latam",
-    "version": "0.0.1",
+    "version": "1.0.0",
     'category': 'Hidden/Tools',
     'depends': ['sale_purchase_inter_company_rules'],
     'installable': True,

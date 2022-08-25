@@ -4,10 +4,10 @@ class Picking(models.Model):
     _inherit = "stock.picking"
     
     def button_validate(self):
+        action = super().button_validate()
         ctx = dict(self.env.context)
         if 'validate_picking' in ctx and not ctx['validate_picking']:
-            return 
-        action = super().button_validate()
+            return  
         to_process = self.env['stock.picking']
         if self.sale_id:
             to_process = self.sudo().sale_logic_int(action)
