@@ -29,11 +29,11 @@ for sale in env['mercadolibre.sales'].sudo().search([('sale_order_id','=',False)
             
             </field>
             <field name="user_id" ref="base.user_admin"/>
-            <field name="interval_number">1</field>
+            <field name="interval_number">2</field>
             <field name="interval_type">minutes</field>
             <field name="numbercall">-1</field>
             <field name="doall" eval="False"/>
-            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=1)).strftime('%Y-%m-%d %H:%m:%S')"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%m:%S')"/>
         </record>
      </data>
 </odoo>

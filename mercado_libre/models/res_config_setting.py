@@ -12,7 +12,7 @@ class ResConfigSettings(models.TransientModel):
     ml_access_token = fields.Char(string="Access Token", help="Token para poder acceder a los servicios del api", related="company_id.ml_access_token", readonly=False)
     ml_refresh_token = fields.Char(string="Refresh Token", help="Token para refrescar nuestro token de acceso", related="company_id.ml_refresh_token", readonly=False)
     ml_responsible_deliveries = fields.Char(string="Correos Responsables entrega", related="company_id.ml_responsible_deliveries", readonly=False)
-    ml_responsible_products = fields.Char(string="Correos Responsables entrega", related="company_id.ml_responsible_deliveries", readonly=False)
+    ml_responsible_products = fields.Char(string="Correos Responsables entrega", related="company_id.ml_responsible_products", readonly=False)
 
 
     def but_refresh_code(self):
