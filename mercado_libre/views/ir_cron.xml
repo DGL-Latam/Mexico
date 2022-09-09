@@ -33,7 +33,7 @@ for sale in env['mercadolibre.sales'].sudo().search([('sale_order_id','=',False)
             <field name="interval_type">minutes</field>
             <field name="numbercall">-1</field>
             <field name="doall" eval="False"/>
-            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%m:%S')"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(minutes=5)).strftime('%Y-%m-%d %H:%m:%S')"/>
         </record>
      </data>
 </odoo>

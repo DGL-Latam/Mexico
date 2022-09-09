@@ -15,7 +15,10 @@ class ProductTemplate(models.Model):
         'product_variant_ids.outgoing_qty',
     )
     def _compute_quantities(self):
-        res = self.with_context(location = self.company_id.at_hand_stock_locations.ids)._compute_quantities_dict()
+        locations = []
+        for company in self.env.companies:
+            locations.extend(company.at_hand_stock_locations.ids)
+        res = self.with_context(location =  locations)._compute_quantities_dict()
         for template in self:
             template.qty_available = res[template.id]['qty_available']
             template.virtual_available = res[template.id]['virtual_available']
