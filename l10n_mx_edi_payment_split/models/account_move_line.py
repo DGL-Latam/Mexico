@@ -3,6 +3,29 @@ from odoo.exceptions import RedirectWarning, UserError, ValidationError, AccessE
 import logging
 _logger = logging.getLogger(__name__)
 
+class AccountMove(models.Model):
+
+    _inherit = "account.move"
+
+    def js_assign_outstanding_line(self, line_id):
+        self.ensure_one()
+        if "paid_amount" in self.env.context:
+            amount = self.env.context.get("paid_amount", 0.0)
+            final = self.currency_id._convert(amount,self.env['account.move.line'].browse(line_id).company_currency_id,self.env['account.move.line'].browse(line_id).company_id,self.env['account.move.line'].browse(line_id).date)
+            return self.with_context(move_id=self.id,line_id=line_id).js_assign_outstanding_line_amount(line_id, [final])
+        return super(AccountMove, self).js_assign_outstanding_line(line_id)
+    
+    def js_assign_outstanding_line_amount(self, line_id,amount):
+        ''' Called by the 'payment' widget to reconcile a suggested journal item to the present
+        invoice.
+
+        :param line_id: The id of the line to reconcile with the current invoice.
+        '''
+        self.ensure_one()
+        lines = self.env['account.move.line'].browse(line_id)
+        lines += self.line_ids.filtered(lambda line: line.account_id == lines[0].account_id and not line.reconciled)
+        return lines.reconcile(amount)
+
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
