@@ -3,7 +3,7 @@
     'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
-    "version": "15.0",
+    "version": "15.1",
     'depends': [
         'base_automation',
         'l10n_mx_edi_extended',
@@ -12,7 +12,8 @@
     ],
     'test': [],
     'data': [   
-        'data/addenda_aam.xml'
+        'data/cfdi.xml',
+        'views/account_move.xml',
     ],
     'demo': [
     ],

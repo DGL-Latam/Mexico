@@ -5,7 +5,7 @@
     'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
-    "version": "15.0",
+    "version": "15.0.1",
     'depends': [
         'base_automation',
         'l10n_mx_edi',
@@ -14,7 +14,8 @@
     'test': [],
     'data': [
         'data/cfdi.xml',
-        'views/res_config_view.xml',        
+        'views/res_config_view.xml',    
+        'views/account_move.xml',    
     ],
     'demo': [
     ],
