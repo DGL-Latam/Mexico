@@ -11,9 +11,8 @@
         
     ],
     'test': [],
-    'data': [   
-        'data/cfdi.xml',
-        'views/account_move.xml',
+    'data': [ 
+        'data/addenda_aam.xml',  
     ],
     'demo': [
     ],
