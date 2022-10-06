@@ -3,29 +3,6 @@ from odoo.exceptions import RedirectWarning, UserError, ValidationError, AccessE
 import logging
 _logger = logging.getLogger(__name__)
 
-class AccountMove(models.Model):
-
-    _inherit = "account.move"
-
-    def js_assign_outstanding_line(self, line_id):
-        self.ensure_one()
-        if "paid_amount" in self.env.context:
-            amount = self.env.context.get("paid_amount", 0.0)
-            final = self.currency_id._convert(amount,self.env['account.move.line'].browse(line_id).company_currency_id,self.env['account.move.line'].browse(line_id).company_id,self.env['account.move.line'].browse(line_id).date)
-            return self.with_context(move_id=self.id,line_id=line_id).js_assign_outstanding_line_amount(line_id, [final])
-        return super(AccountMove, self).js_assign_outstanding_line(line_id)
-    
-    def js_assign_outstanding_line_amount(self, line_id,amount):
-        ''' Called by the 'payment' widget to reconcile a suggested journal item to the present
-        invoice.
-
-        :param line_id: The id of the line to reconcile with the current invoice.
-        '''
-        self.ensure_one()
-        lines = self.env['account.move.line'].browse(line_id)
-        lines += self.line_ids.filtered(lambda line: line.account_id == lines[0].account_id and not line.reconciled)
-        return lines.reconcile(amount)
-
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
@@ -71,7 +48,6 @@ class AccountMoveLine(models.Model):
 
 
         sorted_lines = self.sorted(key=lambda line: (line.date_maturity or line.date, line.currency_id))
-        _logger.info(sorted_lines)
         # ==== Collect all involved lines through the existing reconciliation ====
 
         involved_lines = sorted_lines
@@ -96,29 +72,24 @@ class AccountMoveLine(models.Model):
         involved_partials += partials
 
         # ==== Create entries for cash basis taxes ====
-
         is_cash_basis_needed = account.user_type_id.type in ('receivable', 'payable')
         if is_cash_basis_needed and not self._context.get('move_reverse_cancel'):
             tax_cash_basis_moves = partials._create_tax_cash_basis_moves()
             results['tax_cash_basis_moves'] = tax_cash_basis_moves
 
         # ==== Check if a full reconcile is needed ====
-
         if involved_lines[0].currency_id and all(line.currency_id == involved_lines[0].currency_id for line in involved_lines):
-            is_full_needed = all(line.currency_id.is_zero(line.amount_residual_currency) for line in involved_lines)
+            is_full_needed = all(line.currency_id.is_zero(line.amount_residual_currency) or line.amount_residual_currency < 0 for line in involved_lines)
         else:
-            is_full_needed = all(line.company_currency_id.is_zero(line.amount_residual) for line in involved_lines)
-        is_full_needed = True
+            is_full_needed = all(line.company_currency_id.is_zero(line.amount_residual) or line.amount_residual < 0 for line in involved_lines)
+
         if is_full_needed:
 
             # ==== Create the exchange difference move ====
-
-            if self._context.get('no_exchange_difference'):
+            if not self._context.get('no_exchange_difference'):
                 exchange_move = None
             else:
-                lines_to_exch_rate = involved_lines.filtered(lambda line : line.amount_residual_currency == 0)
-                exchange_move = lines_to_exch_rate._create_exchange_difference_move()
-
+                exchange_move = sorted_lines._create_exchange_difference_move()
                 if exchange_move:
                     exchange_move_lines = exchange_move.line_ids.filtered(lambda line: line.account_id == account)
 
@@ -134,18 +105,14 @@ class AccountMoveLine(models.Model):
                     exchange_move._post(soft=False)
 
             # ==== Create the full reconcile ====
-
             results['full_reconcile'] = self.env['account.full.reconcile'].create({
                 'exchange_move_id': exchange_move and exchange_move.id,
-                'partial_reconcile_ids': [(6, 0, involved_partials.ids)],
-                'reconciled_line_ids': [(6, 0, involved_lines.ids)],
+                'partial_reconcile_ids': [(6, 0, sorted_lines.ids)],
+                'reconciled_line_ids': [(6, 0, sorted_lines.ids)],
             })
-
-        # Trigger action for paid invoices
         not_paid_invoices\
             .filtered(lambda move: move.payment_state in ('paid', 'in_payment'))\
             .action_invoice_paid()
-
         return results
      
     
@@ -156,12 +123,9 @@ class AccountMoveLine(models.Model):
                 return abs_residual
             else:
                 return partial_amount
-        _logger.info("ejecutando x vez")
         debit_lines = iter(self.filtered(lambda line: line.balance > 0.0 or line.amount_currency > 0.0))
         credit_lines = iter(self.filtered(lambda line: line.balance < 0.0 or line.amount_currency < 0.0))
         
-        _logger.info(debit_lines)
-        _logger.info(credit_lines)
         debit_line = None
         credit_line = None
        
@@ -174,7 +138,7 @@ class AccountMoveLine(models.Model):
 
         partials_vals_list = []
         indexAmount = 0
-
+        indexTrue = 0
         while True:
 
             # Move to the next available debit line.
@@ -184,9 +148,6 @@ class AccountMoveLine(models.Model):
                     break
                 debit_amount_residual = 0
                 custom_debit_amount = debit_line.move_id.move_type in ['entry']
-                _logger.info(debit_line.move_id.move_type)
-                _logger.info("debit line currency")
-                _logger.info(debit_line.currency_id.name)
                 
                 if custom_debit_amount:
                     debit_amount_residual = debit_line.currency_id._convert(
@@ -195,12 +156,8 @@ class AccountMoveLine(models.Model):
                         debit_line.company_id,
                         debit_line.date,
                     )
-                    _logger.info("custom debit amount")
-                    _logger.info(debit_amount_residual)
-                    _logger.info(debit_line.date)
                 else:
                    debit_amount_residual = debit_line.amount_residual
-                _logger.info(debit_amount_residual)
 
                 if debit_line.currency_id:
                     debit_amount_residual_currency = amounts[indexAmount] if custom_debit_amount else debit_line.amount_residual_currency
@@ -215,10 +172,8 @@ class AccountMoveLine(models.Model):
                 if not credit_line:
                     break
                     
-                _logger.info("credit line currency")
-                _logger.info(credit_line.currency_id.name)
                 custom_credit_amount = credit_line.move_id.move_type in ['entry']
-                _logger.info(credit_line.move_id.move_type)
+
                 credit_amount_residual = 0
                 if custom_credit_amount:
                     credit_amount_residual = - credit_line.currency_id._convert(
@@ -227,9 +182,6 @@ class AccountMoveLine(models.Model):
                         credit_line.company_id,
                         credit_line.date,
                     )
-                    _logger.info("custom debit amount")
-                    _logger.info(credit_amount_residual)
-                    _logger.info(credit_line.date)
                 else:
                     credit_amount_residual = credit_line.amount_residual
                 if credit_line.currency_id:
@@ -239,6 +191,7 @@ class AccountMoveLine(models.Model):
                 else:
                     credit_amount_residual_currency = credit_amount_residual
                     credit_line_currency = credit_line.company_currency_id
+                    
             if debit_line.currency_id != debit_line.company_currency_id and credit_line.move_id.move_type in ['entry']:
                 debit_amount_residual = debit_line.currency_id._convert(
                         debit_amount_residual,
@@ -285,12 +238,10 @@ class AccountMoveLine(models.Model):
                     -credit_amount_residual_currency,
                     min_credit_amount_residual_currency,
                 )
-
             debit_amount_residual -= min_amount_residual
             debit_amount_residual_currency -= min_debit_amount_residual_currency
             credit_amount_residual += min_amount_residual
             credit_amount_residual_currency += min_credit_amount_residual_currency
-
             partials_vals_list.append({
                 'amount': min_amount_residual,
                 'debit_amount_currency': min_debit_amount_residual_currency,
@@ -342,6 +293,5 @@ class AccountMoveLine(models.Model):
                 continue
             else:
                 break
-        _logger.info(partials_vals_list)
-        
+      
         return partials_vals_list
