@@ -18,7 +18,7 @@ class ProductTemplate(models.Model):
         locations = []
         for company in self.env.companies:
             locations.extend(company.at_hand_stock_locations.ids)
-        res = self.with_context(location =  locations)._compute_quantities_dict()
+        res = self.with_context(location =  locations,  compute_child = False)._compute_quantities_dict()
         for template in self:
             template.qty_available = res[template.id]['qty_available']
             template.virtual_available = res[template.id]['virtual_available']
