@@ -8,8 +8,5 @@
         <xpath expr="//*[local-name()='Concepto']" position="attributes">
             <attribute name="t-att-NoIdentificacion">supplier_code.product_code or line.product_id.barcode if supplier_code else line.product_id.default_code or ''</attribute>
         </xpath>
-        <xpath expr="//*[local-name()='Comprobante']" position="attributes">
-            <attribute name="t-att-CondicionesDePago">format_string(record.invoice_payment_term_id.name, 1000) ? supplier.vat != 'ANE140618P37' : '123'</attribute>
-        </xpath>
     </template>
 </odoo>
