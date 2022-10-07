@@ -23,8 +23,8 @@ class AccountMove(models.Model):
         self.ensure_one()
         lines = self.env['account.move.line'].browse(line_id)
         lines += self.line_ids.filtered(lambda line: line.account_id == lines[0].account_id and not line.reconciled)
-        return lines.reconcile(amount)
-
+        return lines.with_context(no_exchange_difference = True).reconcile(amount)
+    
 
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
@@ -71,12 +71,14 @@ class AccountMoveLine(models.Model):
 
 
         sorted_lines = self.sorted(key=lambda line: (line.date_maturity or line.date, line.currency_id))
+
         # ==== Collect all involved lines through the existing reconciliation ====
 
         involved_lines = sorted_lines
         involved_partials = self.env['account.partial.reconcile']
         current_lines = involved_lines
         current_partials = involved_partials
+        
         while current_lines:
             current_partials = (current_lines.matched_debit_ids + current_lines.matched_credit_ids) - current_partials
             involved_partials += current_partials
@@ -100,11 +102,18 @@ class AccountMoveLine(models.Model):
             tax_cash_basis_moves = partials._create_tax_cash_basis_moves()
             results['tax_cash_basis_moves'] = tax_cash_basis_moves
 
-        # ==== Check if a full reconcile is needed ====
-        if involved_lines[0].currency_id and all(line.currency_id == involved_lines[0].currency_id for line in involved_lines):
-            is_full_needed = all(line.currency_id.is_zero(line.amount_residual_currency) or line.amount_residual_currency < 0 for line in involved_lines)
+        # ==== Check if a full reconcile is needed ====     
+        lines_to_full_reconcile = self.env['account.move.line']
+        
+        for line in sorted_lines.filtered(lambda line : line.move_id.move_type in ['out_invoice','in_invoice']):
+            if line.currency_id.is_zero(line.amount_residual_currency):
+                lines_to_full_reconcile += line
+        if len(lines_to_full_reconcile) > 0:
+            is_full_needed = True
+            for line in sorted_lines.filtered(lambda line: line.move_id.move_type in ['entry']):
+                lines_to_full_reconcile += line
         else:
-            is_full_needed = all(line.company_currency_id.is_zero(line.amount_residual) or line.amount_residual < 0 for line in involved_lines)
+            is_full_needed = False
 
         if is_full_needed:
 
@@ -112,12 +121,12 @@ class AccountMoveLine(models.Model):
             if not self._context.get('no_exchange_difference'):
                 exchange_move = None
             else:
-                exchange_move = sorted_lines._create_exchange_difference_move()
+                exchange_move = lines_to_full_reconcile._create_exchange_difference_move()
                 if exchange_move:
                     exchange_move_lines = exchange_move.line_ids.filtered(lambda line: line.account_id == account)
 
                     # Track newly created lines.
-                    involved_lines += exchange_move_lines
+                    lines_to_full_reconcile += exchange_move_lines
 
                     # Track newly created partials.
                     exchange_diff_partials = exchange_move_lines.matched_debit_ids \
@@ -130,9 +139,10 @@ class AccountMoveLine(models.Model):
             # ==== Create the full reconcile ====
             results['full_reconcile'] = self.env['account.full.reconcile'].create({
                 'exchange_move_id': exchange_move and exchange_move.id,
-                'partial_reconcile_ids': [(6, 0, sorted_lines.ids)],
-                'reconciled_line_ids': [(6, 0, sorted_lines.ids)],
+                'partial_reconcile_ids': [(6, 0, lines_to_full_reconcile.ids)],
+                'reconciled_line_ids': [(6, 0, lines_to_full_reconcile.ids)],
             })
+        # Trigger action for paid invoices
         not_paid_invoices\
             .filtered(lambda move: move.payment_state in ('paid', 'in_payment'))\
             .action_invoice_paid()
@@ -163,7 +173,6 @@ class AccountMoveLine(models.Model):
         indexAmount = 0
         indexTrue = 0
         while True:
-
             # Move to the next available debit line.
             if not debit_line:
                 debit_line = next(debit_lines, None)
@@ -196,7 +205,6 @@ class AccountMoveLine(models.Model):
                     break
                     
                 custom_credit_amount = credit_line.move_id.move_type in ['entry']
-
                 credit_amount_residual = 0
                 if custom_credit_amount:
                     credit_amount_residual = - credit_line.currency_id._convert(
@@ -316,5 +324,5 @@ class AccountMoveLine(models.Model):
                 continue
             else:
                 break
-      
+        
         return partials_vals_list
