@@ -121,7 +121,7 @@ class AccountMoveLine(models.Model):
             if not self._context.get('no_exchange_difference'):
                 exchange_move = None
             else:
-                exchange_move = lines_to_full_reconcile._create_exchange_difference_move()
+                exchange_move = lines_to_full_reconcile.filtered(lambda line : line.move_id.move_type in ['out_invoice','in_invoice'])._create_exchange_difference_move()
                 if exchange_move:
                     exchange_move_lines = exchange_move.line_ids.filtered(lambda line: line.account_id == account)
 
