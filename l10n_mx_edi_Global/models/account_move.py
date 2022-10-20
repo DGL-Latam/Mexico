@@ -9,7 +9,7 @@ class AccountMove(models.Model):
         ('03','Quincenal'),
         ('04','Mensual'),
         ('05','Bimestral')
-    ], string="Periocidad", default='04')
+    ], string="Periocidad", default='01')
     l10n_mx_edi_mes = fields.Selection([
         ('01','Enero'),
         ('02','Febrero'),
@@ -33,7 +33,7 @@ class AccountMove(models.Model):
     l10n_mx_edi_year = fields.Selection('_getCurrentYears', string="Año", default=str(datetime.datetime.now().year))
 
     partner_vat = fields.Char(related="partner_id.vat")
-    
+
     def _getCurrentYears(self):
         values = [(str(datetime.datetime.now().year),str(datetime.datetime.now().year)),(str(datetime.datetime.now().year-1),str(datetime.datetime.now().year-1))]
         return values
