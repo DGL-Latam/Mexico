@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="nomina12">
+        <cfdi:Comprobante
+            xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/nomina12 http://www.sat.gob.mx/sitio_internet/cfd/nomina/nomina12.xsd"
+            xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:nomina12="http://www.sat.gob.mx/nomina12"
+            Version="4.0"
+            t-att-Serie="format_string(serie_number,25)"
+            t-att-Folio="format_string(serie_number,40)"
+            t-att-Fecha="cfdi_date"
+            Sello=""
+            t-att-NoCertificado="certificate_number"
+            t-att-Certificado="certificate_key"
+            t-att-SubTotal="format_float(,currency_precision)" Todas las entradas 
+            t-att-Descuento="format_float(,currency_precision)" Todas las deducciones positivas
+            Moneda="MXN"
+            t-att-Total="format_float(,currency_precision)" SUBTOTAL-DESCUENTOS
+            TipoComprobante="N"
+            Exportacion="01"
+            MetodoPago="PUE"
+            t-att-LugarExpedicion="issued_address.zip or supplier.zip">
+            <t t-if="origin_uuids">
+                <cfdi:CfdiRelacionados t-att-TipoRelacion="origin_type">
+                    <t t-foreach="origin_uuids" t-as="uuid">
+                        <cfdi:CfdiRelacionado t-att-UUID="uuid"/>
+                    </t>
+                </cfdi:CfdiRelacionados>
+            </t>
+            <cfdi:Emisor
+                t-att-Rfc="supplier.vat"
+                t-att-Nombre="format_string(supplier_name, 254)"
+                t-att-RegimenFiscal="record.company_id.l10n_mx_edi_fiscal_regime"/>
+            <cfdi:Receptor
+                t-att-Rfc="customer_rfc"
+                t-att-Nombre="format_string(customer_name, 254)"
+                t-att-ResidenciaFiscal="customer_fiscal_residence"
+                t-att-DomicilioFiscalReceptor="customer.zip if customer.country_id.code == 'MX' else issued_address.zip or supplier.zip"
+                t-att-RegimenFiscalReceptor="fiscal_regime"
+                t-att-UsoCFDI="record.l10n_mx_edi_usage if record.l10n_mx_edi_usage != 'P01' else 'S01'"/>
+        </cfdi:Comprobante>
+    </template>
+</odoo>
