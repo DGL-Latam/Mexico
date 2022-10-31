@@ -179,7 +179,7 @@ class AccountMoveLine(models.Model):
                 if not debit_line:
                     break
                 debit_amount_residual = 0
-                custom_debit_amount = debit_line.move_id.move_type in ['entry']
+                custom_debit_amount = debit_line.move_id.move_type in ['entry', 'out_refund', 'in_refund']
                 
                 if custom_debit_amount:
                     debit_amount_residual = debit_line.currency_id._convert(
@@ -204,7 +204,7 @@ class AccountMoveLine(models.Model):
                 if not credit_line:
                     break
                     
-                custom_credit_amount = credit_line.move_id.move_type in ['entry']
+                custom_credit_amount = credit_line.move_id.move_type in ['entry', 'out_refund', 'in_refund']
                 credit_amount_residual = 0
                 if custom_credit_amount:
                     credit_amount_residual = - credit_line.currency_id._convert(
