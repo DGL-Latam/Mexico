@@ -33,12 +33,60 @@
                 t-att-Nombre="format_string(supplier_name, 254)"
                 t-att-RegimenFiscal="record.company_id.l10n_mx_edi_fiscal_regime"/>
             <cfdi:Receptor
-                t-att-Rfc="customer_rfc"
+                t-att-Rfc="customer_rfc"  obtener desde el contact.id del relacionado (maybe)
                 t-att-Nombre="format_string(customer_name, 254)"
-                t-att-ResidenciaFiscal="customer_fiscal_residence"
                 t-att-DomicilioFiscalReceptor="customer.zip if customer.country_id.code == 'MX' else issued_address.zip or supplier.zip"
-                t-att-RegimenFiscalReceptor="fiscal_regime"
-                t-att-UsoCFDI="record.l10n_mx_edi_usage if record.l10n_mx_edi_usage != 'P01' else 'S01'"/>
+                RegimenFiscalReceptor="605"
+                UsoCFDI="CN01"/>
+            <cfdi:Conceptos>
+                <cfdi:Concepto 
+                ClaveProdServ="84111505"
+                Cantidad="1"
+                ClaveUnidad="ACT"
+                Descripcion="Pago de nómina"
+                t-att-ValorUnitario="suma total percepciones mas otros pagos"
+                t-att-Importe="lo mismo que arriba"
+                t-att-Descuento="total deducciones"
+                ObjetoImp="01">
+                </cfdi:Concepto>
+            </cfdi:Conceptos>
+            <cfdi:Complemento>
+                <nomina12:Nomina 
+                Version="1.2"
+                t-att-TipoNomina="(O)rdinaria o (E)xtraordinaria"
+                t-att-FechaPago="AAAA-MM-DD efectiva de pago"
+                t-att-FechaInicialPago="AAAA-MM-DD fecha de inicio del periodo de pago"
+                t-att-FechaFinalPago="AAAA-MM-DD fecha de fin del periodo de pago"
+                t-att-NumDiasPagados="dias pagados pueden ser fracciones"
+                t-att-TotalPercepciones="sumas todas las percepciones"
+                t-att-TotalDeducciones="sumas todos los descuentos"
+                t-att-TotalOtrosPagados="suma seccion otros pagos como reintegro isr, subsidio, viaticos, aplicacion de saldo a favor. reintegro isr, otros">
+                    <nomina12:Emisor
+                    t-att-RegistroPatronal="char de hasta 20 caracteres"></nomina12:Emisor> Listo obtener del company_id
+                    <nomina12:Receptor 
+                    t-att-Curp="curp del trabajador" del hr.employee.contact_curp
+                    t-att-NumSeguridadSocial="numero de seguridad social del trabajador" del hr.employee.contact_seg_social
+                    t-att-FechaInicioRelLaboral="fecha en la que el trabajador inicio la relacion laboral AAAA-MM-DD"
+                    t-att-Antiguedad="P10Y8M15D segun año calendario" calculado desde hr.contract.history.date_hired hasta hoy
+                    t-att-TipoContrato="" del hr.contract.contract_type_id.code
+                    t-att-Sindicalizado="si o no" del hr.employee.sindicalizado
+                    t-att-TipoJornada="" hr.contract.l10n_mx_TipoJornada
+                    t-att-TipoRegimen="" del hr.contract.l10n_mx_TipoRegimen
+                    t-att-NumEmpleado="" hr.employee.registration_number
+                    t-att-Departamento="" hr.employee.department_id.name || hr.contract.department_id.name
+                    t-att-Puesto="" hr.employee.(job_title | job_id.name) || hr.contract.job_id.name || 
+                    t-att-RiesgoPuesto="" hr.employee.job_id.riesgo_puesto  || hr.contract.job_id.riesgo_puesto
+                    t-att-PeriodicidadPago=""
+                    t-att-Banco="" opcional
+                    t-att-CuentaBancaria="" opcional
+                    t-att-SalarioBaseCotApor=""opcional  (Salario mensual / 30) * (SalarioDiarioIntegrado (365 + dias aguinaldo + (0.25)Dias de vacaciones)/365) topado a 25 salarios minimos
+                    t-att-SalarioDiarioIntegrado=""opcional (Salario mensual / 30) * (SalarioDiarioIntegrado (365 + dias aguinaldo + (0.25)Dias de vacaciones)/365)
+                    t-att-ClaveEntFed=""estado en lo que el trabajador presto el servicio
+                    ></nomina12:Receptor>
+
+
+                </nomina12:Nomina>
+            </cfdi:Complemento>
         </cfdi:Comprobante>
     </template>
 </odoo>
