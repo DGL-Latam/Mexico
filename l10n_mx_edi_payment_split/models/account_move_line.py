@@ -12,7 +12,8 @@ class AccountMove(models.Model):
         if "paid_amount" in self.env.context:
             amount = self.env.context.get("paid_amount", 0.0)
             final = self.currency_id._convert(amount,self.env['account.move.line'].browse(line_id).company_currency_id,self.env['account.move.line'].browse(line_id).company_id,self.env['account.move.line'].browse(line_id).date)
-            return self.with_context(move_id=self.id,line_id=line_id).js_assign_outstanding_line_amount(line_id, [final])
+            if final != 0:
+                return self.with_context(move_id=self.id,line_id=line_id).js_assign_outstanding_line_amount(line_id, [final])
         return super(AccountMove, self).js_assign_outstanding_line(line_id)
 
     def js_assign_outstanding_line_amount(self, line_id,amount):
