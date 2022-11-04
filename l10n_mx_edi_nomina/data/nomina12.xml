@@ -78,7 +78,7 @@
                     t-att-RiesgoPuesto="" hr.employee.job_id.riesgo_puesto  || hr.contract.job_id.riesgo_puesto
                     t-att-PeriodicidadPago=""
                     t-att-Banco="" opcional
-                    t-att-CuentaBancaria="" opcional
+                    t-att-CuentaBancaria="" opcional 123
                     t-att-SalarioBaseCotApor=""opcional  (Salario mensual / 30) * (SalarioDiarioIntegrado (365 + dias aguinaldo + (0.25)Dias de vacaciones)/365) topado a 25 salarios minimos
                     t-att-SalarioDiarioIntegrado=""opcional (Salario mensual / 30) * (SalarioDiarioIntegrado (365 + dias aguinaldo + (0.25)Dias de vacaciones)/365)
                     t-att-ClaveEntFed=""estado en lo que el trabajador presto el servicio
