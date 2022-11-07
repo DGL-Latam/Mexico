@@ -13,10 +13,10 @@
             Sello=""
             t-att-NoCertificado="certificate_number"
             t-att-Certificado="certificate_key"
-            t-att-SubTotal="format_float(,currency_precision)" Todas las entradas 
-            t-att-Descuento="format_float(,currency_precision)" Todas las deducciones positivas
+            t-att-SubTotal="format_float(GrossEarning,currency_precision)"  
+            t-att-Descuento="format_float(Deductions,currency_precision)"
             Moneda="MXN"
-            t-att-Total="format_float(,currency_precision)" SUBTOTAL-DESCUENTOS
+            t-att-Total="format_float(NetEarning,currency_precision)" 
             TipoComprobante="N"
             Exportacion="01"
             MetodoPago="PUE"
@@ -33,7 +33,7 @@
                 t-att-Nombre="format_string(supplier_name, 254)"
                 t-att-RegimenFiscal="record.company_id.l10n_mx_edi_fiscal_regime"/>
             <cfdi:Receptor
-                t-att-Rfc="customer_rfc"  obtener desde el contact.id del relacionado (maybe)
+                t-att-Rfc="customer_rfc" 
                 t-att-Nombre="format_string(customer_name, 254)"
                 t-att-DomicilioFiscalReceptor="customer.zip if customer.country_id.code == 'MX' else issued_address.zip or supplier.zip"
                 RegimenFiscalReceptor="605"
@@ -44,30 +44,32 @@
                 Cantidad="1"
                 ClaveUnidad="ACT"
                 Descripcion="Pago de nómina"
-                t-att-ValorUnitario="suma total percepciones mas otros pagos"
-                t-att-Importe="lo mismo que arriba"
-                t-att-Descuento="total deducciones"
+                t-att-ValorUnitario="format_float(GrossEarning,currency_precision)"
+                t-att-Importe="format_float(GrossEarning,currency_precision)"
+                t-att-Descuento="format_float(Deductions,currency_precision)"
                 ObjetoImp="01">
                 </cfdi:Concepto>
             </cfdi:Conceptos>
             <cfdi:Complemento>
                 <nomina12:Nomina 
                 Version="1.2"
-                t-att-TipoNomina="(O)rdinaria o (E)xtraordinaria"
-                t-att-FechaPago="AAAA-MM-DD efectiva de pago"
-                t-att-FechaInicialPago="AAAA-MM-DD fecha de inicio del periodo de pago"
-                t-att-FechaFinalPago="AAAA-MM-DD fecha de fin del periodo de pago"
-                t-att-NumDiasPagados="dias pagados pueden ser fracciones"
-                t-att-TotalPercepciones="sumas todas las percepciones"
-                t-att-TotalDeducciones="sumas todos los descuentos"
-                t-att-TotalOtrosPagados="suma seccion otros pagos como reintegro isr, subsidio, viaticos, aplicacion de saldo a favor. reintegro isr, otros">
+                t-att-TipoNomina="TipoNomina"
+                t-att-FechaPago="PaymentDate."
+                t-att-FechaInicialPago="StartDate"
+                t-att-FechaFinalPago="EndDate"
+                t-att-NumDiasPagados="PayedDays"
+                t-att-TotalPercepciones="format_float(GrossEarning,currency_precision)"
+                t-att-TotalDeducciones="format_float(Deductions,currency_precision)"
+                t-att-TotalOtrosPagados="format_float(OtherEarnings,currency_precision)">
                     <nomina12:Emisor
-                    t-att-RegistroPatronal="char de hasta 20 caracteres"></nomina12:Emisor> Listo obtener del company_id
+                    t-att-RegistroPatronal="CompanyReg"></nomina12:Emisor>
                     <nomina12:Receptor 
-                    t-att-Curp="curp del trabajador" del hr.employee.contact_curp
-                    t-att-NumSeguridadSocial="numero de seguridad social del trabajador" del hr.employee.contact_seg_social
+                    t-att-Curp="CURP"
+                    t-att-NumSeguridadSocial="SegSoc"
                     t-att-FechaInicioRelLaboral="fecha en la que el trabajador inicio la relacion laboral AAAA-MM-DD"
-                    t-att-Antiguedad="P10Y8M15D segun año calendario" calculado desde hr.contract.history.date_hired hasta hoy
+                    t-att-Antiguedad="'P10Y8M15D'"
+                    >
+                    <!-- 
                     t-att-TipoContrato="" del hr.contract.contract_type_id.code
                     t-att-Sindicalizado="si o no" del hr.employee.sindicalizado
                     t-att-TipoJornada="" hr.contract.l10n_mx_TipoJornada
@@ -82,7 +84,8 @@
                     t-att-SalarioBaseCotApor=""opcional  (Salario mensual / 30) * (SalarioDiarioIntegrado (365 + dias aguinaldo + (0.25)Dias de vacaciones)/365) topado a 25 salarios minimos
                     t-att-SalarioDiarioIntegrado=""opcional (Salario mensual / 30) * (SalarioDiarioIntegrado (365 + dias aguinaldo + (0.25)Dias de vacaciones)/365)
                     t-att-ClaveEntFed=""estado en lo que el trabajador presto el servicio
-                    ></nomina12:Receptor>
+                    -->
+                    </nomina12:Receptor>
 
 
                 </nomina12:Nomina>

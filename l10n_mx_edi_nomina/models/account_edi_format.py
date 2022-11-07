@@ -1,7 +1,10 @@
 from odoo import models, fields, _
 
-from lxml import etree
 import base64
+
+from lxml import etree
+from datetime import datetime
+
 
 class AccountEdiFormat(models.Model):
     _inherit = "account.edi.format"
@@ -129,3 +132,27 @@ class AccountEdiFormat(models.Model):
         payroll.message_post(body=message)
 
         return edi_result
+
+    def _l10n_mx_edi_get_payroll_cfdi_values(self, payroll):
+        cfdi_date = datetime.combine(
+            fields.Datetime.from_string(payroll.invoice_date),
+            payroll.l10n_mx_edi_post_time.time(),
+        ).strftime('%Y-%m-%dT%H:%M:%S')
+        cfdi_values = {
+            **payroll._prepare_edi_vals_to_export(),
+            **self._l10n_mx_edi_get_common_cfdi_values(payroll),
+            'cfdi_date': cfdi_date,
+            'TipoNomina' : 'O',
+            'PaymentDate' : datetime.now().strftime('%Y-%m-%d'),
+            'StartDate' : payroll.payslip_id.date_from.strftime('%Y-%m-%d'),
+            'EndDate' : payroll.payslip_id.date_to.strftime('%Y-%m-%d'),
+            'PayedDays' : 1,
+            'NetEarning' :  payroll.payslip_id.line_ids.filtered(lambda x: x.category_id.code == 'NET').total,
+            'GrossEarning' : payroll.payslip_id.line_ids.filtered(lambda x: x.category_id.code == 'GROSS').total,
+            'Deductions' : sum(payroll.payslip_id.line_ids.filtered(lambda x: x.category_id.code == 'DED').total),
+            'OtherEarnings' : sum(payroll.payslip_id.line_ids.filtered(lambda x: x.category_id.code in ['ALW','OTH','COMP'] ).total),
+            'CompanyReg' : payroll.company_id.l10n_mx_edi_reg_pat,
+            'CURP' : payroll.payslip_id.employee_id.l10n_mx_curp,
+            'SegSoc' : payroll.payslip_id.employee_id.l10n_mx_seg_soc,
+
+        }

@@ -9,7 +9,7 @@
         'hr_payroll',
     ],
     'data': [
-        
+        'data/nomina12.xml'
     ],
     'demo': [
     ],
