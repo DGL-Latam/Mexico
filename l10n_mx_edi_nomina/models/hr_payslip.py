@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
 
-    edi_document_ids = fields.One2Many(
+    edi_document_ids = fields.One2many(
         comodel_name='account.edi.document',
         inverse_name='payslip_id'
     )
@@ -30,6 +30,7 @@ class HrPayslip(models.Model):
                         'edi_format_id' : edi_format.id,
                         'payslip_id' : payslip.id,
                         'state' : 'to_send',
+                        'move_id': self.move_id.id
                     })
             self.env['account.edi.document'].create(edi_document_vals_list)
             self.edi_document_ids._process_documents_web_services()
