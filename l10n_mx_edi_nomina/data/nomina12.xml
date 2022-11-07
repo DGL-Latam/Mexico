@@ -22,7 +22,7 @@
             MetodoPago="PUE"
             t-att-LugarExpedicion="issued_address.zip or supplier.zip">
             <t t-if="origin_uuids">
-                <cfdi:CfdiRelacionados t-att-TipoRelacion="origin_type">
+                <cfdi:CfdiRelacionados TipoRelacion="04">
                     <t t-foreach="origin_uuids" t-as="uuid">
                         <cfdi:CfdiRelacionado t-att-UUID="uuid"/>
                     </t>
