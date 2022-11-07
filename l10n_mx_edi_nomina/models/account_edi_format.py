@@ -3,7 +3,6 @@ from odoo import models, fields
 class AccountEdiFormat(models.Model):
     _inherit = "account.edi.format"
 
-    payslip_id = fields.Many2one('hr.payslip')
     def _is_compatible_with_journal(self, journal):
         # TO OVERRIDE
         self.ensure_one()
