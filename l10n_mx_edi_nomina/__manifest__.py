@@ -9,8 +9,7 @@
         'hr_payroll',
     ],
     'data': [
-        'data/account_edi_data.xml',
-        'data/nomina12.xml', 
+        
     ],
     'demo': [
     ],
