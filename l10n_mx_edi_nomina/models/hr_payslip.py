@@ -12,6 +12,6 @@ class HrPayslip(models.Model):
         """
         res = super(HrPayslip, self).action_payslip_done()
         self.move_id.write({
-            'payslip_id' : self.id,
+            'payslip_id' : self,
         })
         return res

@@ -5,15 +5,15 @@ from odoo.exceptions import UserError
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    payslip_id = fields.One2many('hr.payslip')
+    payslip_id = fields.One2many('hr.payslip', inverse_name='move_id')
 
 
     def _post(self, soft=True):
-        posted = super._post(soft=soft)
+        posted = super()._post(soft=soft)
         edi_document_vals_list = []
         for move in posted:
             for edi_format in move.journal_id.edi_format_ids:
-                is_edi_payroll = move.payslip_id.id and move.move_type == 'entry' and edi_format.code == 'cfdi_3_3'
+                is_edi_payroll = move.payslip_id and move.move_type == 'entry' and edi_format.code == 'cfdi_3_3'
                 if is_edi_payroll:
                     errors = edi_format._check_move_configuration(move)
                     if errors:

@@ -154,5 +154,4 @@ class AccountEdiFormat(models.Model):
             'CompanyReg' : payroll.company_id.l10n_mx_edi_reg_pat,
             'CURP' : payroll.payslip_id.employee_id.l10n_mx_curp,
             'SegSoc' : payroll.payslip_id.employee_id.l10n_mx_seg_soc,
-
         }
