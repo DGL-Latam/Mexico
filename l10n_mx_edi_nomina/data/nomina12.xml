@@ -54,7 +54,7 @@
                 <nomina12:Nomina 
                 Version="1.2"
                 t-att-TipoNomina="TipoNomina"
-                t-att-FechaPago="PaymentDate."
+                t-att-FechaPago="PaymentDate"
                 t-att-FechaInicialPago="StartDate"
                 t-att-FechaFinalPago="EndDate"
                 t-att-NumDiasPagados="PayedDays"

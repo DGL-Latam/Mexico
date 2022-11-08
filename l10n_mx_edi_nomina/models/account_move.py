@@ -12,6 +12,10 @@ class AccountMove(models.Model):
         posted = super()._post(soft=soft)
         edi_document_vals_list = []
         for move in posted:
+            if not move.invoice_date:
+                certificate_date = self.env['l10n_mx_edi.certificate'].sudo().get_mx_current_datetime()
+                move.invoice_date = certificate_date.date()
+                move.with_context(check_move_validity=False)._onchange_invoice_date()
             for edi_format in move.journal_id.edi_format_ids:
                 is_edi_payroll = move.payslip_id and move.move_type == 'entry' and edi_format.code == 'cfdi_3_3'
                 if is_edi_payroll:
