@@ -11,7 +11,7 @@ class HrPayslip(models.Model):
             A move is created for each journal and for each month.
         """
         res = super(HrPayslip, self).action_payslip_done()
-        self.write({
+        self.move_id.write({
             'payslip_id' : self.id,
         })
         return res
