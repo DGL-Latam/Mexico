@@ -17,7 +17,7 @@
             t-att-Descuento="format_float(Deductions,currency_precision)"
             Moneda="MXN"
             t-att-Total="format_float(NetEarning,currency_precision)" 
-            TipoComprobante="N"
+            TipoDeComprobante="N"
             Exportacion="01"
             MetodoPago="PUE"
             t-att-LugarExpedicion="issued_address.zip or supplier.zip">
@@ -66,7 +66,7 @@
                     <nomina12:Receptor 
                     t-att-Curp="CURP"
                     t-att-NumSeguridadSocial="SegSoc"
-                    t-att-FechaInicioRelLaboral="fecha en la que el trabajador inicio la relacion laboral AAAA-MM-DD"
+                    t-att-FechaInicioRelLaboral="'2022-11-08'"
                     t-att-Antiguedad="'P10Y8M15D'"
                     >
                     <!-- 

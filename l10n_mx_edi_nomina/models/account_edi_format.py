@@ -104,7 +104,7 @@ class AccountEdiFormat(models.Model):
                 continue
 
             cfdi_signed = res['cfdi_signed'] if res['cfdi_encoding'] == 'base64' else base64.encodebytes(res['cfdi_signed'])
-            cfdi_filename = f'{payroll.journal_id.code}-{payroll.name}-MX-Payroll-10.xml'.replace('/', '')
+            cfdi_filename = f'{payroll.journal_id.code}-{payroll.name}-MX-Payroll-12.xml'.replace('/', '')
 
             cfdi_attachment = self.env['ir.attachment'].create({
                 'name' : cfdi_filename,
@@ -154,13 +154,14 @@ class AccountEdiFormat(models.Model):
         ).strftime('%Y-%m-%dT%H:%M:%S')
         deductionVal = 0
         for ded in payroll.payslip_id.line_ids.filtered(lambda x: x.category_id.code == 'DED'):
-            deductionVal += ded.total
+            deductionVal -= ded.total
         otherVal = 0
         for other in payroll.payslip_id.line_ids.filtered(lambda x: x.category_id.code in ['ALW','OTH','COMP']):
             otherVal += other.total
         cfdi_values = {
             **payroll._prepare_edi_vals_to_export(),
             **self._l10n_mx_edi_get_common_cfdi_values(payroll),
+            **self._l10n_mx_edi_get_40_values(payroll),
             'cfdi_date': cfdi_date,
             'TipoNomina' : 'O',
             'PaymentDate' : datetime.now().strftime('%Y-%m-%d'),

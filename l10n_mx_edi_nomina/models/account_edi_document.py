@@ -80,7 +80,7 @@ class AccountEdiDocument(models.Model):
                 entries = documents.move_id
                 with entries._send_only_when_ready():
                     edi_result = edi_format._l10n_mx_edi_post_payroll(entries)
-                    super()._postprocess_post_edi_results(documents, edi_result)
+                    _postprocess_post_edi_results(documents, edi_result)
             elif state == 'to_cancel':
                 edi_result = edi_format._l10n_mx_edi_cancel_payroll(documents.move_id)
-                super()._postprocess_cancel_edi_results(documents, edi_result)
+                _postprocess_cancel_edi_results(documents, edi_result)
