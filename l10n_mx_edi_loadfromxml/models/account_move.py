@@ -57,7 +57,3 @@ class AccountMove(models.Model):
             root = self.get_etree(attach)
             edi_document.write({'attachment_id': attach.id, 'state' : 'sent'})
             self.l10n_mx_edi_post_time = parser.parse(root.get('Fecha'))
-            _logger.info(root.tag)
-            _logger.info(root.get('Fecha'))
-            _logger.info(root.find('.//{http://www.sat.gob.mx/cfd/3}Emisor').get('Rfc'))
-            _logger.info(root.find('.//{http://www.sat.gob.mx/TimbreFiscalDigital}TimbreFiscalDigital').get('UUID'))
