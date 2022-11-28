@@ -71,7 +71,8 @@ class MercadoLibreSales(models.Model):
 
     @api.depends('ml_pack_id', 'ml_order_id')
     def _ComputeName(self):
-        self.name = self.ml_pack_id if self.ml_pack_id else self.ml_order_id
+        for rec in self:
+            rec.name = rec.ml_pack_id if rec.ml_pack_id else rec.ml_order_id
 
     def _ComputeTotalOrder(self):
         for rec in self:
