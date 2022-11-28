@@ -146,8 +146,8 @@ class MercadoLibreSales(models.Model):
         if 'error' in order_details:
             return 
 
-        if order_details['pack_id'] and self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id)]):
-            self.unlink(self.id)
+        if order_details['pack_id'] and self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id.id)]):
+            self.unlink()
             return
 
         self._writeDataOrderDetail(order_details)

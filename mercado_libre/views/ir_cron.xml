@@ -38,11 +38,11 @@ for sale in env['mercadolibre.sales'].sudo().search([('sale_order_id','=',False)
 
         <record id="ir_cron_update_status" model="ir.cron">
             <field name="name">Actualizar estado ordenes ML</field>
-            field name="model_id" ref="model_mercadolibre_sales"/>
+            <field name="model_id" ref="model_mercadolibre_sales"/>
             <field name="state">code</field>
             <field name="code">
 for sale in env['mercadolibre.sales'].sudo().search([('status','not in',['delivered','cancelled', 'fraud'])]):
-    sale.check_order()
+    sale.UpdateStatus()
             
             </field>
             <field name="user_id" ref="base.user_admin"/>
