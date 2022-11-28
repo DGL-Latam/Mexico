@@ -38,3 +38,13 @@ class AccountEdiFormat(models.Model):
 
         cfdi_node.append(addenda_node)
         return etree.tostring(cfdi_node, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+    def _get_invoice_edi_content(self, move):
+        #OVERRIDE
+        if self.code != 'cfdi_3_3':
+            return super()._get_invoice_edi_content(move)
+        res = self._l10n_mx_edi_export_invoice_cfdi(move)
+        addenda = move.partner_id.l10n_mx_edi_addenda or move.partner_id.commercial_partner_id.l10n_mx_edi_addenda
+        if addenda:
+            res = self._l10n_mx_edi_cfdi_append_addenda(move, res['cfdi_str'], addenda)
+        return res
