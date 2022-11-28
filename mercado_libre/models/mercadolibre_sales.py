@@ -58,7 +58,7 @@ class MercadoLibreSales(models.Model):
         ('ready_to_ship' , 'Listo para enviar'),
         ('shipped', 'Enviado'),
         ('delivered', 'Entregado'),
-        ('not_delivered', 'No entregado')
+        ('not_delivered', 'No entregado'),
         ('cancelled' , 'Cancelada'),
         ('fraud' , 'Cancelado por riesgo de Fraude'),
     ], default="to_create")
