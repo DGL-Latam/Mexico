@@ -46,7 +46,7 @@ class MercadoLibreSales(models.Model):
 
     printed = fields.Boolean(default=False, help="¿La guia de esta orden ha sido impresa anteriormente?")
     
-    name = fields.Char(string="Orden", compute="_ComputeName")
+    name = fields.Char(string="Orden", compute="_ComputeName", store=True)
     
     order_line = fields.One2many('mercadolibre.sale.line', 'ml_order_id', string='Order Lines', auto_join=True)
     productsQuantity = fields.Float(string="Cantidad de productos", compute="_ComputeQtyProducts")
@@ -67,8 +67,6 @@ class MercadoLibreSales(models.Model):
     _sql_constraints = [
         ('ml_order_id_unique',
         'unique(ml_order_id)', 'No se deben repetir order ID para evitar duplicidad'),
-        ('ml_pack_id_unique', 
-        'unique(ml_pack_id)', 'No Repetir pack id, para evitar duplicidad en vista ML'),
     ]
 
     def _ComputeTotalOrder(self):
@@ -84,9 +82,35 @@ class MercadoLibreSales(models.Model):
             for line in rec.order_line:
                 qty += line.product_uom_qty
             rec.productsQuantity = qty
-    #TODO
+    
     def _ProcessOrderLines(self):
-        _logger.critical('')
+        items = self._getShipmentItems()
+        order_ids = []
+        for order_item in items:
+            order_ids.append(order_item['order_id'])
+        order_ids = list(dict.fromkeys(order_ids)) #remove duplicates
+        values = []
+        for order in order_ids:
+            details = self._getOrderDetails(order)
+            for order_item in details['order_items']:
+                product_id = self.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'].replace('-',''))])
+                if product_id:
+                    values.append({
+                        'ml_order_id' : self.ml_order_id,
+                        'product_id' : product_id.id,
+                        'name' : product_id.description_sale if product_id.description_sale else '[{}] {}'.format(product_id.default_code, product_id.name),
+                        'price' : order_item['unit_price'],
+                        'product_uom_qty' : order_item['quantity']
+                    })
+                else : 
+                    values.append({
+                        'ml_order_id' : self.ml_order_id,
+                        'name' : order_item['item']['seller_sku'] + ' ' + order_item['title'],
+                        'price' : order_item['unit_price'],
+                        'product_uom_qty' : order_item['quantity']
+                    })
+        self.env['mercadolibre.sale.line'].sudo().with_user(1).create(values) 
+
 
     def _print_info(self):
        _logger.critical( '{},{},{},{}, Full: {}'.format(self.ml_order_id, self.ml_shipping_id, self.sale_order_id.id, self.tracking_reference, self.ml_is_order_full) ) 
@@ -105,6 +129,7 @@ class MercadoLibreSales(models.Model):
             return 
 
         if self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id)]):
+            self.unlink(self.id)
             return
 
         self._writeDataOrderDetail(order_details)
@@ -134,26 +159,12 @@ class MercadoLibreSales(models.Model):
         
         if last_shipping['substatus'] in ['ready_to_print','regenerating']:
             if not self.sale_order_id:
-                client_name = order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name']
-                self.write({
-                    'ml_pack_id' : order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id,
-                    'tracking_reference' : shipping_details['tracking_number'],
-                    'client_name' : client_name
-                })
                 so = self.create_so()
                 if not so.id:
-                    return {
-                        'success' : True,
-                        'status' : 'orden no generada',
-                        'code' : 200
-                    }
-                self.create_so_lines(self.sale_order_id,order_details,shipping_details)
+                    return
+                self.create_so_lines()
 
-        return {
-            'success': True,
-            'status': 'Datos guardados',
-            'code': 200
-        }
+        return 
 
 
     def _GetShippingID(self):
@@ -169,8 +180,10 @@ class MercadoLibreSales(models.Model):
         return json.loads(res.text)
    
     #Get the json of the order info whenever an event has ocurred, 
-    def _getOrderDetails(self):
+    def _getOrderDetails(self, order_id = None):
         url = "https://api.mercadolibre.com/orders/{order_id}".format( order_id = self.ml_order_id)
+        if order_id:
+            url = "https://api.mercadolibre.com/orders/{order_id}".format( order_id = order_id)
         return self._getData(url)
 
     #We recover the sipment details with an ID
@@ -202,15 +215,8 @@ class MercadoLibreSales(models.Model):
         sale_order = self.env['sale.order'].sudo().with_user(1).search([('name','=',self.ml_pack_id),('company_id','=',self.company_id.id)])
         if sale_order.id:
             self.write({'sale_order_id' : sale_order.id })
-            return sale_order
-        if not sale_order.id:
-            prev_order = self.env['mercadolibre.sales'].search( [('ml_pack_id', '=',self.ml_pack_id ), ('ml_order_id', '!=', self.ml_order_id), ('create_date','<', self.create_date) ] )
-            if prev_order.id:
-                sale_order = prev_order.sale_order_id
-                return sale_order
-        if sale_order.id:
-            self.write({'sale_order_id' : sale_order.id })
-            return sale_order
+            return 
+
         values = {
             'origin' : 'MP-ML',
             'team_id' : self.env['crm.team'].sudo().search([('name','=', 'MP-ML'),('company_id','=',self.company_id.id)]).id,
@@ -265,46 +271,45 @@ class MercadoLibreSales(models.Model):
         mail = self.env['mail.mail'].sudo().with_user(1).create(mail_values)
         mail.send([mail.id])
 
-    def create_so_lines(self,sale_order,order_details,shipping_details):
-        if sale_order.amount_total == shipping_details['order_cost']:
-            return sale_order
+    def create_so_lines(self):
+        if self.sale_order_id.amount_total == self.total:
+            return
         so_lines_values = []
         error = False
         message = ''
         mail_body = ''
-        for order_item in order_details['order_items']:
-            mail_body = 'sku registrado '+ order_item['item']['seller_sku'] + ' ' + order_item['item']['title'] + ' precio unitario sin IVA '  + str( order_item['unit_price'] / 1.16 ) + ' cantidad ' + str(order_item['quantity']) + '\n'
-            message += 'sku registrado '+ order_item['item']['seller_sku'] + ' ' + order_item['item']['title'] + ' precio unitario sin IVA '  + str( order_item['unit_price'] / 1.16 ) + ' cantidad ' + str(order_item['quantity']) + '\n'
-            product_id = self.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'].replace('-',''))])
-            if product_id.id:
+        for order_item in self.order_line:
+            message += 'sku registrado ' + order_item.name + ' precio unitario sin iva ' + str( order_item.price / 1.16 ) + ' cantidad ' + str(order_item.product_uom_qty) + '\n'
+            if order_item.product_id:
                 so_lines_values.append({
-                    'name' : product_id.description_sale if product_id.description_sale else '[{}] {}'.format(product_id.default_code, product_id.name),
-                    'product_id' : product_id.id,
-                    'product_uom' : product_id.uom_id.id,
-                    'product_uom_qty' : order_item['quantity'],
-                    'price_unit' : order_item['unit_price'] / 1.16,
-                    'order_id' : sale_order.id,
+                    'name' : order_item.name,
+                    'product_id' : order_item.product_id,
+                    'product_uom' : order_item.product_id.uom_id.id,
+                    'product_uom_qty' : order_item.product_uom_qty,
+                    'price_unit' : order_item.price / 1.16,
+                    'order_id' : self.sale_order_id,
                     'display_type' : False,
                 })
             else:
-                error = True
-                so_lines_values.append({
-                    'name' : mail_body ,
-                    'order_id' : sale_order.id,
-                    'display_type' : 'line_note',
-                })
+               error = True
+               mail_body += 'sku registrado ' + order_item.name + ' precio unitario sin iva ' + str( order_item.price / 1.16 ) + ' cantidad ' + str(order_item.product_uom_qty) + '\n'
+               so_lines_values.append({
+                'name' : 'sku registrado ' + order_item.name + ' precio unitario sin iva ' + str( order_item.price / 1.16 ) + ' cantidad ' + str(order_item.product_uom_qty) + '\n',
+                'order_id' : self.sale_order_id,
+                'display_type' : 'line_note',
+               }) 
             
-        sale_order.sudo().with_user(1).message_post(body = message)
+        self.sale_order_id.sudo().with_user(1).message_post(body = message)
         self.env['sale.order.line'].sudo().with_user(1).create(so_lines_values)
         
         if not error:
-            sale_order.sudo().with_user(1).action_confirm()
-            sale_order.picking_ids[0].sudo().with_user(1).message_post(body = message)
+            self.sale_order_id.sudo().with_user(1).action_confirm()
+            self.sale_order_id.picking_ids[0].sudo().with_user(1).message_post(body = message)
         
         if error:
-            self.not_found_email(message)
-        label_data = self.get_shipment_label(order_details['shipping']['id'],self.company_id)
-        attach = self.env['ir.attachment'].sudo().search([('res_id','=',sale_order.id),('res_model','=','sale.order')])
+            self.not_found_email(mail_body)
+        label_data = self.get_shipment_label()
+        attach = self.env['ir.attachment'].sudo().search([('res_id','=',self.sale_order_id.id),('res_model','=','sale.order')])
         if attach.id:
             attach.write({'raw' : label_data})
         else:
@@ -313,7 +318,7 @@ class MercadoLibreSales(models.Model):
                 'type' : 'binary',
                 'raw' : label_data,
                 'res_model' : 'sale.order',
-            'res_id' : sale_order.id,
+            'res_id' : self.sale_order_id.id,
             })
-        return sale_order
+        return self.sale_order_id
 
