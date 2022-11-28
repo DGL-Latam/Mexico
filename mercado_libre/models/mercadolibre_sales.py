@@ -8,6 +8,26 @@ import datetime
 
 _logger = logging.getLogger(__name__)
 
+
+class MercadolibreSaleLine(models.Model):
+    _name = "mercadolibre.sale.line"
+    
+    ml_order_id = fields.Many2one('mercadolibre.sales', string='Order Reference', required=True, ondelete='cascade', index=True, copy=False)
+    name = fields.Text(string='Descripcion', required=True)
+    price = fields.Float('Precio Unitario', required=True, digits='Product Price', default=0.0)
+    
+    
+    product_id = fields.Many2one(
+        'product.product', string='Product', domain="[('sale_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+        change_default=True, ondelete='restrict', check_company=True)  # Unrequired company
+    
+    product_template_id = fields.Many2one(
+        'product.template', string='Product Template',
+        related="product_id.product_tmpl_id", domain=[('sale_ok', '=', True)])
+    
+
+    product_uom_qty = fields.Float(string='Cantidad', digits='Product Unit of Measure', required=True, default=1.0)
+
 class MercadoLibreSales(models.Model):
     _name = "mercadolibre.sales"
     
@@ -26,58 +46,92 @@ class MercadoLibreSales(models.Model):
 
     printed = fields.Boolean(default=False, help="¿La guia de esta orden ha sido impresa anteriormente?")
     
+    name = fields.Char(string="Orden", compute="_ComputeName")
+    
+    order_line = fields.One2many('mercadolibre.sale.line', 'ml_order_id', string='Order Lines', auto_join=True)
+    productsQuantity = fields.Float(string="Cantidad de productos", compute="_ComputeQtyProducts")
+    total = fields.Float(string="Total", compute="_ComputeTotalOrder")
+
     
     status = fields.Selection([
-        ('tocrear' , 'Crear OV'),
-        ('venta' , 'Venta'),
-        ('cancelada' , 'Cancelada'),
-        ('reclamo' , 'Reclamo'),
-    ], default="tocrear")
+        ('to_create' , 'Crear OV'),
+        ('ready_to_ship' , 'Listo para enviar'),
+        ('shipped', 'Enviado'),
+        ('delivered', 'Entregado'),
+        ('not_delivered', 'No entregado')
+        ('cancelled' , 'Cancelada'),
+        ('fraud' , 'Cancelado por riesgo de Fraude'),
+    ], default="to_create")
     
     
     _sql_constraints = [
         ('ml_order_id_unique',
-        'unique(ml_order_id)', 'No se deben repetir order ID para evitar duplicidad')
+        'unique(ml_order_id)', 'No se deben repetir order ID para evitar duplicidad'),
+        ('ml_pack_id_unique', 
+        'unique(ml_pack_id)', 'No Repetir pack id, para evitar duplicidad en vista ML'),
     ]
+
+    def _ComputeTotalOrder(self):
+        for rec in self:
+            amount = 0
+            for line in rec.order_line:
+                amount += line.price
+            rec.total = amount
     
-    
+    def _ComputeQtyProducts(self):
+        for rec in self:
+            qty = 0
+            for line in rec.order_line:
+                qty += line.product_uom_qty
+            rec.productsQuantity = qty
+    #TODO
+    def _ProcessOrderLines(self):
+        _logger.critical('')
+
     def _print_info(self):
        _logger.critical( '{},{},{},{}, Full: {}'.format(self.ml_order_id, self.ml_shipping_id, self.sale_order_id.id, self.tracking_reference, self.ml_is_order_full) ) 
+
+    def _writeDataOrderDetail(self, order_details):
+        if not self.ml_shipping_id:
+            self.write({'ml_shipping_id' : order_details['shipping']['id']})
+        if not self.client_name:
+            self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
+        if not self.ml_pack_id : 
+            self.write( {'ml_pack_id' : order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id } )
 
     def check_order(self):
         order_details = self._getOrderDetails()
         if 'error' in order_details:
-            return {
-                'success': True,
-                'status': 'No order found to be modified/created',
-                'code': 500
-            }
-        if 'fraud_risk_detected' in order_details['tags'] or order_details['status'] in ['cancelled']:
+            return 
+
+        if self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id)]):
+            return
+
+        self._writeDataOrderDetail(order_details)
+
+        if 'fraud_risk_detected' in order_details['tags']:
+            self.cancel_order(fraud=True)
+            return
+        if order_details['status'] in ['cancelled']:
             self.cancel_order()
-            return {
-                'success': True,
-                'status': 'Order cancelled',
-                'code': 200
-            }
-        shipping_details = self._getShippingDetails(order_details['shipping']['id'])
-        if not self.ml_shipping_id:
-            self.write({'ml_shipping_id' : shipping_details['id']})
+            return
+        
+        shipping_details = self._getShippingDetails()
+       
             
         if len(shipping_details['substatus_history']) == 0:
-            return {
-                'success': True,
-                'status': 'no substatus to check',
-                'code': 200
-            }
-        if any(obj['substatus'] == 'in_warehouse' for obj in shipping_details['substatus_history']):
-            self.write({'ml_is_order_full' : True})
-            return {
-                'success': True,
-                'status': 'marked as full',
-                'code': 200
-            }
+            return 
+
+        self.write({'ml_is_order_full' : shipping_details['logistic_type'] == 'fulfillment'})    
+        self._ProcessOrderLines()
+        if self.ml_is_order_full:
+            return
+        
+
+        #si en subestados existe ready to print entonces obtener la guia y generar el pedido :3
         #2022-08-03T22:51:33.675-04:00
         last_shipping = max(shipping_details['substatus_history'], key = lambda substatus :  datetime.datetime.strptime(substatus['date'], "%Y-%m-%dT%H:%M:%S.%f%z") )
+        
         if last_shipping['substatus'] in ['ready_to_print','regenerating']:
             if not self.sale_order_id:
                 client_name = order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name']
@@ -102,29 +156,40 @@ class MercadoLibreSales(models.Model):
         }
 
 
+    def _GetShippingID(self):
+        order_details = self._getOrderDetails()
+        self.write({'ml_shipping_id' : order_details['shipping']['id']})
+        
     #Peticiones API
     #=======================================================================
+
+    def _getData(self, url):
+        headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
+        res = requests.get(url,headers=headers)
+        return json.loads(res.text)
    
     #Get the json of the order info whenever an event has ocurred, 
     def _getOrderDetails(self):
-        headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
         url = "https://api.mercadolibre.com/orders/{order_id}".format( order_id = self.ml_order_id)
-        res = requests.get(url,headers=headers)
-        return json.loads(res.text)
+        return self._getData(url)
 
     #We recover the sipment details with an ID
-    def _getShippingDetails(self, shipping_id):
-        url = "https://api.mercadolibre.com/shipments/{}".format(shipping_id)
-        headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
-        res = requests.get(url,headers=headers)
-        return json.loads(res.text)
+    def _getShippingDetails(self):
+        url = "https://api.mercadolibre.com/shipments/{}".format(self.shipping_id)
+        return self._getData(url)
+
+    def _getShipmentItems(self):
+        url = "https://api.mercadolibre.com/shipments/{}/items".format(self.shipping_id)
+        return self._getData(url)
+
+    def _getItemDetails(self, product_id):
+        url = "https://api.mercadolibre.com/items/{}/variations?include_attributes=all".format(product_id)
+        return self._getData(url)
 
     #We recover the shipment_label as a pdf file (to attach to a sale order)
-    def get_shipment_label(self,shipment_id, company_id):
-        headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
-        url = "https://api.mercadolibre.com/shipment_labels?shipment_ids={}&response_type=pdf".format(shipment_id)
-        res = requests.get(url,headers=headers)
-        return res.content
+    def get_shipment_label(self):
+        url = "https://api.mercadolibre.com/shipment_labels?shipment_ids={}&response_type=pdf".format(self.shipment_id)
+        return self._getData(url)
     #==================================================================================
     #    
 
@@ -162,14 +227,17 @@ class MercadoLibreSales(models.Model):
         return sale_order
     
     # Cancelar orden de venta
-    def cancel_order(self):
+    def cancel_order(self, fraud = False):
         if self.sale_order_id:
             self.sale_order_id._action_cancel()
             for delivery in self.sale_order_id.picking_ids:
                 if delivery.state == 'done':
                     self.cancelation_email()
                     break
-        self.write({'status' : 'cancelada'})
+        if fraud:
+            self.write({'status' : 'fraud'})
+        else : 
+            self.write({'status' : 'cancelled'})
 
     #Send the actual email
     def cancelation_email(self):
