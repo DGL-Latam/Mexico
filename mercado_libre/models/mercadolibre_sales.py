@@ -101,7 +101,7 @@ class MercadoLibreSales(models.Model):
                 product_id = self.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'].replace('-',''))])
                 if product_id:
                     values.append({
-                        'ml_order_id' : self.ml_order_id,
+                        'ml_order_id' : self.id,
                         'product_id' : product_id.id,
                         'name' : product_id.description_sale if product_id.description_sale else '[{}] {}'.format(product_id.default_code, product_id.name),
                         'price' : order_item['unit_price'],
@@ -109,7 +109,7 @@ class MercadoLibreSales(models.Model):
                     })
                 else : 
                     values.append({
-                        'ml_order_id' : self.ml_order_id,
+                        'ml_order_id' : self.id,
                         'name' : order_item['item']['seller_sku'] + ' ' + order_item['title'],
                         'price' : order_item['unit_price'],
                         'product_uom_qty' : order_item['quantity']
@@ -133,7 +133,7 @@ class MercadoLibreSales(models.Model):
         if 'error' in order_details:
             return 
 
-        if self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id)]):
+        if order_details['pack_id'] and self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id)]):
             self.unlink(self.id)
             return
 
@@ -147,7 +147,7 @@ class MercadoLibreSales(models.Model):
             return
         
         shipping_details = self._getShippingDetails()
-       
+        self.write({'tracking_reference' : shipping_details['tracking_number']})
             
         if len(shipping_details['substatus_history']) == 0:
             return 
@@ -193,11 +193,11 @@ class MercadoLibreSales(models.Model):
 
     #We recover the sipment details with an ID
     def _getShippingDetails(self):
-        url = "https://api.mercadolibre.com/shipments/{}".format(self.shipping_id)
+        url = "https://api.mercadolibre.com/shipments/{}".format(self.ml_shipping_id)
         return self._getData(url)
 
     def _getShipmentItems(self):
-        url = "https://api.mercadolibre.com/shipments/{}/items".format(self.shipping_id)
+        url = "https://api.mercadolibre.com/shipments/{}/items".format(self.ml_shipping_id)
         return self._getData(url)
 
     def _getItemDetails(self, product_id):
@@ -206,8 +206,10 @@ class MercadoLibreSales(models.Model):
 
     #We recover the shipment_label as a pdf file (to attach to a sale order)
     def get_shipment_label(self):
-        url = "https://api.mercadolibre.com/shipment_labels?shipment_ids={}&response_type=pdf".format(self.shipment_id)
-        return self._getData(url)
+        url = "https://api.mercadolibre.com/shipment_labels?shipment_ids={}&response_type=pdf".format(self.ml_shipping_id)
+        headers = { "Authorization" : "Bearer " + self.company_id.ml_access_token }
+        res = requests.get(url,headers=headers)
+        return res.content
     #==================================================================================
     #    
 
@@ -288,11 +290,11 @@ class MercadoLibreSales(models.Model):
             if order_item.product_id:
                 so_lines_values.append({
                     'name' : order_item.name,
-                    'product_id' : order_item.product_id,
+                    'product_id' : order_item.product_id.id,
                     'product_uom' : order_item.product_id.uom_id.id,
                     'product_uom_qty' : order_item.product_uom_qty,
                     'price_unit' : order_item.price / 1.16,
-                    'order_id' : self.sale_order_id,
+                    'order_id' : self.sale_order_id.id,
                     'display_type' : False,
                 })
             else:
@@ -300,7 +302,7 @@ class MercadoLibreSales(models.Model):
                mail_body += 'sku registrado ' + order_item.name + ' precio unitario sin iva ' + str( order_item.price / 1.16 ) + ' cantidad ' + str(order_item.product_uom_qty) + '\n'
                so_lines_values.append({
                 'name' : 'sku registrado ' + order_item.name + ' precio unitario sin iva ' + str( order_item.price / 1.16 ) + ' cantidad ' + str(order_item.product_uom_qty) + '\n',
-                'order_id' : self.sale_order_id,
+                'order_id' : self.sale_order_id.id,
                 'display_type' : 'line_note',
                }) 
             
