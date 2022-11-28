@@ -74,6 +74,19 @@ class MercadoLibreSales(models.Model):
         for rec in self:
             rec.name = rec.ml_pack_id if rec.ml_pack_id else rec.ml_order_id
 
+    def UpdateStatus(self):
+        self.ensure_one()
+        order_details = self._getOrderDetails()
+        self._writeDataOrderDetail(order_details)
+        if 'fraud_risk_detected' in order_details['tags']:
+            self.cancel_order(fraud=True)
+            return
+        if order_details['status'] in ['cancelled']:
+            self.cancel_order()
+            return
+        shipping_details = self._getShippingDetails()
+        self.write({'status' : shipping_details['status']})
+
     def _ComputeTotalOrder(self):
         for rec in self:
             amount = 0
@@ -168,6 +181,7 @@ class MercadoLibreSales(models.Model):
                 if not so.id:
                     return
                 self.create_so_lines()
+                self.write({'status' : 'ready_to_ship'})
 
         return 
 
