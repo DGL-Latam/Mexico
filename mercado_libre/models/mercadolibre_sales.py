@@ -69,6 +69,10 @@ class MercadoLibreSales(models.Model):
         'unique(ml_order_id)', 'No se deben repetir order ID para evitar duplicidad'),
     ]
 
+    @api.depends('ml_pack_id', 'ml_order_id')
+    def _ComputeName(self):
+        self.name = self.ml_pack_id if self.ml_pack_id else self.ml_order_id
+
     def _ComputeTotalOrder(self):
         for rec in self:
             amount = 0
