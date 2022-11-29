@@ -15,6 +15,7 @@ Permite obtener los pedidos que se generen en nuestro portal de ventas de Mercad
     'installable': True,
     'auto_install': False,
     'data': [
+        'security/mercadolibre_security',
         'security/ir.model.access.csv',
         'views/res_config_settings_views.xml',
         'views/ir_cron.xml',   

@@ -77,13 +77,14 @@ class MercadoLibreSales(models.Model):
     def UpdateStatus(self):
         self.ensure_one()
         order_details = self._getOrderDetails()
-        self._writeDataOrderDetail(order_details)
+        
         if 'fraud_risk_detected' in order_details['tags']:
             self.cancel_order(fraud=True)
             return
         if order_details['status'] in ['cancelled']:
             self.cancel_order()
             return
+        self._writeDataOrderDetail(order_details)
         shipping_details = self._getShippingDetails()
         self.write({'status' : shipping_details['status']})
 
@@ -136,7 +137,7 @@ class MercadoLibreSales(models.Model):
     def _writeDataOrderDetail(self, order_details):
         if not self.ml_shipping_id:
             self.write({'ml_shipping_id' : order_details['shipping']['id']})
-        if not self.client_name:
+        if not self.client_name and order_details['buyer']['first_name'] and order_details['buyer']['last_name']:
             self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
         if not self.ml_pack_id : 
             self.write( {'ml_pack_id' : order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id } )

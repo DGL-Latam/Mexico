@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_mercadolibresales_model,mercadolibresales,model_mercadolibre_sales,base.group_system,1,1,1,1
 access_mercadolibresales_line_model,mercadolibresalesLines,model_mercadolibre_sale_line,base.group_system,1,1,1,1
+access_mercadolibresalesView_model,mercadolibresalesView,model_mercadolibre_sales,group_marketplace,1,0,0,0
+access_mercadolibresalesLineView_model,mercadolibresalesLineView,model_mercadolibre_sale_line,group_marketplace,1,0,0,0
