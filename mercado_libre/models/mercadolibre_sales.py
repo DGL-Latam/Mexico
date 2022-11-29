@@ -92,7 +92,7 @@ class MercadoLibreSales(models.Model):
         for rec in self:
             amount = 0
             for line in rec.order_line:
-                amount += line.price
+                amount += line.price * line.product_uom_qty
             rec.total = amount
     
     def _ComputeQtyProducts(self):
