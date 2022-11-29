@@ -78,15 +78,19 @@ class MercadoLibreSales(models.Model):
         self.ensure_one()
         order_details = self._getOrderDetails()
         
+
+        self._writeDataOrderDetail(order_details)
+        shipping_details = self._getShippingDetails()
+        self._writeDataShipDetails(shipping_details)
+
         if 'fraud_risk_detected' in order_details['tags']:
             self.cancel_order(fraud=True)
             return
         if order_details['status'] in ['cancelled']:
             self.cancel_order()
             return
-        self._writeDataOrderDetail(order_details)
-        shipping_details = self._getShippingDetails()
-        self.write({'status' : shipping_details['status']})
+        
+        
 
     def _ComputeTotalOrder(self):
         for rec in self:
@@ -135,12 +139,26 @@ class MercadoLibreSales(models.Model):
        _logger.critical( '{},{},{},{}, Full: {}'.format(self.ml_order_id, self.ml_shipping_id, self.sale_order_id.id, self.tracking_reference, self.ml_is_order_full) ) 
 
     def _writeDataOrderDetail(self, order_details):
-        if not self.ml_shipping_id:
-            self.write({'ml_shipping_id' : order_details['shipping']['id']})
-        if not self.client_name and order_details['buyer']['first_name'] and order_details['buyer']['last_name']:
-            self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
-        if not self.ml_pack_id : 
-            self.write( {'ml_pack_id' : order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id } )
+        try:
+            if not self.ml_shipping_id:
+                self.write({'ml_shipping_id' : order_details['shipping']['id']})
+            if not self.client_name:
+                self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
+            if not self.ml_pack_id: 
+                self.write( {'ml_pack_id' : order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id } )
+        except KeyError as e:
+            order = order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id
+            _logger.critical("No se pudo procesar la orden {} \nError {}".format(order,str(e)))
+
+
+    def _writeDataShipDetails(self,shipping_details):
+        try:
+            self.write({'tracking_reference' : shipping_details['tracking_number']})
+            self.write({'ml_is_order_full' : shipping_details['logistic_type'] == 'fulfillment'}) 
+            self.write({'status' : shipping_details['status']})
+        except KeyError as e:
+            _logger.critical("No se pudo procesar los datos de envio \nError {}".format(str(e)))
+
 
     def check_order(self):
         order_details = self._getOrderDetails()
@@ -152,21 +170,21 @@ class MercadoLibreSales(models.Model):
             return
 
         self._writeDataOrderDetail(order_details)
+        
+        shipping_details = self._getShippingDetails()
 
+        self._writeDataShipDetails(shipping_details) 
+        
         if 'fraud_risk_detected' in order_details['tags']:
             self.cancel_order(fraud=True)
             return
         if order_details['status'] in ['cancelled']:
             self.cancel_order()
-            return
-        
-        shipping_details = self._getShippingDetails()
-        self.write({'tracking_reference' : shipping_details['tracking_number']})
-            
-        if len(shipping_details['substatus_history']) == 0:
             return 
 
-        self.write({'ml_is_order_full' : shipping_details['logistic_type'] == 'fulfillment'})    
+        if len(shipping_details['substatus_history']) == 0:
+            return 
+   
         self._ProcessOrderLines()
         if self.ml_is_order_full:
             return
