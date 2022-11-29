@@ -45,7 +45,6 @@ class MercadoLibre(Controller):
         ml_order_id = data['resource'].split('/')[2]
         company_id = self.get_company_to_use(data['user_id'])
         mls = self.check_ml_table(ml_order_id,company_id.id)
-        mls.sudo().with_user(1).check_order()
         return {
             'success': True,
             'status': 'Registro creada',
