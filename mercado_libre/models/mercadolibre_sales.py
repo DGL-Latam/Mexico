@@ -110,7 +110,10 @@ class MercadoLibreSales(models.Model):
         items = self._getShipmentItems()
         order_ids = []
         for order_item in items:
-            order_ids.append(order_item['order_id'])
+            try :
+                order_ids.append(order_item['order_id'])
+            except TypeError as e : 
+                _logger.critical("couldn't process this order {}\n{}".format(order_item,e))
         order_ids = list(dict.fromkeys(order_ids)) #remove duplicates
         values = []
         for order in order_ids:
@@ -312,8 +315,6 @@ class MercadoLibreSales(models.Model):
         mail.send([mail.id])
 
     def create_so_lines(self):
-        if self.sale_order_id.amount_total == self.total:
-            return
         so_lines_values = []
         error = False
         message = ''
