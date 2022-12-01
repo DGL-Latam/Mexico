@@ -47,4 +47,4 @@ class AccountEdiFormat(models.Model):
         addenda = move.partner_id.l10n_mx_edi_addenda or move.partner_id.commercial_partner_id.l10n_mx_edi_addenda
         if addenda:
             res = self._l10n_mx_edi_cfdi_append_addenda(move, res['cfdi_str'], addenda)
-        return res
+        return res.get('cfdi_str')
