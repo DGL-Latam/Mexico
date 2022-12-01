@@ -145,10 +145,11 @@ class MercadoLibreSales(models.Model):
         try:
             if not self.ml_shipping_id:
                 self.write({'ml_shipping_id' : order_details['shipping']['id']})
-            if not self.client_name:
-                self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
             if not self.ml_pack_id: 
                 self.write( {'ml_pack_id' : order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id } )
+            if not self.client_name:
+                self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
+            
         except KeyError as e:
             order = order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id
             _logger.critical("No se pudo procesar la orden {} \nError {}".format(order,str(e)))
