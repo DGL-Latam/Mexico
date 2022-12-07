@@ -8,5 +8,8 @@
         'base_automation',
         'l10n_mx_edi', 
     ],
+    'data' : [
+        'security/ir.model.access.csv',
+    ],
     'installable': True,
 }

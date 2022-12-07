@@ -12,7 +12,7 @@ class Autentificacion(WebServiceRequestSAT):
     xml_name = 'autentificacion.xml'
     soap_url = 'https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/Autenticacion/Autenticacion.svc'
     soap_action = 'http://DescargaMasivaTerceros.gob.mx/IAutenticacion/Autentica'
-    result_xpath = ''
+    result_xpath = 's:Body/AutenticaResponse/AutenticaResult'
 
     internal_namespaces = {
         's': 'http://schemas.xmlsoap.org/soap/envelope/',
@@ -34,3 +34,36 @@ class Autentificacion(WebServiceRequestSAT):
         date_created = date_created.strftime(self.DATE_TIME_FORMAT)
         date_expires = date_expires.strftime(self.DATE_TIME_FORMAT)
 
+        self.set_element_text(
+            's:Header/o:Security/u:Timestamp/u:Created',
+            date_created
+        )
+        self.set_element_text(
+            's:Header/o:Security/u:Timestamp/u:Expires',
+            date_expires
+        )
+        self.set_element_text(
+            's:Header/o:Security/o:BinarySecurityToken',
+            self.signer.fiel.cer_to_base64(),
+        )
+
+        element = self.get_element('s:Header/o:Security/u:Timestamp')
+        element_bytes = self.element_to_bytes(element)
+        element_hash = hashlib.new('sha1', element_bytes)
+        element_digest = element_hash.digest()
+        element_digest_base64 = base64.b64encode(element_digest)
+
+        digest_xpath = 's:Header/o:Security/Signature/SignedInfo/Reference/DigestValue'
+        self.set_element_text(digest_xpath, element_digest_base64)
+
+        signed_info_xpath = 's:Header/o:Security/Signature/SignedInfo'
+        signed_info = self.get_element(signed_info_xpath)
+        signed_info_bytes = self.element_to_bytes(signed_info)
+        signed_info_sign = self.signer.fiel.firmar_sha1(signed_info_bytes)
+
+        xpath = 's:Header/o:Security/Signature/SignatureValue'
+        self.set_element_text(xpath, signed_info_sign)
+
+        element_response = self.request()
+
+        return element_response.text

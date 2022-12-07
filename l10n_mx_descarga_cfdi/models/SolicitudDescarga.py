@@ -2,7 +2,7 @@ from .WebServiceRequestSAT  import WebServiceRequestSAT
 
 class SolicitudDescarga(WebServiceRequestSAT):
 
-    xml_name = 'solitadescarga.xml'
+    xml_name = 'solicitadescarga.xml'
     soap_url = 'https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/SolicitaDescargaService.svc'
     soap_action = 'http://DescargaMasivaTerceros.sat.gob.mx/ISolicitaDescargaService/SolicitaDescarga'
     solicitud_xpath = 's:Body/des:SolicitaDescarga/des:solicitud'
