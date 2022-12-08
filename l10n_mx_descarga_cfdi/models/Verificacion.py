@@ -25,7 +25,7 @@ class VerificaSolicitudDescarga(WebServiceRequestSAT):
             'paquetes': []
         }
 
-        for id_paquete in response.ite('{{{}}}IdsPaquetes'.format(self.external_namespaces[''])):
+        for id_paquete in response.iter('{{{}}}IdsPaquetes'.format(self.external_namespaces[''])):
             value['paquetes'].append(id_paquete.text)
     
         return value
