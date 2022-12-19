@@ -83,12 +83,17 @@ class MercadoLibreSales(models.Model):
         shipping_details = self._getShippingDetails()
         self._writeDataShipDetails(shipping_details)
 
-        if 'fraud_risk_detected' in order_details['tags']:
-            self.cancel_order(fraud=True)
-            return
-        if order_details['status'] in ['cancelled']:
-            self.cancel_order()
-            return
+        try:
+            if 'fraud_risk_detected' in order_details['tags']:
+                self.cancel_order(fraud=True)
+                return
+            if order_details['status'] in ['cancelled']:
+                self.cancel_order()
+                return
+        except KeyError as e:
+            _logger.critical(self.ml_order_id)
+            _logger.critical(order_details)
+            _logger.critical(e)
         
         
 
