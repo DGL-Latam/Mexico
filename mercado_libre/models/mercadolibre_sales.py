@@ -61,6 +61,9 @@ class MercadoLibreSales(models.Model):
         ('not_delivered', 'No entregado'),
         ('cancelled' , 'Cancelada'),
         ('fraud' , 'Cancelado por riesgo de Fraude'),
+        ('pending', 'Pendiente'),
+        ('handling', 'Pago del envio recibido'),
+        ('to_be_agreed', 'A acordar con el comprador')
     ], default="to_create")
     
     
@@ -81,7 +84,7 @@ class MercadoLibreSales(models.Model):
 
         self._writeDataOrderDetail(order_details)
         shipping_details = self._getShippingDetails()
-        self._writeDataShipDetails(shipping_details)
+        #self._writeDataShipDetails(shipping_details)
 
         try:
             if 'fraud_risk_detected' in order_details['tags']:
