@@ -281,7 +281,7 @@ class MercadoLibreSales(models.Model):
         sale_order = self.env['sale.order'].sudo().with_user(1).search([('name','=',self.ml_pack_id),('company_id','=',self.company_id.id)])
         if sale_order.id:
             self.write({'sale_order_id' : sale_order.id })
-            return 
+            return self.env['sale.order']
 
         values = {
             'origin' : 'MP-ML',
