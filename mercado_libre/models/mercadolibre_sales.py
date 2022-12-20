@@ -87,13 +87,21 @@ class MercadoLibreSales(models.Model):
             if 'fraud_risk_detected' in order_details['tags']:
                 self.cancel_order(fraud=True)
                 return
+        except KeyError as e:
+            _logger.critical("tags")
+            _logger.critical(self.ml_order_id)
+            _logger.critical(order_details)
+            _logger.critical(e)
+        try:
             if order_details['status'] in ['cancelled']:
                 self.cancel_order()
                 return
         except KeyError as e:
+            _logger.critical("status")
             _logger.critical(self.ml_order_id)
             _logger.critical(order_details)
             _logger.critical(e)
+
         
         
 
@@ -163,7 +171,13 @@ class MercadoLibreSales(models.Model):
     def _writeDataShipDetails(self,shipping_details):
         try:
             self.write({'tracking_reference' : shipping_details['tracking_number']})
+        except KeyError as e:
+            _logger.critical("No se pudo procesar escribir Tracking_number")
+        try:
             self.write({'ml_is_order_full' : shipping_details['logistic_type'] == 'fulfillment'}) 
+        except KeyError as e:
+            _logger.critical("No se pudo escribir si full")
+        try:
             self.write({'status' : shipping_details['status']})
         except KeyError as e:
             _logger.critical("No se pudo procesar los datos de envio \nError {}".format(str(e)))
