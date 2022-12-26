@@ -19,6 +19,23 @@ for company in env['res.company'].sudo().search([('ml_access_token','!=',False)]
             <field name="nextcall" eval="(DateTime.now() + timedelta(hours=5)).strftime('%Y-%m-%d %H:%m:%S')"/>
         </record>
 
+        <record id="ir_cron_get_ready_print_order_ml" model="ir.cron">
+            <field name="name">Obtener ordenes listas para imprimir ML</field>
+            <field name="model_id" ref="account.model_res_company"/>
+            <field name="state">code</field>
+            <field name="code">
+for company in env['res.company'].sudo().search([('ml_access_token','!=',False)]):
+    company.GetReadyToPrintOrders()
+            
+            </field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="interval_number">6</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(hours=6)).strftime('%Y-%m-%d %H:%m:%S')"/>
+        </record>
+
         <record id="ir_cron_update_ml_orders" model="ir.cron">
             <field name="name">Generar ordenes ML</field>
             <field name="model_id" ref="model_mercadolibre_sales"/>
@@ -40,6 +57,7 @@ for sale in env['mercadolibre.sales'].sudo().search([('sale_order_id','=',False)
             <field name="name">Actualizar estado ordenes ML</field>
             <field name="model_id" ref="model_mercadolibre_sales"/>
             <field name="state">code</field>
+            <field name="active">False</field>
             <field name="code">
 for sale in env['mercadolibre.sales'].sudo().search([('status','not in',['delivered','cancelled', 'fraud'])]):
     sale.UpdateStatus()

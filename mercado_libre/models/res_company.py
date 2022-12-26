@@ -85,3 +85,29 @@ class ResCompany(models.Model):
         self.sudo().write(values)
         return True
     
+
+    def GetReadyToPrintOrders(self):
+        url = "https://api.mercadolibre.com/orders/search"
+        params = {
+            'seller' :  self.ml_seller_id,
+            'order.status' : 'paid',
+            'sort' : 'date_desc',
+            'tags' : 'not_delivered',
+            'shipping.substatus' : 'ready_to_print',
+        }
+        headers = { "Authorization" : "Bearer " + self.ml_access_token }
+        res = requests.get(url,headers=headers , params=params)
+        if res.status_code != 200:
+            return
+        data = json.loads(res.text)
+        if not data['results']:
+            return
+        for sale in data['results']:
+            self.check_ml_table(sale['id'])
+
+    #check wheter a record has been created for this order (tracking purposes) if not create it
+    def check_ml_table(self, ml_order_id):
+        mls = self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_order_id','=',ml_order_id),('company_id','=', self.id)])
+        if not mls.id:
+            mls = self.env['mercadolibre.sales'].sudo().with_user(1).create({'ml_order_id' : ml_order_id,'company_id' : self.id})
+        return mls
