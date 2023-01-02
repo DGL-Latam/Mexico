@@ -145,9 +145,25 @@ class MercadoLibreSales(models.Model):
                         'product_uom_qty' : order_item['quantity']
                     })
                 else : 
+                    name = ""
+                    try:
+                        name = order_item['item']['seller_sku']
+                    except KeyError as e:
+                        _logger.critical("Doesnt have SKU")
+                        _logger.critical(details)
+                    try:
+                        name += ' ' + order_item['title']
+                    except KeyError as e:
+                        try:
+                            name += ' ' + order_item['item']['title']
+                        except KeyError as e:
+                            _logger.critical("cant find any title")
+                        _logger.critical("Doesnt have title")
+                        _logger.critical(details)
+                    
                     values.append({
                         'ml_order_id' : self.id,
-                        'name' : order_item['item']['seller_sku'] + ' ' + order_item['title'],
+                        'name' : name,
                         'price' : order_item['unit_price'],
                         'product_uom_qty' : order_item['quantity']
                     })
