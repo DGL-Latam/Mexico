@@ -1,5 +1,4 @@
 from odoo import _, api, fields, models
-from suds.client import Client
 import logging
 _logger = logging.getLogger(__name__)
 
