@@ -29,7 +29,7 @@ class AccountMove(models.Model):
         ('16','Julio-Agosto'),
         ('17','Septiembre-Octubre'),
         ('18','Noviembre-Diciembre')
-    ], string="Mes(es)", default=str(datetime.datetime.now().month))
+    ], string="Mes(es)", default=str(datetime.datetime.now().strftime('%m')))
     l10n_mx_edi_year = fields.Selection('_getCurrentYears', string="Año", default=str(datetime.datetime.now().year))
 
     partner_vat = fields.Char(related="partner_id.vat")
