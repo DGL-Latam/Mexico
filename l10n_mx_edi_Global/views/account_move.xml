@@ -1,10 +1,17 @@
 <?xml version="1.0"?>
-<!-- find field description and add the field
-             new_field after it -->
-        <xpath expr="//label[@for='journal_id']" position="before">
-            <field invisible="1" name="partner_vat"/>
-            <field name="l10n_mx_edi_periocidad" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
-            <field name="l10n_mx_edi_mes" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
-            <field name="l10n_mx_edi_year" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
+<odoo>
+    <record id="cfdi40_global" model="ir.ui.view">
+        <field name="name">l10n_mx_edi_addendas_SAMS.invoice.form.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='journal_id']" position="before">
+                <field invisible="1" name="partner_vat"/>
+                <field name="l10n_mx_edi_periocidad" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
+                <field name="l10n_mx_edi_mes" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
+                <field name="l10n_mx_edi_year" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
 
-        </xpath>
+            </xpath>
+        </field>
+    </record>
+</odoo>
