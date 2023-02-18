@@ -9,7 +9,12 @@
             <t t-set="units" t-value="moves.mapped('move_line_ids') if moves else False"/>
          </xpath>
          <xpath expr="//*[local-name()='Concepto']" position="inside">
-            <t t-set="initial" t-value="line.sale_line_ids[0].qty_invoiced - line.quantity"/>
+
+            <t t-set="qty_invoiced" t-value="0"/>
+            <t t-foreach="line.sale_line_ids" t-as="sale_line">
+              <t t-set="qty_invoiced" t-value="qty_invoiced + sale_line.qty_invoiced"></t>
+            </t>
+            <t t-set="initial" t-value="qty_invoiced - line.quantity"/>
             <t t-set="count" t-value="0"/>
             <t t-set="invoiceL" t-value="0"/>
              <t t-if="line.product_id.tracking == 'serial'">
@@ -21,6 +26,7 @@
                     <t t-if="initial + 1 - count == 0">
                         <t t-if="line.quantity - invoiceL != 0">
                             <t t-set="invoiceL" t-value="invoiceL + 1"/>
+
                             <t t-set="unit_value" t-value="'%.*f' % (currency_precision, line_values['price_subtotal_before_discount']/line.quantity) if line.quantity else 0.0"/>
                             <cfdi:Parte xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
                             t-att-ClaveProdServ="line.product_id.unspsc_code_id.code"

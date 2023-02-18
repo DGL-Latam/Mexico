@@ -12,7 +12,8 @@ class AccountMove(models.Model):
         if "paid_amount" in self.env.context:
             amount = self.env.context.get("paid_amount", 0.0)
             final = self.currency_id._convert(amount,self.env['account.move.line'].browse(line_id).company_currency_id,self.env['account.move.line'].browse(line_id).company_id,self.env['account.move.line'].browse(line_id).date)
-            return self.with_context(move_id=self.id,line_id=line_id).js_assign_outstanding_line_amount(line_id, [final])
+            if final != 0:
+                return self.with_context(move_id=self.id,line_id=line_id).js_assign_outstanding_line_amount(line_id, [final])
         return super(AccountMove, self).js_assign_outstanding_line(line_id)
 
     def js_assign_outstanding_line_amount(self, line_id,amount):
@@ -121,7 +122,7 @@ class AccountMoveLine(models.Model):
             if not self._context.get('no_exchange_difference'):
                 exchange_move = None
             else:
-                exchange_move = lines_to_full_reconcile._create_exchange_difference_move()
+                exchange_move = lines_to_full_reconcile.filtered(lambda line : line.move_id.move_type in ['out_invoice','in_invoice'])._create_exchange_difference_move()
                 if exchange_move:
                     exchange_move_lines = exchange_move.line_ids.filtered(lambda line: line.account_id == account)
 
@@ -179,7 +180,7 @@ class AccountMoveLine(models.Model):
                 if not debit_line:
                     break
                 debit_amount_residual = 0
-                custom_debit_amount = debit_line.move_id.move_type in ['entry']
+                custom_debit_amount = debit_line.move_id.move_type in ['entry', 'out_refund', 'in_refund']
                 
                 if custom_debit_amount:
                     debit_amount_residual = debit_line.currency_id._convert(
@@ -204,7 +205,7 @@ class AccountMoveLine(models.Model):
                 if not credit_line:
                     break
                     
-                custom_credit_amount = credit_line.move_id.move_type in ['entry']
+                custom_credit_amount = credit_line.move_id.move_type in ['entry', 'out_refund', 'in_refund']
                 credit_amount_residual = 0
                 if custom_credit_amount:
                     credit_amount_residual = - credit_line.currency_id._convert(

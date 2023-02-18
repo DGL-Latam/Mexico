@@ -45,8 +45,7 @@ class AccountEdiFormat(models.Model):
 
         cfdi_node.append(addenda_node)
         return etree.tostring(cfdi_node, pretty_print=True, xml_declaration=True, encoding='UTF-8')
-    
-    
+
     def _get_invoice_edi_content(self, move):
         #OVERRIDE
         if self.code != 'cfdi_3_3':
