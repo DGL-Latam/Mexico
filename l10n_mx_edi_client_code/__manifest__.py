@@ -3,7 +3,7 @@
     'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
-    "version": "15.0",
+    "version": "15.0.1",
     'depends': [
         'l10n_mx_edi',        
     ],

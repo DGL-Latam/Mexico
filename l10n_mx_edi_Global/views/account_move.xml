@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- find field description and add the field
+             new_field after it -->
+        <xpath expr="//label[@for='journal_id']" position="before">
+            <field invisible="1" name="partner_vat"/>
+            <field name="l10n_mx_edi_periocidad" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
+            <field name="l10n_mx_edi_mes" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
+            <field name="l10n_mx_edi_year" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
+
+        </xpath>

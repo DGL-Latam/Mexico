@@ -1,6 +1,12 @@
 from odoo import models,api
+from odoo.tools.xml_utils import _check_with_xsd
 from lxml.objectify import fromstring
 from lxml import etree
+import base64
+import logging
+from io import BytesIO
+
+_logger = logging.getLogger(__name__)
 
 class AccountEdiFormat(models.Model):
     _inherit = 'account.edi.format'
@@ -29,10 +35,11 @@ class AccountEdiFormat(models.Model):
 
         cfdi_node = fromstring(cfdi)
         addenda_node = fromstring(addenda)
+        version = cfdi_node.get('Version')
 
         # Add a root node Addenda if not specified explicitly by the user.
-        if addenda_node.tag != '{http://www.sat.gob.mx/cfd/3}Addenda':
-            node = etree.Element(etree.QName('http://www.sat.gob.mx/cfd/3', 'Addenda'))
+        if addenda_node.tag != '{http://www.sat.gob.mx/cfd/%s}Addenda' %version[0]:
+            node = etree.Element(etree.QName('http://www.sat.gob.mx/cfd/%s' % version[0], 'Addenda'))
             node.append(addenda_node)
             addenda_node = node
 
@@ -47,4 +54,4 @@ class AccountEdiFormat(models.Model):
         addenda = move.partner_id.l10n_mx_edi_addenda or move.partner_id.commercial_partner_id.l10n_mx_edi_addenda
         if addenda:
             res = self._l10n_mx_edi_cfdi_append_addenda(move, res['cfdi_str'], addenda)
-        return res.get('cfdi_str')
+        return res

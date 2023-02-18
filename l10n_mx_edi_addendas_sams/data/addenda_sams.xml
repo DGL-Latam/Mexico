@@ -2,7 +2,7 @@
 <odoo>
     <template id="sams" name="Addenda SAMS">
         <t name="Addenda SAMS" t-name="digicellmx.sams">
-            <cfdi:Addenda xmlns:cfdi="http://www.sat.gob.mx/cfd/3">
+            <cfdi:Addenda xmlns:cfdi="http://www.sat.gob.mx/cfd/4">
                 <t t-set="num_seg" t-value="22"/>
                 <t t-set="partner_shipping" t-value="record.partner_shipping_id if record.fields_get(['partner_shipping_id']) else partner_id.commercial_partner_id if record.partner_id.type != 'invoice' else record.partner_id"/>
                 <t t-set="partner" t-value="record.partner_id.commercial_partner_id if record.partner_id.type != 'invoice' else record.partner_id"/>
