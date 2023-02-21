@@ -31,4 +31,4 @@ class ResCompany(models.Model):
     rule_type= fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
 
     if rule_type == "sale_purchase_invoice_refund":
-        intercompany_transaction_message = fields.Char(string="1. Genere un borrador de compra/venta, cuando una empresa confirme un orden de venta/compra")
+        intercompany_transaction_message = fields.Char("1. Genere un borrador de compra/venta, cuando una empresa confirme un orden de venta/compra")
