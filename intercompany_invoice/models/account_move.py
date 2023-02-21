@@ -21,13 +21,17 @@ class AccountMove(models.Model):
             return super()._post(soft=soft)
         result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
         result.edi_document_ids._process_documents_web_services()
-        
+
         return result
-
-
-
 
 class ResCompany(models.Model):
     _inherit = "res.company"
 
     rule_type= fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
+
+class PurchaseOrder(models.Model):
+    _inherit = "purchase.order"
+
+    def action_create_invoice(self):
+        res = super().action_create_invoice()
+        return res
