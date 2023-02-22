@@ -1,3 +1,4 @@
+'''
 from odoo import api, models
 import logging
 
@@ -65,3 +66,4 @@ class AccountMove(models.Model):
                 'move_id': related.id,
             })
         return result
+'''
