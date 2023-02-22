@@ -24,14 +24,17 @@ class AccountMove(models.Model):
 
         return result
 
+    def action_post(self):
+        moves_with_payments = self.filtered('payment_id')
+        other_moves = self - moves_with_payments
+        if moves_with_payments:
+            moves_with_payments.payment_id.action_post()
+        if other_moves:
+            other_moves._post(soft=True)
+        return False
+
 class ResCompany(models.Model):
     _inherit = "res.company"
 
     rule_type= fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
 
-class PurchaseOrder(models.Model):
-    _inherit = "purchase.order"
-
-    def action_create_invoice(self):
-        res = super().action_create_invoice()
-        return res
