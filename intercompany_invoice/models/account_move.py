@@ -24,14 +24,6 @@ class AccountMove(models.Model):
 
         return result
 
-    def action_post(self):
-        moves_with_payments = self.filtered('payment_id')
-        other_moves = self - moves_with_payments
-        if moves_with_payments:
-            moves_with_payments.payment_id.action_post()
-        if other_moves:
-            other_moves._post(soft=True)
-        return False
 
 class ResCompany(models.Model):
     _inherit = "res.company"
