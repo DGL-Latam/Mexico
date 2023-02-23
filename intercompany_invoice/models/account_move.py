@@ -27,7 +27,7 @@ class AccountMove(models.Model):
 
             for invoice2 in records:
                 related = self.sudo().search(
-                    [('auto_invoice_id', '=', invoice2.id), ('company_id', '=', invoice2.src.id)])
+                    [('auto_invoice_id', '=', invoice2.id), ('company_id', '=', src.id)])
                 if not related:
                     continue
                 filename = ('%s-%s-MX-Invoice-%s.xml' % (
