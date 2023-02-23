@@ -72,7 +72,7 @@ class AccountMove(models.Model):
                 invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
                     'move_id': related.id,
                 })
-        return result
+            return result
 
 
 class ResCompany(models.Model):
