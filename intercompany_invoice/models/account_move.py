@@ -343,8 +343,4 @@ class AccountMoveLine(models.Model):
                 vals["analytic_tag_ids"] = [(4, x) for x in analytic_tags.ids]
         return vals
 
-class ResCompany(models.Model):
-    _inherit = "res.company"
-
-    rule_type= fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
 
