@@ -20,6 +20,11 @@ class AccountMove(models.Model):
             records_so += invoice
 
             inter_user = company.intercompany_invoice_user_id
+            if inter_user:
+                invoice = invoice.with_user(inter_user).sudo()
+            else:
+                invoice = invoice.sudo()
+            src_invoice = invoice.with_company(company.id).width_context(skip_check_amount_difference=True)
 
         if not records + records_so:
             return super()._post(soft=soft)
