@@ -7,7 +7,6 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     def _post(self, soft=True):
-
         records = self.env[self._name]
         records_so = self.env[self._name]
         for invoice in self.filtered(lambda i: i.move_type in ['out_invoice', 'out_refund']):
