@@ -6,6 +6,21 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    def action_post(self):
+        res = super().action_post()
+        supported_types = ('out_invoice', 'in_invoice', 'out_refund', 'in_refund')
+        for invoice in self.filtered(lambda x: x.move_type in supported_types):
+            dest_company = invoice._find_company_from_invoice_partner()
+            if not dest_company or invoice.auto_generated:
+                continue
+            intercompany_user = dest_company.intercompany_invoice_user_id
+            if intercompany_user:
+                invoice = invoice.with_user(intercompany_user).sudo()
+            else:
+                invoice = invoice.sudo()
+            invoice.with_company(dest_company.id).with_context(skip_check_amount_difference=True)._inter_company_create_invoice(dest_company)
+        return res
+
     def _post(self,soft=True):
         records = self.env[self._name]
         records_so = self.env[self._name]
