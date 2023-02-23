@@ -6,20 +6,7 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-
     def _post(self, soft=True):
-
-        supported_types = ('out_invoice', 'in_invoice', 'out_refund', 'in_refund')
-        for invoice in self.filtered(lambda x: x.move_type in supported_types):
-            dest_company = invoice._find_company_from_partner()
-            if not dest_company or invoice.auto_generated:
-                continue
-            intercompany_user = dest_company.intercompany_invoice_user_id
-            if intercompany_user:
-                invoice = invoice.with_user(intercompany_user).sudo()
-            else:
-                invoice = invoice.sudo()
-            invoice.with_company(dest_company.id).with_context(skip_check_amount_difference=True)._inter_company_create_invoice(dest_company)
 
         records = self.env[self._name]
         records_so = self.env[self._name]
@@ -31,6 +18,9 @@ class AccountMove(models.Model):
                 records += invoice
                 continue
             records_so += invoice
+
+            inter_user = company.intercompany_invoice_user_id
+
         if not records + records_so:
             return super()._post(soft=soft)
         result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
