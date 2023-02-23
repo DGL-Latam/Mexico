@@ -24,14 +24,14 @@ class AccountMove(models.Model):
                 invoice = invoice.with_user(inter_user).sudo()
             else:
                 invoice = invoice.sudo()
-            src_invoice = invoice.with_company(company.id).width_context(skip_check_amount_difference=True)
+            source = invoice.with_company(company.id).width_context(skip_check_amount_difference=True)
 
         if not records + records_so:
             return super()._post(soft=soft)
         result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
         result.edi_document_ids._process_documents_web_services()
         for invoice in records:
-            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.dest_company.id)])
+            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.source.id)])
             if not related:
                 continue
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
@@ -40,7 +40,7 @@ class AccountMove(models.Model):
             attachment = document.attachment_id
             copiedAttach = attachment.sudo().copy({
                 'res_id': related.id,
-                'company_id':related.dest_company.id,
+                'company_id':related.source.id,
             })
             document.sudo().copy({
                 'move_id': related.id,
