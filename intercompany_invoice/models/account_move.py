@@ -6,12 +6,12 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def _post(self, soft=True):
+    def _post(self,soft=True):
         records = self.env[self._name]
         records_so = self.env[self._name]
         for invoice in self.filtered(lambda i: i.move_type in ['out_invoice', 'out_refund']):
             company = self.env['res.company']._find_company_from_partner(invoice.partner_id.id)
-            if not company or company.rule_type not in ('invoice_and_refund', 'sale', 'purchase', 'sale_purchase', 'sale_purchase_invoice_refund'):
+            if not company or company.rule_type not in ('invoice_and_refund', 'sale', 'purchase', 'sale_purchase'):
                 continue
             if not invoice.auto_generated:
                 records += invoice
@@ -22,7 +22,7 @@ class AccountMove(models.Model):
         result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
         result.edi_document_ids._process_documents_web_services()
         for invoice in records:
-            related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
+            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.company_id.id)])
             if not related:
                 continue
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
@@ -31,9 +31,9 @@ class AccountMove(models.Model):
             attachment = document.attachment_id
             copiedAttach = attachment.sudo().copy({
                 'res_id': related.id,
-                'company_id': related.company_id.id,
+                'company_id':related.company_id.id,
             })
-            document.copy({
+            document.sudo().copy({
                 'move_id': related.id,
                 'attachment_id': copiedAttach.id,
                 'name': filename,
@@ -51,9 +51,9 @@ class AccountMove(models.Model):
                     bill.journal_id.code, bill.payment_reference or '', bill.company_id.vat or '')).replace('/', '')
                 document = invoice._get_l10n_mx_edi_signed_edi_document()
                 attachment = document.attachment_id
-                copiedAttach = attachment.copy({
+                copiedAttach = attachment.sudo().copy({
                     'res_id': bill.id,
-                    'company_id': bill.company_id.id,
+                    'company_id':bill.company_id.id,
                 })
                 document.sudo().copy({
                     'move_id': bill.id,
@@ -64,9 +64,7 @@ class AccountMove(models.Model):
             invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
                 'move_id': related.id,
             })
-
         return result
-
 
 
 
