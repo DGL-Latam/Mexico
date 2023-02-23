@@ -11,7 +11,7 @@ class AccountMove(models.Model):
 
         supported_types = ('out_invoice', 'in_invoice', 'out_refund', 'in_refund')
         for invoice in self.filtered(lambda x: x.move_type in supported_types):
-            dest_company = invoice._find_company_from_invoice_partner()
+            dest_company = invoice._find_company_from_partner()
             if not dest_company or invoice.auto_generated:
                 continue
             intercompany_user = dest_company.intercompany_invoice_user_id
