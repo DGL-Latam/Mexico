@@ -23,57 +23,59 @@ class AccountMove(models.Model):
                 invoice = invoice.with_user(inter_user).sudo()
             else:
                 invoice = invoice.sudo()
-            source = invoice.with_company(company.id).width_context(skip_check_amount_difference=True)
+            src = invoice.with_company(company.id).width_context(skip_check_amount_difference=True)
 
-            if not records + records_so:
-                return super()._post(soft=soft)
-            result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
-            result.edi_document_ids._process_documents_web_services()
-
-        src = source
-        for invoice in records:
-            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.src.id)])
-            if not related:
-                continue
-            filename = ('%s-%s-MX-Invoice-%s.xml' % (
-                related.journal_id.code, related.payment_reference or '', company.vat or '')).replace('/', '')
-            document = invoice._get_l10n_mx_edi_signed_edi_document()
-            attachment = document.attachment_id
-            copiedAttach = attachment.sudo().copy({
-                'res_id': related.id,
-                'company_id': related.src.id,
-            })
-            document.sudo().copy({
-                'move_id': related.id,
-                'attachment_id': copiedAttach.id,
-                'name': filename,
-            })
-        for invoice in records_so:
-            sale = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
-            if not sale:
-                continue
-            related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id)])
-            if not related:
-                continue
-            bill = related.invoice_ids
-            if bill:
+            for invoice2 in records:
+                related = self.sudo().search(
+                    [('auto_invoice_id', '=', invoice2.id), ('company_id', '=', invoice2.src.id)])
+                if not related:
+                    continue
                 filename = ('%s-%s-MX-Invoice-%s.xml' % (
-                    bill.journal_id.code, bill.payment_reference or '', bill.company_id.vat or '')).replace('/', '')
-                document = invoice._get_l10n_mx_edi_signed_edi_document()
+                    related.journal_id.code, related.payment_reference or '', company.vat or '')).replace('/', '')
+                document = invoice2._get_l10n_mx_edi_signed_edi_document()
                 attachment = document.attachment_id
                 copiedAttach = attachment.sudo().copy({
-                    'res_id': bill.id,
-                    'company_id': bill.company_id.id,
+                    'res_id': related.id,
+                    'company_id': related.src.id,
                 })
                 document.sudo().copy({
-                    'move_id': bill.id,
+                    'move_id': related.id,
                     'attachment_id': copiedAttach.id,
                     'name': filename,
                 })
-                continue
-            invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
-                'move_id': related.id,
-            })
+            for invoice3 in records_so:
+                sale = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
+                if not sale:
+                    continue
+                related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id)])
+                if not related:
+                    continue
+                bill = related.invoice_ids
+                if bill:
+                    filename = ('%s-%s-MX-Invoice-%s.xml' % (
+                        bill.journal_id.code, bill.payment_reference or '', bill.company_id.vat or '')).replace('/', '')
+                    document = invoice3._get_l10n_mx_edi_signed_edi_document()
+                    attachment = document.attachment_id
+                    copiedAttach = attachment.sudo().copy({
+                        'res_id': bill.id,
+                        'company_id': bill.company_id.id,
+                    })
+                    document.sudo().copy({
+                        'move_id': bill.id,
+                        'attachment_id': copiedAttach.id,
+                        'name': filename,
+                    })
+                    continue
+                invoice3._get_l10n_mx_edi_signed_edi_document().sudo().copy({
+                    'move_id': related.id,
+                })
+
+        if not records + records_so:
+            return super()._post(soft=soft)
+        result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
+        result.edi_document_ids._process_documents_web_services()
+
+
         return result
 
 
