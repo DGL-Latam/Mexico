@@ -39,8 +39,8 @@ class AccountMove(models.Model):
             document = invoice._get_l10n_mx_edi_signed_edi_document()
             attachment = document.attachment_id
             copiedAttach = attachment.sudo().copy({
-                'res_id': related.id
-
+                'res_id': related.id,
+                'company_id': related.company_id.id,
             })
             document.sudo().copy({
                 'move_id': related.id,
