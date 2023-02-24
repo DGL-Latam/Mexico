@@ -31,7 +31,7 @@ class AccountMove(models.Model):
         result.edi_document_ids._process_documents_web_services()
 
         for invoice in records:
-            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.company_id.id)])
+            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.company_id)])
             if not related:
                 continue
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
@@ -51,7 +51,7 @@ class AccountMove(models.Model):
             sale = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
             if not sale:
                 continue
-            related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id)])
+            related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id), ('company_id', '=', sale.company_id)])
             if not related:
                 continue
             bill = related.invoice_ids
