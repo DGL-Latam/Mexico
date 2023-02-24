@@ -5,7 +5,7 @@ _logger = logging.getLogger(__name__)
 
 class AccountMove(models.Model):
     _inherit = "account.move"
-
+'''
     def _post(self, soft=True):
         records = self.env[self._name]
         records_so = self.env[self._name]
@@ -32,7 +32,7 @@ class AccountMove(models.Model):
 
         
         return result
-
+'''
 
 class ResCompany(models.Model):
     _inherit = "res.company"
