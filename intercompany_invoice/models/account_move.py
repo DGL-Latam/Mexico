@@ -31,7 +31,7 @@ class AccountMove(models.Model):
         result.edi_document_ids._process_documents_web_services()
 
         for invoice in records:
-            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.company_id.id)])
+            related = self.sudo().search([('auto_invoice_id', '=', invoice.id)])
             if not related:
                 continue
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
@@ -39,15 +39,17 @@ class AccountMove(models.Model):
             document = invoice._get_l10n_mx_edi_signed_edi_document()
             attachment = document.attachment_id
             copiedAttach = attachment.sudo().copy({
-                'res_id': related.id,
-                'company_id': related.company_id.id,
+                'res_id': related.id
+
             })
             document.sudo().copy({
                 'move_id': related.id,
                 'attachment_id': copiedAttach.id,
                 'name': filename,
             })
-        
+
+
+
         return result
 
 
