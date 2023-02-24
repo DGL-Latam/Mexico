@@ -51,7 +51,7 @@ class AccountMove(models.Model):
             sale = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
             if not sale:
                 continue
-            related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id), ('company_id', '=', sale.company_id)])
+            related = self.env['purchase.order'].sudo().search([('auto_sale_order_id', '=', sale.id), ('company_id', '=', sale.company_id.id)])
             if not related:
                 continue
             bill = related.invoice_ids
