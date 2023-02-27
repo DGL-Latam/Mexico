@@ -31,7 +31,8 @@ class AccountMove(models.Model):
         result.edi_document_ids._process_documents_web_services()
 
         for invoice in records:
-            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.company_id.id)])
+            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.company_id.id
+                                                                                 )])
             if not related:
                 continue
             filename = ('%s-%s-MX-Invoice-%s.xml' % (
@@ -83,3 +84,7 @@ class ResCompany(models.Model):
     _inherit = "res.company"
 
     rule_type= fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
+
+    if rule_type == "sale_purchase_invoice_refund" == True:
+        rule_type.sale_purchase = True
+        rule_type.invoice_and_refund = True
