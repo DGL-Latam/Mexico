@@ -84,7 +84,3 @@ class ResCompany(models.Model):
     _inherit = "res.company"
 
     rule_type= fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
-
-    if rule_type == "sale_purchase_invoice_refund" == True:
-        rule_type.sale_purchase = True
-        rule_type.invoice_and_refund = True
