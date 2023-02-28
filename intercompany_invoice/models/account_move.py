@@ -78,17 +78,3 @@ class AccountMove(models.Model):
             })
         
         return result
-
-
-class ResCompany(models.Model):
-    _inherit = "res.company"
-
-    rule_type = fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
-
-    intercompany_transaction_message = fields.Char(compute="_compute_intercompany_transaction_message")
-
-    @api.depends("rule_type", "name")
-    def _compute_intercompany_transaction_message(self):
-        for record in self:
-            if record.rule_type == "sale_purchase_invoice_refund":
-                record.intercompany_transaction_message = _("Generación de ordenes/venta y factura/recibo para %s.", record.name)
