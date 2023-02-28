@@ -91,4 +91,4 @@ class ResCompany(models.Model):
     def _compute_intercompany_transaction_message(self):
         for record in self:
             if record.rule_type == "sale_purchase_invoice_refund":
-                record.intercompany_transaction_message = ("Generación de ordenes/venta y factura/recibo para %s.", record.name)
+                record.intercompany_transaction_message = _("Generación de ordenes/venta y factura/recibo para %s.", record.name)
