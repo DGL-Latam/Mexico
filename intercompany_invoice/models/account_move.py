@@ -85,5 +85,6 @@ class ResCompany(models.Model):
 
     rule_type = fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
 
-    warehouse_id = "sale"
+    if rule_type == "sale_purchase_invoice_refund":
+        warehouse_id = "sale_purchase"
 
