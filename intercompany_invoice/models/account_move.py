@@ -11,7 +11,7 @@ class AccountMove(models.Model):
         records_so = self.env[self._name]
         for invoice in self.filtered(lambda i: i.move_type in ['out_invoice', 'out_refund']):
             company = self.env['res.company']._find_company_from_partner(invoice.partner_id.id)
-            if not company or company.rule_type not in ('invoice_and_refund', 'sale', 'purchase', 'sale_purchase'):
+            if not company or company.rule_type not in ('sale_purchase_invoice_refund'):
                 continue
             if not invoice.auto_generated:
                 records += invoice
