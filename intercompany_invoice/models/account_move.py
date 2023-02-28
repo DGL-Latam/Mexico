@@ -85,6 +85,8 @@ class ResCompany(models.Model):
 
     rule_type = fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
 
+    intercompany_transaction_message = fields.Char(compute="_compute_intercompany_transaction_message")
+
     @api.depends("rule_type", "name")
     def _compute_intercompany_transaction_message(self):
         for record in self:
