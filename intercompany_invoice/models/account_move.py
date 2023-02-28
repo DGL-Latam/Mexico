@@ -85,6 +85,6 @@ class ResCompany(models.Model):
 
     rule_type = fields.Selection(selection_add=[("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")])
 
-    if rule_type == "sale_purchase_invoice_refund":
-        intercompany_transaction_message = fields.Char("Texto de prueba")
+    
+    intercompany_transaction_message = fields.Char("Texto de prueba")
 
