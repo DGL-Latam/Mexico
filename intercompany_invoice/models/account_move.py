@@ -52,6 +52,8 @@ class purchase_order(models.Model):
     _inherit = "purchase.order"
 
     def _prepare_sale_order_data(self, name, partner, company, direct_delivery_address):
+
         res = super()._prepare_sale_order_data()
+        warehouse = company.warehouse_id and company.warehouse_id.company_id.id == company.id and company.warehouse_id or False
 
         return res
