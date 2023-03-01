@@ -8,3 +8,13 @@ class ResConfigSettings(models.TransientModel):
     rules_company_id = fields.Many2one(related='company_id', string='Select Company', readonly=True)
 
     warehouse_id = fields.Many2one(related = "company_id.warehouse_id", readonly = False, domain = lambda self: [("company_id", "=", self.env.company.id)])
+
+    @api.onchange('rule_type')
+    def onchange_rule_type(self):
+        if self.rule_type not in [("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")].keys():
+            self.auto_validation = False
+            self.warehouse_id = False
+        else:
+            warehouse_id = self.warehouse_id or self.env['stock.warehouse'].search(
+                [('company_id', '=', self.env.company.id)], limit=1)
+            self.warehouse_id = warehouse_id
