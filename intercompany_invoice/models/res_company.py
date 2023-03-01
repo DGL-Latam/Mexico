@@ -13,4 +13,12 @@ class ResCompany(models.Model):
     def _find_company_from_partner(self, partner_id):
         company = self.sudo().search([("partner_id", "=", partner_id)], limit=1)
         return company or False
-    
+
+    @api.onchange('rule_type')
+    def onchange_rule_type(self):
+        if self.rule_type not in new_rule_type.keys():
+            self.auto_validation = False
+            self.warehouse_id = False
+        else:
+            warehouse_id = self.env['stock.warehouse'].search([('company_id', '=', self._origin.id)], limit=1)
+            self.warehouse_id = warehouse_id
