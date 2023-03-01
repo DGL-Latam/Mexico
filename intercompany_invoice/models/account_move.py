@@ -53,6 +53,7 @@ class purchase_order(models.Model):
     _inherit = "purchase.order"
 
     def _prepare_sale_order_data(self, name, partner, company, direct_delivery_address):
+        
         self.ensure_one()
         partner_addr = partner.sudo().address_get(['invoice', 'delivery', 'contact'])
         warehouse = company.warehouse_id and company.warehouse_id.company_id.id == company.id and company.warehouse_id or False
