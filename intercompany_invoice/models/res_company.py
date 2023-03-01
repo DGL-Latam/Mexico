@@ -7,7 +7,10 @@ class ResCompany(models.Model):
 
     rule_type = fields.Selection(selection_add=new_rule_type, string="Rule", default="not_synchronize")
 
+    warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse")
+
     @api.model
     def _find_company_from_partner(self, partner_id):
         company = self.sudo().search([("partner_id", "=", partner_id)], limit=1)
         return company or False
+    
