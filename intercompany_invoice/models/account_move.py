@@ -41,7 +41,7 @@ class SaleOrderLine(models.Model):
     def _purchase_service_create(self, quantity=False):
         line_to_purchase = set()
         for line in self:
-            # Do not auto purchase as the sale order is automatically created in a intercompany flow
+           
             company = self.env['res.company']._find_company_from_partner(line.order_id.partner_id.id)
             if not company or company.rule_type not in (
             "sale_purchase_invoice_refund") and not line.order_id.auto_generated:
@@ -53,7 +53,7 @@ class purchase_order(models.Model):
     _inherit = "purchase.order"
 
     def _prepare_sale_order_data(self, name, partner, company, direct_delivery_address):
-        
+
         self.ensure_one()
         partner_addr = partner.sudo().address_get(['invoice', 'delivery', 'contact'])
         warehouse = company.warehouse_id and company.warehouse_id.company_id.id == company.id and company.warehouse_id or False
