@@ -88,7 +88,7 @@ class sale_order(models.Model):
             if not order.company_id:
                 continue
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
-            if company and company.rule_type in ("sale", "sale_purchase", "sale_purchase_invoice_refund") and (not order.auto_generated):
+            if company and company.rule_type in ("sale_purchase_invoice_refund") and (not order.auto_generated):
                 order.with_user(company.intercompany_user_id).with_context(default_company_id=company.id).with_company(company).inter_company_create_purchase_order(company)
         return res
 
@@ -100,7 +100,7 @@ class SaleOrderLine(models.Model):
         for line in self:
             company = self.env['res.company']._find_company_from_partner(line.order_id.partner_id.id)
             if not company or company.rule_type not in (
-            'purchase', 'sale_purchase', 'sale_purchase_invoice_refund') and not line.order_id.auto_generated:
+            'sale_purchase_invoice_refund') and not line.order_id.auto_generated:
                 line_to_purchase.add(line.id)
         line_to_purchase = self.env['sale.order.line'].browse(list(line_to_purchase))
         return super(SaleOrderLine, line_to_purchase)._purchase_service_create(quantity=quantity)
@@ -113,7 +113,7 @@ class purchase_order(models.Model):
         res = super(purchase_order, self).button_approve(force=force)
         for order in self:
             company_rec = self.env['res.company']._find_company_from_partner(order.partner_id.id)
-            if company_rec and company_rec.rule_type in ('purchase', 'sale_purchase', 'sale_purchase_invoice_refund') and (not order.auto_generated):
+            if company_rec and company_rec.rule_type in ('sale_purchase_invoice_refund') and (not order.auto_generated):
                 order.with_user(company_rec.intercompany_user_id).with_context(
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(
                     company_rec)
