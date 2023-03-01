@@ -7,6 +7,7 @@ class ResCompany(models.Model):
 
     rule_type = fields.Selection(selection_add=new_rule_type, string="Rule", default="not_synchronize")
 
+    auto_validation = fields.Boolean()
     warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse")
 
     @api.model
