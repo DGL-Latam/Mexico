@@ -16,7 +16,7 @@ class ResCompany(models.Model):
 
     @api.onchange('rule_type')
     def onchange_rule_type(self):
-        if self.rule_type not in new_rule_type.keys():
+        if self.rule_type not in [("sale_purchase_invoice_refund", "Sincronizar órdenes de venta/compra y facturas/recibos")].keys():
             self.auto_validation = False
             self.warehouse_id = False
         else:
