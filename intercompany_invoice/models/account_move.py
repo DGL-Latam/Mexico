@@ -47,3 +47,11 @@ class SaleOrderLine(models.Model):
                 line_to_purchase.add(line.id)
         line_to_purchase = self.env['sale.order.line'].browse(list(line_to_purchase))
         return super(SaleOrderLine, line_to_purchase)._purchase_service_create(quantity=quantity)
+
+class purchase_order(models.Model):
+    _inherit = "purchase.order"
+
+    def _prepare_sale_order_data(self, name, partner, company, direct_delivery_address):
+        res = super()._prepare_sale_order_data()
+
+        return res
