@@ -1,80 +1,21 @@
-from odoo import api, models, fields, _
-import logging
+# -*- coding: utf-8 -*-
+from odoo import fields, models, _
 
-_logger = logging.getLogger(__name__)
 
 class AccountMove(models.Model):
-    _inherit = "account.move"
+    _inherit = 'account.move'
 
     def _post(self, soft=True):
-        records = self.env[self._name]
-        records_so = self.env[self._name]
-        for invoice in self.filtered(lambda i: i.move_type in ['out_invoice', 'out_refund']):
+        # OVERRIDE to generate cross invoice based on company rules.
+        invoices_map = {}
+        posted = super()._post(soft)
+        for invoice in posted.filtered(lambda move: move.is_invoice()):
             company = self.env['res.company']._find_company_from_partner(invoice.partner_id.id)
-            if not company or company.rule_type not in ('invoice_and_refund', 'sale_purchase', "sale_purchase_invoice_refund"):
-                continue
-            if not invoice.auto_generated:
-                records += invoice
-                continue
-            records_so += invoice
-
-            inter_user = company.intercompany_invoice_user_id
-            if inter_user:
-                invoice = invoice.with_user(inter_user).sudo()
-            else:
-                invoice = invoice.sudo()
-            invoice.with_company(company.id).width_context(skip_check_amount_difference=True)
-
-        if not records + records_so:
-            return super()._post(soft=soft)
-        result = super(AccountMove, self.with_context(disable_after_commit=True))._post(soft=soft)
-        result.edi_document_ids._process_documents_web_services()
-
-        for invoice in records:
-            related = self.sudo().search([('auto_invoice_id', '=', invoice.id), ('company_id', '=', invoice.company_id.id
-                                                                                 )])
-            if not related:
-                continue
-            filename = ('%s-%s-MX-Invoice-%s.xml' % (
-                related.journal_id.code, related.payment_reference or '', company.vat or '')).replace('/', '')
-            document = invoice._get_l10n_mx_edi_signed_edi_document()
-            attachment = document.attachment_id
-            copiedAttach = attachment.sudo().copy({
-                'res_id': related.id,
-                'company_id': related.company_id.id,
-            })
-            document.sudo().copy({
-                'move_id': related.id,
-                'attachment_id': copiedAttach.id,
-                'name': filename,
-            })
-
-        for invoice in records_so:
-            sale = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
-            if not sale:
-                continue
-            related = self.env['purchase.order'].sudo().search(
-                [('auto_sale_order_id', '=', sale.id), ('company_id', '=', sale.company_id.id)])
-            if not related:
-                continue
-            bill = related.invoice_ids
-            if bill:
-                filename = ('%s-%s-MX-Invoice-%s.xml' % (
-                    bill.journal_id.code, bill.payment_reference or '', bill.company_id.vat or '')).replace('/', '')
-                document = invoice._get_l10n_mx_edi_signed_edi_document()
-                attachment = document.attachment_id
-                copiedAttach = attachment.sudo().copy({
-                    'res_id': bill.id,
-                    'company_id': bill.company_id.id,
-                })
-                document.sudo().copy({
-                    'move_id': bill.id,
-                    'attachment_id': copiedAttach.id,
-                    'name': filename,
-                })
-                continue
-            invoice._get_l10n_mx_edi_signed_edi_document().sudo().copy({
-                'move_id': related.id,
-            })
-        
-        return result
+            if company and company.rule_type == 'sale_purchase_invoice_refund' and not invoice.auto_generated:
+                invoices_map.setdefault(company, self.env['account.move'])
+                invoices_map[company] += invoice
+        for company, invoices in invoices_map.items():
+            context = dict(self.env.context, default_company_id=company.id)
+            context.pop('default_journal_id', None)
+            invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
+        return posted
