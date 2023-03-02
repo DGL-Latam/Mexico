@@ -10,6 +10,7 @@ class ResCompany(models.Model):
     rule_type = fields.Selection(selection_add=new_rule_type, string="Rule", default="not_synchronize")
 
     auto_validation = fields.Boolean()
+    warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse")
 
     @api.model
     def _find_company_from_partner(self, partner_id):
