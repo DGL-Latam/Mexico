@@ -12,3 +12,5 @@ class ResConfigSettings(models.TransientModel):
         string='Warehouse For Purchase Orders',
         readonly=False,
         domain=lambda self: [('company_id', '=', self.env.company.id)])
+
+    auto_validation = fields.Boolean(related='company_id.auto_validation', readonly=False)
