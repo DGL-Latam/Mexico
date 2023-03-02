@@ -17,6 +17,3 @@ class sale_order(models.Model):
                     company).inter_company_create_purchase_order(company)
 
         return res
-
-    def _prepare_purchase_order_data(self):
-        super()._prepare_purchase_order_data()
