@@ -1,20 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="res_config_settings_sale_invoice_view_form" model="ir.ui.view">
-        <field name="name">res.config.settings.sale.invoice.view.form.inherit.inter.company.rules</field>
-        <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="account_inter_company_rules.res_config_settings_view_form"/>
+    <record model="ir.ui.view" id="view_company_inter_sale_invoice_change_inherit_form">
+        <field name="name">res.company.form.inherit</field>
+        <field name="inherit_id" ref="account_inter_company_rules.view_company_inter_change_inherit_form"/>
+        <field name="model">res.company</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='module_inter_company_rules_set_so_po']" position="inside">
-                <div class="row ml16" attrs="{'invisible':[('rule_type', 'not in', ('sale_purchase_invoice_refund'))]}">
-                    <label for="warehouse_id" string="Use Warehouse" class="col-4 col-lg-4 o_light_label"/>
-                    <field name="warehouse_id" options="{'no_create_edit': True}"/>
-                </div>
-                <div class="row ml32" attrs="{'invisible':[('rule_type', 'not in', ('sale_purchase_invoice_refund'))]}">
-                    <field name="auto_validation" class="col-1 col-lg-1"/>
-                    <label for="auto_validation" class="o_light_label"/>
-                </div>
-            </xpath>
+            <field name="rule_type" position="after">
+                <field name="warehouse_id" options="{'no_create_edit': True}" domain="[('company_id', '=', id)]" attrs="{'invisible': [('rule_type', 'not in', ('sale_purchase_invoice_refund'))]}"/>
+                <field name="auto_validation" attrs="{'invisible': [('rule_type', 'not in', ('sale_purchase_invoice_refund'))]}"/>
+            </field>
         </field>
     </record>
 </odoo>
