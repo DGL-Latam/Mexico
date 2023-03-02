@@ -14,3 +14,7 @@ class ResConfigSettings(models.TransientModel):
         domain=lambda self: [('company_id', '=', self.env.company.id)])
 
     auto_validation = fields.Boolean(related='company_id.auto_validation', readonly=False)
+
+    @api.onchange("rule_type")
+    def onchange_rule_type(self):
+        super().onchange_rule_type()
