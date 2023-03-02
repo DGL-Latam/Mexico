@@ -6,6 +6,3 @@ class ResConfigSettings(models.TransientModel):
     rule_type = fields.Selection(related="company_id.rule_type", readonly=False)
     intercompany_user_id = fields.Many2one(related='company_id.intercompany_user_id', readonly=False, required=True)
     rules_company_id = fields.Many2one(related='company_id', string='Select Company', readonly=True)
-
-    auto_validation = fields.Boolean(related="company_id.auto_validation", readonly=False)
-    warehouse_id = fields.Many2one(related = "company_id.warehouse_id", readonly = False, domain = lambda self: [("company_id", "=", self.env.company.id)])
