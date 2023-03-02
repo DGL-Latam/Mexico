@@ -4,7 +4,9 @@
     'author': 'DGL-Latam',
     'description': 'Facturas intercompañias',
     'license': 'LGPL-3',
-    'depends': ['sale_management', 'account', 'stock', 'account_accountant', 'purchase', 'account_inter_company_rules'],
+    'depends': [
+                'account_inter_company_rules',
+                'sale_purchase_inter_company_rules'],
     'data': ['views/res_config_settings_sale_invoice_views.xml',
              'views/inter_company_so_invoice_view.xml']
 }
