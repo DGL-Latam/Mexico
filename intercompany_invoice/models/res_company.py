@@ -10,3 +10,11 @@ class ResCompany(models.Model):
 
     rule_type = fields.Selection(selection_add=new_rule_type, string="Rule", default="not_synchronize")
 
+    @api.onchange("rule_type")
+    def onchange_rule_type(self):
+        if self.rule_type not in new_rule_type.keys():
+            super().onchange_rule_type()
+        else:
+            warehouse_id = self.warehouse_id or self.env['stock.warehouse'].search(
+                [('company_id', '=', self.env.company.id)], limit=1)
+            self.warehouse_id = warehouse_id
