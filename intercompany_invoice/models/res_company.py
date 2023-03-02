@@ -12,7 +12,7 @@ class ResCompany(models.Model):
 
     @api.onchange("rule_type")
     def onchange_rule_type(self):
-        if self.rule_type not in new_rule_type.keys():
+        if self.rule_type not in new_rule_type:
             super().onchange_rule_type()
         else:
             warehouse_id = self.warehouse_id or self.env['stock.warehouse'].search(
