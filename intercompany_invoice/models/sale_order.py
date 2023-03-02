@@ -6,7 +6,7 @@ class sale_order(models.Model):
 
     def _action_confirm(self, company):
         #super()._action_confirm(company)
-        res = super(sale_order, self)._action_confirm()
+        res = super(sale_order, self)._action_confirm(company)
         for order in self:
             if not order.company_id:
                 continue
