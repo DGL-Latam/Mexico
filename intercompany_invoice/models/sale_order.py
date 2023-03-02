@@ -12,7 +12,7 @@ class sale_order(models.Model):
             if not order.company_id:
                 continue
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
-            if company and company.rule_type in ("sale_purchase_invoice_refund") and (not order.auto_generated):
+            if company and company.rule_type == 'sale_purchase_invoice_refund' and not company.auto_generated:
                 order.with_user(company.intercompany_user_id).with_context(default_company_id=company.id).with_company(
                     company).inter_company_create_purchase_order(company)
         return res
