@@ -5,14 +5,15 @@ class sale_order(models.Model):
     _inherit = "sale.order"
 
     def _action_confirm(self, company):
-        super()._action_confirm(company)
+        #super()._action_confirm(company)
+        res = super(sale_order, self)._action_confirm()
         for order in self:
             if not order.company_id:
                 continue
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
             if company and company.rule_type in ("sale_purchase_invoice_refund") and (not order.auto_generated):
                 order.with_user(company.intercompany_user_id).with_context(default_company_id=company.id).with_company(company).inter_company_create_purchase_order(company)
-
+        return res
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
