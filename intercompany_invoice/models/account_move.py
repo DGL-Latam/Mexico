@@ -23,9 +23,9 @@ class AccountMove(models.Model):
     def _inter_company_create_invoices(self):
         moves = super()._inter_company_create_invoices()
         moves.inverse_types = {
-            'in_invoice': 'out_invoice',
-            'in_refund': 'out_refund',
-            'out_invoice': 'in_invoice',
-            'out_refund': 'in_refund',
+            'in_invoice': 'in_invoice',
+
+            'out_invoice': 'out_invoice',
+
         }
         return moves
