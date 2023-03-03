@@ -106,7 +106,7 @@ class AccountEdiFormat(models.Model):
                     # It needs to be how much invoice currency you pay for one payment currency
                     amount_paid_invoice_comp_curr = payment_line.company_currency_id.round(
                         total_amount * (partial.amount / paid_amount_comp_curr))
-                    invoice_rate = mxn_currency._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
+                    invoice_rate =  mxn_currency._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
                     exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
                     exchange_rate = float_round(exchange_rate, precision_digits=6, rounding_method='UP')
@@ -120,7 +120,7 @@ class AccountEdiFormat(models.Model):
                     'invoice': invoice,
                     'exchange_rate': exchange_rate,
                     'payment_policy': invoice.l10n_mx_edi_payment_policy,
-                    'number_of_payments': len(invoice._get_reconciled_payments()),
+                    'number_of_payments': len(invoice._get_reconciled_payments()) + len(invoice._get_reconciled_statement_lines()),
                     'amount_paid': amount_paid_invoice_curr,
                     'amount_before_paid': min(invoice.amount_residual + amount_paid_invoice_curr, invoice.amount_total),
                     'tax_details_transferred': tax_details_transferred,
