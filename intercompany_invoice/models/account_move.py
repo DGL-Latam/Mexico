@@ -20,12 +20,4 @@ class AccountMove(models.Model):
 
         return posted
 
-    def _inter_company_create_invoices(self):
-        moves = super()._inter_company_create_invoices()
-        moves.inverse_types = {
-            'in_invoice': 'in_invoice',
-
-            'out_invoice': 'out_invoice',
-
-        }
-        return moves
+    
