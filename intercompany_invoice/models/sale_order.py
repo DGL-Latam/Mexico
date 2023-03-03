@@ -5,7 +5,7 @@ class sale_order(models.Model):
     _inherit = "sale.order"
 
     def _action_confirm(self):
-        # super()._action_confirm(company)
+        
         res = super(sale_order, self)._action_confirm()
 
         for order in self:
@@ -17,3 +17,4 @@ class sale_order(models.Model):
                     company).inter_company_create_purchase_order(company)
 
         return res
+
