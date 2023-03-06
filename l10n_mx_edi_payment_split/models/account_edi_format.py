@@ -47,8 +47,8 @@ class AccountEdiFormat(models.Model):
             for detail in tax_details['tax_details'].values():
                 tax = detail['tax']
                 tax_amount = abs(tax.amount) / 100.0 if tax.amount_type != 'fixed' else abs(detail['tax_amount_currency'] / detail['base_amount_currency'])
-                base_val_proportion = float_round(detail['base_amount_currency'] * percentage_paid * sign, precision)
-                tax_val_proportion = float_round(base_val_proportion * tax_amount, precision)
+                base_val_proportion = float_round(detail['base_amount_currency'] * percentage_paid * sign, 6)
+                tax_val_proportion = float_round(base_val_proportion * tax_amount, 6)
                 detail.update({
                     'base_val_prop_amt_curr': base_val_proportion,
                     'tax_val_prop_amt_curr': tax_val_proportion if tax.l10n_mx_tax_type != 'Exento' else False,
