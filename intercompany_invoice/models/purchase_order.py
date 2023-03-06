@@ -15,4 +15,8 @@ class purchase_order(models.Model):
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(company_rec)
         return res
 
-    invoice_ids = fields.Many2many("account.move")
+    def _onchange_purchase_auto_complete(self):
+        res = super()._onchange_purchase_auto_complete()
+        if self.purchase_vendor_bill_id.vendor_bill_id:
+            self.purchase_id = self.purchase_vendor_bill_id.purchase_order_id
+        return res
