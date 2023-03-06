@@ -110,7 +110,7 @@ class AccountEdiFormat(models.Model):
                     amount_paid_invoice_comp_curr = payment_line.company_currency_id.round(
                         total_amount * (partial.amount / paid_amount_comp_curr))
                     invoice_rate = mxn_currency._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
-                    amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
+                    amount_paid_invoice_curr = round(partial.amount * invoice_rate,6)
                     exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
                     exchange_rate = float_round(exchange_rate, precision_digits=6, rounding_method='UP')
 
