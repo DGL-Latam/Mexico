@@ -19,8 +19,3 @@ class AccountMove(models.Model):
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
         return posted
-
-    def _inter_company_create_invoices(self):
-        super()._inter_company_create_invoices()
-        for rec in self:
-            rec.auto_invoice_id = self.env["account.move"].sudo().search([("name", "=", rec.ref)]).id
