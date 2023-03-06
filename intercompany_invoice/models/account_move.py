@@ -23,4 +23,4 @@ class AccountMove(models.Model):
     def _inter_company_create_invoices(self):
         super()._inter_company_create_invoices()
         for rec in self:
-            rec.auto_invoice_id = self.env["account.move"].sudo().search([("name", "=", rec.duplicated_vendor_ref)]).id
+            rec.auto_invoice_id = self.env["account.move"].sudo().search([("name", "=", rec.ref)]).id
