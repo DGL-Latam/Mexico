@@ -12,6 +12,11 @@ class AccountMove(models.Model):
         search='search_uuid')
     
     def search_uuid(self,operator, value):
-        ids = self.env['ir.attachment'].search([('l10n_mx_edi_uuid','ilike',value),('res_model','=', self._name)]).res_id
-        return [('id', 'in', ids)]
+        ids = []
+        attachs = self.env['ir.attachment'].search([('l10n_mx_edi_uuid','ilike',value),('res_model','=', self._name)])
+        for attach in attachs:
+            ids.append(attach.res_id)
+        if ids:
+            return [('id', 'in', ids)]
+        return [('id', 'in', [])]
     
