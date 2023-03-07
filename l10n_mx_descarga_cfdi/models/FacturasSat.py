@@ -133,7 +133,7 @@ class SolicitudesDescarga(models.Model):
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id
         })
-        fact.SearchOdooInvoice()
+        #fact.SearchOdooInvoice()
         
     def printEstado(self):
         for rec in self:

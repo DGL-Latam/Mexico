@@ -1,0 +1,34 @@
+<odoo>
+    <record id="factura_sat_tree_view" model="ir.ui.view">
+        <field name="name">facturas.sat_tree</field>
+        <field name="model">facturas.sat</field>
+        <field name="arch" type="xml">
+            <tree string="facturas_sat_tree_view">
+                <field name="sat_uuid"/>
+                <field name="sat_state"/>
+                <field name="sat_rfc_emisor"/>
+                <field name="sat_fecha_timbrado"/>
+                <field name="sat_tipo_factura"/>
+                <field name="sat_monto"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="menu_factura_sat_action" model="ir.actions.act_window">
+        <field name="name">facturas_sat</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids)]</field>
+    </record>
+
+    <menuitem
+        action="menu_factura_sat_action"
+        id="menu_facturas_sat_root"
+        name="Facturas SAT"
+        groups="account.group_account_manager"
+        sequence="600"
+    />
+
+
+</odoo>

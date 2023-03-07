@@ -7,16 +7,11 @@ class AccountMove(models.Model):
         string='Fiscal Folio', 
         copy=False, 
         readonly=True,
-        store=True,
         help='Folio in electronic invoice, is returned by SAT when send to stamp.',
-        compute='_compute_uuid',
-        compute_sudo=True)
+        compute='_compute_cfdi_values',
+        search='search_uuid')
     
-    
-    @api.depends('edi_document_ids')
-    def _compute_uuid(self):
-        for move in self:
-            move.edi_document_ids._process_documents_web_services()
-            cfdi_info = move._l10n_mx_edi_decode_cfdi()
-            move.l10n_mx_edi_cfdi_uuid = cfdi_info.get('uuid')
+    def search_uuid(self,operator, value):
+        ids = self.env['ir.attachment'].search([('l10n_mx_edi_uuid','=',value),('res_model','=', self._name)]).res_id
+        return [('id', 'in', ids)]
     

@@ -6,11 +6,13 @@
     "version": "0.0.1",
     'depends': [
         'base_automation',
+        'account',
         'l10n_mx_edi', 
         'documents',
     ],
     'data' : [
         'security/ir.model.access.csv',
+        'views/facturas_sat.xml',
     ],
     'installable': True,
 }
