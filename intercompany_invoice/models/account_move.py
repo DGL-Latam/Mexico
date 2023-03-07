@@ -17,7 +17,7 @@ class AccountMove(models.Model):
         for company, invoices in invoices_map.items():
             context = dict(self.env.context, default_company_id=company.id)
             context.pop('default_journal_id', None)
-            context.create_bill = True
+            self.env.context.create_bill = True
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
         return posted
