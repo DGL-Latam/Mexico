@@ -61,6 +61,9 @@ class MercadoLibreSales(models.Model):
         ('not_delivered', 'No entregado'),
         ('cancelled' , 'Cancelada'),
         ('fraud' , 'Cancelado por riesgo de Fraude'),
+        ('pending', 'Pendiente'),
+        ('handling', 'Pago del envio recibido'),
+        ('to_be_agreed', 'A acordar con el comprador')
     ], default="to_create")
     
     
@@ -81,14 +84,27 @@ class MercadoLibreSales(models.Model):
 
         self._writeDataOrderDetail(order_details)
         shipping_details = self._getShippingDetails()
-        self._writeDataShipDetails(shipping_details)
+        #self._writeDataShipDetails(shipping_details)
 
-        if 'fraud_risk_detected' in order_details['tags']:
-            self.cancel_order(fraud=True)
-            return
-        if order_details['status'] in ['cancelled']:
-            self.cancel_order()
-            return
+        try:
+            if 'fraud_risk_detected' in order_details['tags']:
+                self.cancel_order(fraud=True)
+                return
+        except KeyError as e:
+            _logger.critical("tags")
+            _logger.critical(self.ml_order_id)
+            _logger.critical(order_details)
+            _logger.critical(e)
+        try:
+            if order_details['status'] in ['cancelled']:
+                self.cancel_order()
+                return
+        except KeyError as e:
+            _logger.critical("status")
+            _logger.critical(self.ml_order_id)
+            _logger.critical(order_details)
+            _logger.critical(e)
+
         
         
 
@@ -110,7 +126,10 @@ class MercadoLibreSales(models.Model):
         items = self._getShipmentItems()
         order_ids = []
         for order_item in items:
-            order_ids.append(order_item['order_id'])
+            try :
+                order_ids.append(order_item['order_id'])
+            except TypeError as e : 
+                _logger.critical("couldn't process this order {}\n{}".format(order_item,e))
         order_ids = list(dict.fromkeys(order_ids)) #remove duplicates
         values = []
         for order in order_ids:
@@ -126,9 +145,25 @@ class MercadoLibreSales(models.Model):
                         'product_uom_qty' : order_item['quantity']
                     })
                 else : 
+                    name = ""
+                    try:
+                        name = order_item['item']['seller_sku']
+                    except KeyError as e:
+                        _logger.critical("Doesnt have SKU")
+                        _logger.critical(details)
+                    try:
+                        name += ' ' + order_item['title']
+                    except KeyError as e:
+                        try:
+                            name += ' ' + order_item['item']['title']
+                        except KeyError as e:
+                            _logger.critical("cant find any title")
+                        _logger.critical("Doesnt have title")
+                        _logger.critical(details)
+                    
                     values.append({
                         'ml_order_id' : self.id,
-                        'name' : order_item['item']['seller_sku'] + ' ' + order_item['title'],
+                        'name' : name,
                         'price' : order_item['unit_price'],
                         'product_uom_qty' : order_item['quantity']
                     })
@@ -142,10 +177,11 @@ class MercadoLibreSales(models.Model):
         try:
             if not self.ml_shipping_id:
                 self.write({'ml_shipping_id' : order_details['shipping']['id']})
-            if not self.client_name:
-                self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
             if not self.ml_pack_id: 
                 self.write( {'ml_pack_id' : order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id } )
+            if not self.client_name:
+                self.write( { 'client_name' :  order_details['buyer']['first_name'] + ' ' + order_details['buyer']['last_name'] })
+            
         except KeyError as e:
             order = order_details['pack_id'] if order_details['pack_id'] else self.ml_order_id
             _logger.critical("No se pudo procesar la orden {} \nError {}".format(order,str(e)))
@@ -154,7 +190,13 @@ class MercadoLibreSales(models.Model):
     def _writeDataShipDetails(self,shipping_details):
         try:
             self.write({'tracking_reference' : shipping_details['tracking_number']})
+        except KeyError as e:
+            _logger.critical("No se pudo procesar escribir Tracking_number")
+        try:
             self.write({'ml_is_order_full' : shipping_details['logistic_type'] == 'fulfillment'}) 
+        except KeyError as e:
+            _logger.critical("No se pudo escribir si full")
+        try:
             self.write({'status' : shipping_details['status']})
         except KeyError as e:
             _logger.critical("No se pudo procesar los datos de envio \nError {}".format(str(e)))
@@ -255,7 +297,7 @@ class MercadoLibreSales(models.Model):
         sale_order = self.env['sale.order'].sudo().with_user(1).search([('name','=',self.ml_pack_id),('company_id','=',self.company_id.id)])
         if sale_order.id:
             self.write({'sale_order_id' : sale_order.id })
-            return 
+            return self.env['sale.order']
 
         values = {
             'origin' : 'MP-ML',
@@ -312,8 +354,6 @@ class MercadoLibreSales(models.Model):
         mail.send([mail.id])
 
     def create_so_lines(self):
-        if self.sale_order_id.amount_total == self.total:
-            return
         so_lines_values = []
         error = False
         message = ''

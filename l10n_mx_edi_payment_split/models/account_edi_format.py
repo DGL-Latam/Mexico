@@ -22,9 +22,12 @@ from json.decoder import JSONDecodeError
 
 _logger = logging.getLogger(__name__)
 
+
+EQUIVALENCIADR_PRECISION_DIGITS = 10
 class AccountEdiFormat(models.Model):
     _inherit = 'account.edi.format'
-
+    
+    
     def _l10n_mx_edi_get_payment_cfdi_values(self, move):
 
         def get_tax_cfdi_name(tax_detail_vals):
@@ -106,10 +109,12 @@ class AccountEdiFormat(models.Model):
                     # It needs to be how much invoice currency you pay for one payment currency
                     amount_paid_invoice_comp_curr = payment_line.company_currency_id.round(
                         total_amount * (partial.amount / paid_amount_comp_curr))
-                    invoice_rate = mxn_currency._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
+                    invoice_rate = move.currency_id._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
+                    _logger.critical(invoice_rate)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
                     exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
-                    exchange_rate = float_round(exchange_rate, precision_digits=6, rounding_method='UP')
+                    exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
+                    _logger.critical(exchange_rate)
 
                 # for CFDI 4.0
                 cfdi_values = self._l10n_mx_edi_get_invoice_cfdi_values(invoice)
@@ -119,8 +124,9 @@ class AccountEdiFormat(models.Model):
                 invoice_vals_list.append({
                     'invoice': invoice,
                     'exchange_rate': exchange_rate,
+                    'EQUIVALENCIADR_PRECISION_DIGITS': EQUIVALENCIADR_PRECISION_DIGITS,
                     'payment_policy': invoice.l10n_mx_edi_payment_policy,
-                    'number_of_payments': len(invoice._get_reconciled_payments()),
+                    'number_of_payments': len(invoice._get_reconciled_payments()) + len(invoice._get_reconciled_statement_lines()),
                     'amount_paid': amount_paid_invoice_curr,
                     'amount_before_paid': min(invoice.amount_residual + amount_paid_invoice_curr, invoice.amount_total),
                     'tax_details_transferred': tax_details_transferred,
@@ -214,5 +220,6 @@ class AccountEdiFormat(models.Model):
             cfdi_values['customer_fiscal_residence'] = cfdi_values['customer'].country_id.l10n_mx_edi_code
         else:
             cfdi_values['customer_fiscal_residence'] = None
-
+        cfdi_values.update(self._l10n_mx_edi_get_40_values(move))
         return cfdi_values
+
