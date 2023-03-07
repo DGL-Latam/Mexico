@@ -13,9 +13,9 @@ class AccountMove(models.Model):
     
     def search_uuid(self,operator, value):
         ids = []
-        attachs = self.env['ir.attachment'].search([('l10n_mx_edi_uuid','ilike',value),('res_model','=', self._name)])
-        for attach in attachs:
-            ids.append(attach.res_id)
+        documents = self.env['account.edi.document'].search([('l10n_mx_edi_uuid','ilike',value)])
+        for doc in documents:
+            ids.append(doc.move_id)
         if ids:
             return [('id', 'in', ids)]
         return [('id', 'in', [])]
