@@ -18,7 +18,7 @@ class AccountMove(models.Model):
 
             context = dict(self.env.context, default_company_id=company.id)
             context.pop('default_journal_id', None)
-            context["create_bill"] = True
+            context["create_bill"] = False
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
         return posted
