@@ -20,4 +20,4 @@ class purchase_order(models.Model):
         confirm_from_sale = self.env["account.move"].action_post()
         if confirm_from_sale:
             res = super().action_create_invoice()
-        return res
+            return res
