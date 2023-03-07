@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import fields, models, _
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -18,7 +21,7 @@ class AccountMove(models.Model):
 
             context = dict(self.env.context, default_company_id=company.id)
             context.pop('default_journal_id', None)
-            context["create_bill"] = False
+            logger = logging.getLogger(context["create_bill"])
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
         return posted
