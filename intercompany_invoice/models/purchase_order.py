@@ -15,11 +15,3 @@ class purchase_order(models.Model):
                 order.with_user(company_rec.intercompany_user_id).with_context(
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(company_rec)
         return res
-
-    def action_create_invoice(self):
-        res = super().action_create_invoice()
-        for rec in self:
-            bill_from_am = rec.env["account.move"].search(["bill", "=", True])
-            if bill_from_am:
-                rec.create_bill = True
-        return res

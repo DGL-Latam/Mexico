@@ -4,13 +4,6 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    bill = False
-    def create_bill_from_account_move(self):
-
-        for rec in self:
-            if rec.with_context({"validate_analytic": True}):
-                bill = True
-        return bill
 
     def _post(self, soft=True):
 
