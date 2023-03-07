@@ -20,7 +20,7 @@ class purchase_order(models.Model):
         confirm_from_sale = self.env["account.move"].action_post()
 
         invoices_map = {}
-        res = super()._action_create_invoice()
+        res = super().action_create_invoice()
 
         if confirm_from_sale:
             for invoice in res.filtered(lambda move: move.is_invoice()):
