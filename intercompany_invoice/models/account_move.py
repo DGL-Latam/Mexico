@@ -4,6 +4,13 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+    def create_bill_from_account_move(self):
+        bill = False
+        for rec in self:
+            if (rec.state=="draft") and (rec.auto_post==False) and (rec.move_entry!="entry") and (rec.display_inactive_currency_warning==False):
+                bill = True
+        return bill
+
     def _post(self, soft=True):
 
         invoices_map = {}
