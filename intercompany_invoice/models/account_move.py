@@ -8,7 +8,7 @@ class AccountMove(models.Model):
     def create_bill_from_account_move(self):
 
         for rec in self:
-            if (rec.state=="draft") and (rec.auto_post==False) and (rec.move_entry!="entry") and (rec.display_inactive_currency_warning==False):
+            if (rec.state=="draft") and (rec.auto_post==False) and (rec.move_entry!="entry") and (rec.display_inactive_currency_warning==False) and (res.validate_analytic == True):
                 bill = True
         return bill
 
