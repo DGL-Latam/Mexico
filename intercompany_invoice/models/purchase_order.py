@@ -18,7 +18,8 @@ class purchase_order(models.Model):
 
     def action_create_invoice(self):
         res = super().action_create_invoice()
-        bill_from_am = self.env["account.move"].search(["bill", "=", True])
-        if bill_from_am:
-            self.create_bill = True
+        for rec in self:
+            bill_from_am = rec.env["account.move"].search(["bill", "=", True])
+            if bill_from_am:
+                rec.create_bill = True
         return res
