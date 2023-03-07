@@ -8,7 +8,7 @@ class Attachment(models.Model):
         copy=False, 
         readonly=True, 
         store=True, 
-        compute='_compute_uuid')
+        compute='_compute_uuids')
 
     def _compute_uuids(self):
         for attach in self:
