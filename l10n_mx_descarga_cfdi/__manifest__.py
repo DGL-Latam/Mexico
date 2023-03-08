@@ -3,7 +3,7 @@
     'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
-    "version": "0.0.2",
+    "version": "0.0.3",
     'depends': [
         'base_automation',
         'account',

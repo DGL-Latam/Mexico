@@ -10,6 +10,7 @@
                 <field name="sat_fecha_timbrado"/>
                 <field name="sat_tipo_factura"/>
                 <field name="sat_monto"/>
+                <field name="diferentials"/>
             </tree>
         </field>
     </record>
@@ -22,6 +23,54 @@
         <field name="domain">[('company', 'in', allowed_company_ids)]</field>
     </record>
 
+    <record id="menu_factura_sat_action_dif_amount" model="ir.actions.act_window">
+        <field name="name">Facturas SAT con montos distintos</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_amount')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_dif_emitter" model="ir.actions.act_window">
+        <field name="name">Facturas SAT con emisor distintos</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_emiter')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_dif_date" model="ir.actions.act_window">
+        <field name="name">Facturas SAT con fecha distinta</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_date')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_no_odoo" model="ir.actions.act_window">
+        <field name="name">Facturas SAT no existente en Odoo</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','no_odoo')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_all_good" model="ir.actions.act_window">
+        <field name="name">Facturas SAT sin diferencias</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','all_good')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_dif_status" model="ir.actions.act_window">
+        <field name="name">Facturas SAT, estado distinto</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_status')]</field>
+    </record>
+
     <menuitem
         action="menu_factura_sat_action"
         id="menu_facturas_sat_root"
@@ -29,6 +78,12 @@
         groups="account.group_account_manager"
         sequence="600"
     />
-
+    <menuitem 
+        id="menu_factura_sat_action_dif_amount"
+        name="Facturas SAT con montos distintos"
+        action="menu_factura_sat_action_dif_amount"
+        parent="menu_facturas_sat_root"
+        sequence="1000"
+    />
 
 </odoo>

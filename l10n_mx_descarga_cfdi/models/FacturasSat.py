@@ -61,8 +61,10 @@ class SolicitudesDescarga(models.Model):
         fiel = self._getFiel(company)
         token = self._getToken(company,fiel)
         solicitudDes = SolicitudDescarga(fiel)
-        datetime_str = '07/12/22 00:00:00'
-        datetime_str2 = '07/12/22 23:59:58'
+        yesterday = datetime.datetime.today() - datetime.timedelta(days=1,hours=6)
+        
+        datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
+        datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
         solicitud = solicitudDes.SolicitarDescarga(
             token,
             company.vat, 
@@ -222,11 +224,11 @@ class FacturasSat(models.Model):
     
     diferentials = fields.Selection(selection= [
         ('all_good', 'No hay diferencia'),
-        ('wrong_amount', 'Monto Distinto'),0
-        ('wrong_emiter', 'Emisor Distinto'),0
-        ('wrong_date', 'Fecha distinta'),0
+        ('wrong_amount', 'Monto Distinto'),
+        ('wrong_emiter', 'Emisor Distinto'),
+        ('wrong_date', 'Fecha distinta'),
         ('wrong_status', 'Distinto Estado'),
-        ('no_odoo', 'No existe en Odoo')    0
+        ('no_odoo', 'No existe en Odoo')    
     ], compute="_check_diferential")
 
     def _check_diferential(self):
@@ -239,7 +241,7 @@ class FacturasSat(models.Model):
             if rec.account_move_id.amount_total != rec.sat_monto:
                 rec.write({'diferentials' : 'wrong_amount'})
                 continue
-            if rec.account_move_id.res_partner.vat != rec.sat_rfc_emisor:
+            if rec.account_move_id.partner_id.vat != rec.sat_rfc_emisor:
                 rec.write({'diferentials' : 'wrong_emiter'})
                 continue
             if rec.account_move_id.date != rec.sat_fecha_emision.date():
