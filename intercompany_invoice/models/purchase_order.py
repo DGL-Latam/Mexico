@@ -21,4 +21,4 @@ class purchase_order(models.Model):
             self.env.create_bill = True
             res = super(purchase_order, self).action_create_invoice()
 
-        return res
+            return res
