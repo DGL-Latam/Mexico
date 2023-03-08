@@ -24,3 +24,5 @@ class purchase_order(models.Model):
         if confirm_from_sale:
             self.env.create_bill = True
         return res
+
+    
