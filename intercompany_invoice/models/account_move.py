@@ -61,7 +61,7 @@ class AccountMove(models.Model):
                 invoice.pop('origin_invoice')
                 msg = _("Automatically generated from %(origin)s of company %(company)s.", origin=origin_invoice.name,
                         company=origin_invoice.company_id.name)
-                am = self.create(invoice)
+                am = self.with_context(default_type=invoice_type, create_bill=True).create(invoice)
                 am.message_post(body=msg)
                 moves += am
         return moves
