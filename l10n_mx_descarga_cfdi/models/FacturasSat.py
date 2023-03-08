@@ -220,7 +220,33 @@ class FacturasSat(models.Model):
         'unique(sat_uuid)', 'No se deben repetir UUID'),
     ]
     
-    
+    diferentials = fields.Selection(selection= [
+        ('all_good', 'No hay diferencia'),
+        ('wrong_amount', 'Monto Distinto'),0
+        ('wrong_emiter', 'Emisor Distinto'),0
+        ('wrong_date', 'Fecha distinta'),0
+        ('wrong_status', 'Distinto Estado'),
+        ('no_odoo', 'No existe en Odoo')    0
+    ], compute="_check_diferential")
+
+    def _check_diferential(self):
+        for rec in self:
+            if not rec.account_move_id:
+                rec.SearchOdooInvoice()
+                if not rec.account_move_id:
+                    rec.write({'diferentials' : 'no_odoo'})
+                    continue
+            if rec.account_move_id.amount_total != rec.sat_monto:
+                rec.write({'diferentials' : 'wrong_amount'})
+                continue
+            if rec.account_move_id.res_partner.vat != rec.sat_rfc_emisor:
+                rec.write({'diferentials' : 'wrong_emiter'})
+                continue
+            if rec.account_move_id.date != rec.sat_fecha_emision.date():
+                rec.write({'diferentials' : 'wrong_date'})
+                continue
+            rec.write({'diferentials' : 'all_good'})
+
     def SearchOdooInvoice(self):
         for r in self:
             fact = self.env['account.move'].search([('company_id', '=', r.company.id), ('l10n_mx_edi_cfdi_uuid','=',r.sat_uuid)])
