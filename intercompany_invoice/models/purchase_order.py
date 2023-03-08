@@ -16,4 +16,9 @@ class purchase_order(models.Model):
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(company_rec)
         return res
 
-    
+    def action_create_invoice(self):
+        if self.env["account.move"].action_post():
+            self.env.create_bill = True
+            res = super(purchase_order, self).action_create_invoice()
+
+        return res
