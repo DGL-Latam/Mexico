@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<odoo>
+    <data>
+        <record id="ir_cron_new_sat_ws_request" model="ir.cron">
+            <field name="name">Generar nueva Solicitud SAT-WS</field>
+            <field name="model_id" ref="model_solicitud_descarga"/>
+            <field name="state">code</field>
+            <field name="active">False</field>
+            <field name="code">
+                for company in env['res.company'].sudo().search([]):
+                    env['solicitud.descarga'].sudo()._NuevaSolicitud(company)
+            
+            </field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d %H:%m:%S')"/>
+        </record>
+     </data>
+
+     <data>
+        <record id="ir_cron_verify_sat_ws_request" model="ir.cron">
+            <field name="name">Checar Solicitud SAT-WS</field>
+            <field name="model_id" ref="model_solicitud_descarga"/>
+            <field name="state">code</field>
+            <field name="active">False</field>
+            <field name="code">
+                for request in env['solicitud.descarga'].sudo().search([('estado_solicitud','in',[1,2])]):
+                    env['solicitud.descarga'].sudo()._VerificarSolicitud()
+            
+            </field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="interval_number">2</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(hours=2)).strftime('%Y-%m-%d %H:%m:%S')"/>
+        </record>
+     </data>
+</odoo>
