@@ -18,6 +18,6 @@ class purchase_order(models.Model):
 
     def action_create_invoice(self):
         invoice_from_am = self.env["account.move"]._post()
-        if invoice_from_am:
-            self.env.create_bill = True
+        if self.env.create_bill:
+
             super().action_create_invoice()
