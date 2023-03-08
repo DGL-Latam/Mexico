@@ -21,4 +21,4 @@ class purchase_order(models.Model):
 
         if confirm_from_sale:
             self.env.create_bill = True
-            super().action_create_invoice()
+            
