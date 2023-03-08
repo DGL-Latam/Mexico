@@ -17,8 +17,11 @@ class purchase_order(models.Model):
         return res
 
     def action_create_invoice(self):
-        if self.env["account.move"].action_post() == True:
-            self.env.create_bill = True
-            res = super(purchase_order, self).action_create_invoice()
-
-            return res
+        res = super(purchase_order, self).action_create_invoice()
+        for order in self:
+            company_rec = self.env['res.company']._find_company_from_partner(order.partner_id.id)
+            if self.env["account_move"].action_post() == True:
+                order.with_user(company_rec.intercompany_user_id).with_context(
+                    default_company_id=company_rec.id, create_bill=True).with_company(company_rec).inter_company_create_sale_order(
+                    company_rec)
+        return res
