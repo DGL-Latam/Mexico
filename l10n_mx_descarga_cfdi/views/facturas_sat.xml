@@ -15,7 +15,7 @@
     </record>
 
     <record id="menu_factura_sat_action" model="ir.actions.act_window">
-        <field name="name">facturas_sat</field>
+        <field name="name">Facturas SAT</field>
         <field name="res_model">facturas.sat</field>
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>

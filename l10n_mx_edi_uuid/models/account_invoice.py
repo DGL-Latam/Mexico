@@ -15,7 +15,7 @@ class AccountMove(models.Model):
         ids = []
         documents = self.env['account.edi.document'].search([('l10n_mx_edi_uuid',operator,value)])
         for doc in documents:
-            ids.append(doc.move_id)
+            ids.append(doc.move_id.id)
         if ids:
             return [('id', 'in', ids)]
         return [('id', 'in', [])]
