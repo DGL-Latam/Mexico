@@ -22,3 +22,51 @@ class AccountMove(models.Model):
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
         return posted
+
+    def _inter_company_create_invoices(self):
+        ''' Create cross company invoices.
+        :return:        The newly created invoices.
+        '''
+
+        # Prepare invoice values.
+        invoices_vals_per_type = {}
+        inverse_types = {
+            'in_invoice': 'out_invoice',
+            'in_refund': 'out_refund',
+            'out_invoice': 'in_invoice',
+            'out_refund': 'in_refund',
+        }
+        for inv in self:
+            invoice_vals = inv._inter_company_prepare_invoice_data(inverse_types[inv.move_type])
+            invoice_vals['invoice_line_ids'] = []
+            for line in inv.invoice_line_ids:
+                invoice_vals['invoice_line_ids'].append((0, 0, line._inter_company_prepare_invoice_line_data()))
+
+            inv_new = inv.with_context(default_move_type=invoice_vals['move_type']).new(invoice_vals)
+            for line in inv_new.invoice_line_ids.filtered(lambda l: not l.display_type):
+                # We need to adapt the taxes following the fiscal position, but we must keep the
+                # price unit.
+                price_unit = line.price_unit
+                line.tax_ids = line._get_computed_taxes()
+                line._set_price_and_tax_after_fpos()
+                line.price_unit = price_unit
+
+            invoice_vals = inv_new._convert_to_write(inv_new._cache)
+            invoice_vals.pop('line_ids', None)
+            invoice_vals['origin_invoice'] = inv
+
+            invoices_vals_per_type.setdefault(invoice_vals['move_type'], [])
+            invoices_vals_per_type[invoice_vals['move_type']].append(invoice_vals)
+
+        # Create invoices.
+        moves = self.env['account.move']
+        for invoice_type, invoices_vals in invoices_vals_per_type.items():
+            for invoice in invoices_vals:
+                origin_invoice = invoice['origin_invoice']
+                invoice.pop('origin_invoice')
+                msg = _("Automatically generated from %(origin)s of company %(company)s.", origin=origin_invoice.name,
+                        company=origin_invoice.company_id.name)
+                am = self.with_context(default_type=invoice_type, create_bill=True).create(invoice)
+                am.message_post(body=msg)
+                moves += am
+        return moves
