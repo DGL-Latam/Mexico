@@ -5,9 +5,9 @@
             <field name="name">Generar nueva Solicitud SAT-WS</field>
             <field name="model_id" ref="model_solicitud_descarga"/>
             <field name="state">code</field>
-            <field name="active">False</field>
+            <field name="active">True</field>
             <field name="code">
-                for company in env['res.company'].sudo().search([]):
+                for company in env['res.company'].sudo().search([('l10n_mx_fiel_cer','!=',False),('l10n_mx_fiel_key','!=',False),('l10n_mx_fiel_pass','!=',False)]):
                     env['solicitud.descarga'].sudo()._NuevaSolicitud(company)
             
             </field>
@@ -25,7 +25,7 @@
             <field name="name">Checar Solicitud SAT-WS</field>
             <field name="model_id" ref="model_solicitud_descarga"/>
             <field name="state">code</field>
-            <field name="active">False</field>
+            <field name="active">True</field>
             <field name="code">
                 for request in env['solicitud.descarga'].sudo().search([('estado_solicitud','in',[1,2])]):
                     env['solicitud.descarga'].sudo()._VerificarSolicitud()

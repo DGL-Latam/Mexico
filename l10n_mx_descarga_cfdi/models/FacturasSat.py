@@ -45,8 +45,7 @@ class SolicitudesDescarga(models.Model):
         cer = company.l10n_mx_fiel_cer
         key = company.l10n_mx_fiel_key
         password = company.l10n_mx_fiel_pass
-        key_pem = self.env['l10n_mx_edi.certificate'].sudo().search([],limit=1).get_pem_key(key, password)
-        fiel = Fiel(base64.decodebytes(cer),key_pem,password.encode('UTF-8'))
+        fiel = Fiel(base64.decodebytes(cer),base64.decodebytes(key),password.encode('UTF-8'))
         return fiel
 
     def _getToken(self,company, fiel = None):

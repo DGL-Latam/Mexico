@@ -14,6 +14,7 @@
     'data' : [
         'security/ir.model.access.csv',
         'views/facturas_sat.xml',
+        'views/res_company.xml',
         'views/ir_cron.xml',
     ],
     'installable': True,
