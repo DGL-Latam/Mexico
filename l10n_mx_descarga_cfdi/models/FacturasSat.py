@@ -40,6 +40,8 @@ class SolicitudesDescarga(models.Model):
     company_id = fields.Many2one('res.company', string="Empresa", required="True")
     
     document_downloaded = fields.Many2one('documents.document', string="Documento Descargado")
+
+    to_process_zip = fields.Boolean(default=False)
     
     def _getFiel(self, company):
         cer = company.l10n_mx_fiel_cer
@@ -142,6 +144,7 @@ class SolicitudesDescarga(models.Model):
         for rec in self:
             if rec.document_downloaded.id:
                 rec._ProcessZip(rec.document_downloaded.attachment_id.raw)
+                rec.write({'to_process_zip' : False})
                 
     def _ProcessZip(self, zipBytes):
         z = zipfile.ZipFile(io.BytesIO(zipBytes))
@@ -182,7 +185,7 @@ class SolicitudesDescarga(models.Model):
                             'type' : 'binary',
                             'folder_id' : folder.id
                             })
-                        rec.sudo().write({'document_downloaded' : document.id})
+                        rec.sudo().write({'document_downloaded' : document.id, 'to_process_zip' : True})
                 
             
 class FacturasSat(models.Model):
