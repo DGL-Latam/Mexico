@@ -13,7 +13,7 @@ class AccountMove(models.Model):
     
     def search_uuid(self,operator, value):
         ids = []
-        documents = self.env['account.edi.document'].search([('l10n_mx_edi_uuid','ilike',value)])
+        documents = self.env['account.edi.document'].search([('l10n_mx_edi_uuid',operator,value)])
         for doc in documents:
             ids.append(doc.move_id)
         if ids:
