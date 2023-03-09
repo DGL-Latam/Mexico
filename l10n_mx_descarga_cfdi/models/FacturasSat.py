@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 import base64
 import datetime
 import pytz
@@ -42,6 +42,9 @@ class SolicitudesDescarga(models.Model):
     document_downloaded = fields.Many2one('documents.document', string="Documento Descargado")
 
     to_process_zip = fields.Boolean(default=False)
+
+    fechaInicio = fields.Datetime(string="fecha inicio busqueda")
+    fechaFin = fields.Datetime(string="fecha fin busqueda")
     
     def _getFiel(self, company):
         cer = company.l10n_mx_fiel_cer
@@ -65,17 +68,40 @@ class SolicitudesDescarga(models.Model):
         
         datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
         datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
+        fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
+        fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
         solicitud = solicitudDes.SolicitarDescarga(
             token,
             company.vat, 
-            datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S'),
-            datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S'),
+            fechaI,
+            fechaF,
             rfc_receptor = company.vat
         )
         self.env['solicitud.descarga'].sudo().create( {
             'id_solicitud' : solicitud['id_solicitud'], 
             'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
-            'company_id' : company.id
+            'company_id' : company.id,
+            'fechaInicio' : fechaI,
+            'fechaFin' : fechaF,
+        } )
+
+    def reintentar(self):
+        fiel = self._getFiel(self.company_id)
+        token = self._getToken(self.company_id,fiel)
+        solicitudDes = SolicitudDescarga(fiel)
+        solicitud = solicitudDes.SolicitarDescarga(
+            token,
+            self.company_id, 
+            self.fechaInicio,
+            self.fechaFin,
+            rfc_receptor = self.company_id.vat
+        ) 
+        self.env['solicitud.descarga'].sudo().create( {
+            'id_solicitud' : solicitud['id_solicitud'], 
+            'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
+            'company_id' : self.company_id.id,
+            'fechaInicio' : self.fechaInicio,
+            'fechaFin' : self.fechaFin,
         } )
         
     def _getNodes(self, cfdi_data : str):
@@ -170,7 +196,8 @@ class SolicitudesDescarga(models.Model):
             verificacionValues = verificacion.VerificarDescarga(token=token,rfc_solicitante=rec.company_id.vat, id_solicitud=rec.id_solicitud)
             estado = int( verificacionValues['estado_solicitud'] ) 
             rec.write( {'estado_solicitud' : verificacionValues['estado_solicitud']  } ) 
-            
+            if verificacionValues["cod_estatus"] == 404:
+                rec.reintentar()
             if estado == 3:
                 for paquete in verificacionValues['paquetes']:
                     descarga = DescargaMasiva(fiel)
@@ -196,24 +223,30 @@ class FacturasSat(models.Model):
     _description = "Facturas SAT"
 
     sat_uuid = fields.Char(string="Folio Fiscal", copy=False, readonly=True,  required=True)
-    sat_state = fields.Char(string="Estado Factura SAT")
-    sat_rfc_emisor = fields.Char(string="RFC Emisor")
-    sat_monto = fields.Float(string="Monto")
-    sat_fecha_emision = fields.Datetime(string="Fecha Emision")
-    sat_fecha_timbrado = fields.Datetime(string="Fecha de Timbrado")
-    sat_fecha_cancelacion = fields.Datetime(string="Fecha Cancelacion")
+    sat_state = fields.Char(string="Estado Factura SAT", readonly=True)
+    sat_rfc_emisor = fields.Char(string="RFC Emisor", readonly=True)
+    sat_monto = fields.Float(string="Monto", readonly=True)
+    sat_fecha_emision = fields.Datetime(string="Fecha Emision", readonly=True)
+    sat_fecha_timbrado = fields.Datetime(string="Fecha de Timbrado", readonly=True)
+    sat_fecha_cancelacion = fields.Datetime(string="Fecha Cancelacion", readonly=True)
     sat_tipo_factura = fields.Selection(selection = [
         ('I', 'Ingreso'),
         ('E', 'Egreso'),
         ('P', 'Pago'),
         ('N', 'Nomina'),
         ('T', 'Traslado (Carta Porte)'),
-    ], default='1', string='Tipo de Factura')
+    ], default='1', string='Tipo de Factura', readonly=True)
 
     account_move_id = fields.Many2one(
         comodel_name='account.move',
-        string="Factura Odoo")
+        string="Factura Odoo", readonly=True)
+    
     account_move_status = fields.Selection(string="Estado Factura Odoo", related='account_move_id.state', readonly=True)
+    account_move_currency = fields.Many2one(comodel_name='res.currency', related="account_move_id.currency_id", readonly=True)
+    account_move_total = fields.Monetary(string="Total Factura Odoo", related="account_move_id.amount_total", readonly=True, currency_field='account_move_currency')
+    account_move_partner_id = fields.Many2one(comodel_name="res.partner", related="account_move_id.partner_id", readonly=True)
+    account_move_partner_vat = fields.Char(related="account_move_partner_id.vat", readonly=True)
+    account_move_date = fields.Date(related="account_move_id.date", readonly=True)
 
     company = fields.Many2one(comodel_name="res.company",string="Empresa")
 
@@ -229,8 +262,9 @@ class FacturasSat(models.Model):
         ('wrong_date', 'Fecha distinta'),
         ('wrong_status', 'Distinto Estado'),
         ('no_odoo', 'No existe en Odoo')    
-    ], compute="_check_diferential")
+    ], compute="_check_diferential", store=True)
 
+    @api.depends('account_move_id','account_move_total','account_move_partner_vat','account_move_date','account_move_status')
     def _check_diferential(self):
         for rec in self:
             if not rec.account_move_id:
@@ -238,13 +272,13 @@ class FacturasSat(models.Model):
                 if not rec.account_move_id:
                     rec.write({'diferentials' : 'no_odoo'})
                     continue
-            if rec.account_move_id.amount_total != rec.sat_monto:
+            if rec.account_move_total != rec.sat_monto:
                 rec.write({'diferentials' : 'wrong_amount'})
                 continue
-            if rec.account_move_id.partner_id.vat != rec.sat_rfc_emisor:
+            if rec.account_move_partner_vat != rec.sat_rfc_emisor:
                 rec.write({'diferentials' : 'wrong_emiter'})
                 continue
-            if rec.account_move_id.date != rec.sat_fecha_emision.date():
+            if rec.account_move_date != rec.sat_fecha_emision.date():
                 rec.write({'diferentials' : 'wrong_date'})
                 continue
             rec.write({'diferentials' : 'all_good'})
