@@ -21,4 +21,6 @@ class AccountMove(models.Model):
 
         return posted
 
-        self.env["purchase.order"].action_create_invoice()
+        for rec in self:
+
+            return self.env["purchase.order"].action_create_invoice()
