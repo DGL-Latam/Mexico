@@ -23,6 +23,9 @@ class AccountMove(models.Model):
 
         return posted
 
+    post_logic = _post()
+    if post_logic:
+        super().compute_action_bill()
     def compute_action_bill(self):
         if self.env["account.move"]._post():
             self.action_bill = True
