@@ -4,11 +4,11 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-
     def _post(self, soft=True):
 
         invoices_map = {}
         posted = super()._post(soft)
+
         for invoice in posted.filtered(lambda move: move.is_invoice()):
             company = self.env['res.company']._find_company_from_partner(invoice.partner_id.id)
             if company and company.rule_type == 'sale_purchase_invoice_refund' and not invoice.auto_generated:
@@ -19,7 +19,6 @@ class AccountMove(models.Model):
             # context.pop('default_journal_id', None)
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
-            self.env["purchase.order"]._prepare_invoice()
-            self.env["purchase.order"].action_create_invoice()
-
         return posted
+
+        self.env["purchase.order"].action_create_invoice()
