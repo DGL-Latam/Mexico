@@ -4,6 +4,7 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+
     def _post(self, soft=True):
 
         invoices_map = {}
@@ -17,8 +18,5 @@ class AccountMove(models.Model):
             context = dict(self.env.context, default_company_id=company.id, create_bill=True)
             # context.pop('default_journal_id', None)
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
-
-        for invoice in self:
-            self.env["purchase.order"].action_create_invoice()
 
         return posted
