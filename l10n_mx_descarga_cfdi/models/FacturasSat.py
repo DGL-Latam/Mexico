@@ -103,7 +103,7 @@ class SolicitudesDescarga(models.Model):
             'fechaInicio' : self.fechaInicio,
             'fechaFin' : self.fechaFin,
         } )
-        
+
     def _getNodes(self, cfdi_data : str):
         def get_node(cfdi_node, attribute, namespaces):
             if hasattr(cfdi_node, 'Complemento'):
@@ -219,7 +219,7 @@ class SolicitudesDescarga(models.Model):
             
 class FacturasSat(models.Model):
     _name = "facturas.sat"
-
+    _rec_name = "sat_uuid"
     _description = "Facturas SAT"
 
     sat_uuid = fields.Char(string="Folio Fiscal", copy=False, readonly=True,  required=True)
