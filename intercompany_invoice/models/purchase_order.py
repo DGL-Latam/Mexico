@@ -17,6 +17,7 @@ class purchase_order(models.Model):
         return res
 
     def Action_Bill(self):
-        if self.env["account.move"].action_bill:
-            create_invoice = self.env["purchase.order"].action_create_invoice()
-            return create_invoice
+        for rec in self:
+            if self.env["account.move"].action_bill:
+                rec.create_invoice = self.env["purchase.order"].action_create_invoice()
+                
