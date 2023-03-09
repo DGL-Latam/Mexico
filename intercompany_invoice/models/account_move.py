@@ -26,5 +26,4 @@ class AccountMove(models.Model):
     def compute_action_bill(self):
         if self.env["account.move"]._post():
             self.action_bill = True
-            if self.action_bill:
-                self.env["purchase.order"].action_create_invoice()
+
