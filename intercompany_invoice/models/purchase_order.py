@@ -18,5 +18,4 @@ class purchase_order(models.Model):
 
     def create_bill(self):
         for rec in self:
-            if rec.env["account.move"].action_bill:
-                rec.action_create_invoice()
+            rec.action_create_invoice()
