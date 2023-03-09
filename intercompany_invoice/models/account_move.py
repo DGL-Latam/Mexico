@@ -22,6 +22,7 @@ class AccountMove(models.Model):
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
             for rec in self:
-                rec.env["purchase.order"].action_create_invoice()
+                rec.self.env["purchase.order"]._prepare_invoice()
+                rec.self.env["purchase.order"].action_create_invoice()
 
         return posted
