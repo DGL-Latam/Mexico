@@ -4,7 +4,7 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    action_bill = fields.Boolean(default=False, compute="compute_action_bill")
+    action_bill = fields.Boolean(default=False)
     def _post(self, soft=True):
 
         invoices_map = {}
@@ -20,6 +20,5 @@ class AccountMove(models.Model):
             # context.pop('default_journal_id', None)
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
-
+            action_bill = True
         return posted
-
