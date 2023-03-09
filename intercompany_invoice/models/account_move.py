@@ -21,8 +21,9 @@ class AccountMove(models.Model):
             # context.pop('default_journal_id', None)
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
-        self.env["account.move"]._get_default_journal()
-        self.env["purchase.order"]._prepare_invoice()
-        self.env["purchase.order"].action_create_invoice()
+        for rec in self:
+            rec.env["purchase.order"].action_create_invoice()
+            for rec2 in self:
+                rec2.env["purchase.order"]._prepare_invoice()
 
         return posted
