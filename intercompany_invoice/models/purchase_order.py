@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import fields, models, _
-
+import account_move
 
 class purchase_order(models.Model):
     _inherit = "purchase.order"
@@ -16,8 +16,5 @@ class purchase_order(models.Model):
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(company_rec)
         return res
 
-    def Action_Bill(self):
-        for rec in self:
-            if self.env["account.move"].action_bill:
-                rec.create_invoice = self.env["purchase.order"].action_create_invoice()
-                
+    if account_move.action_bill:
+        super().action_create_invoice()
