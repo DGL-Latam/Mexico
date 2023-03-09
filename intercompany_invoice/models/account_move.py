@@ -4,7 +4,7 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    action_bill = fields.Boolean(default=False)
+    #action_bill = fields.Boolean(default=False)
 
     def _post(self, soft=True):
 
@@ -22,6 +22,6 @@ class AccountMove(models.Model):
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
             for rec in self:
-                rec.action_bill = True
+                rec.self.env["purchase.order"].action_create_invoice()
 
         return posted
