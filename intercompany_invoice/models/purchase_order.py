@@ -18,4 +18,4 @@ class purchase_order(models.Model):
 
     def create_bill(self):
         for rec in self:
-            rec.action_create_invoice()
+            rec.env["purchase.order"].action_create_invoice()
