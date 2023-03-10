@@ -17,4 +17,5 @@ class purchase_order(models.Model):
         return res
 
     def create_bill(self):
-        self.action_create_invoice()
+        for rec in self:
+            rec.action_create_invoice()
