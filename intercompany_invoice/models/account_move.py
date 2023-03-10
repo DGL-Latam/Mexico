@@ -20,7 +20,7 @@ class AccountMove(models.Model):
             # context.pop('default_journal_id', None)
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
-        self.env["account.move"].create_bill()
+        #self.env["account.move"].create_bill()
 
         return posted
 
