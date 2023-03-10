@@ -24,6 +24,6 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-        for rec in self:
-            rec.env["purchase.order"].create_bill()
+
+        self.env["purchase.order"].create_bill()
         return res
