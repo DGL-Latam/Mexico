@@ -8,6 +8,6 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
         for rec in self:
-            rec.invoice_vendor_bill_id = self.env["sale.order"].sudo().search([("name", "=", rec.invoice_origin)]).id
+            rec.invoice_vendor_bill_id = self.env["sale.order"].sudo().search([("name", "=", rec.partner_id)]).id
             self.env["purchase.order"].create_bill()
         return res
