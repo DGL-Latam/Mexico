@@ -18,5 +18,5 @@ class purchase_order(models.Model):
 
     def create_bill(self):
         for bill in self:
-            bill.invoices_ids = self.env["account.move"].invoice_vendor_bill_id
+            bill.invoices_ids = self.env["account.move"].invoice_origin
             bill.env["purchase.order"].action_create_invoice()
