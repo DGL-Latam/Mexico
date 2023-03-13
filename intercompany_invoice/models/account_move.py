@@ -16,7 +16,7 @@ class AccountMove(models.Model):
                 invoices_map.setdefault(company, self.env['account.move'])
                 invoices_map[company] += invoice
         for company, invoices in invoices_map.items():
-            context = dict(self.env.context, default_company_id=company.id, default_type=company.move_type)
+            context = dict(self.env.context, default_company_id=company.id, default_type=invoices.invoice_vendor_bill_id)
             #context.pop('default_journal_id', None)
             invoices.with_user(company.intercompany_user_id).with_context(context).with_company(company)._inter_company_create_invoices()
 
