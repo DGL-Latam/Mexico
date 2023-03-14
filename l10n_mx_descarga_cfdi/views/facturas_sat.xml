@@ -51,7 +51,7 @@
     </record>
 
     <record id="menu_factura_sat_action_dif_amount" model="ir.actions.act_window">
-        <field name="name">Facturas SAT con montos distintos</field>
+        <field name="name">Distinto Monto</field>
         <field name="res_model">facturas.sat</field>
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>
@@ -59,7 +59,7 @@
     </record>
 
     <record id="menu_factura_sat_action_dif_emitter" model="ir.actions.act_window">
-        <field name="name">Facturas SAT con emisor distintos</field>
+        <field name="name">Emisor Distinto</field>
         <field name="res_model">facturas.sat</field>
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>
@@ -67,7 +67,7 @@
     </record>
 
     <record id="menu_factura_sat_action_dif_date" model="ir.actions.act_window">
-        <field name="name">Facturas SAT con fecha distinta</field>
+        <field name="name">Distinta Fecha</field>
         <field name="res_model">facturas.sat</field>
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>
@@ -75,7 +75,7 @@
     </record>
 
     <record id="menu_factura_sat_action_no_odoo" model="ir.actions.act_window">
-        <field name="name">Facturas SAT no existente en Odoo</field>
+        <field name="name">No existe en Odoo</field>
         <field name="res_model">facturas.sat</field>
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>
@@ -83,7 +83,7 @@
     </record>
 
     <record id="menu_factura_sat_action_all_good" model="ir.actions.act_window">
-        <field name="name">Facturas SAT sin diferencias</field>
+        <field name="name">Sin diferencias</field>
         <field name="res_model">facturas.sat</field>
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>
@@ -91,7 +91,7 @@
     </record>
 
     <record id="menu_factura_sat_action_dif_status" model="ir.actions.act_window">
-        <field name="name">Facturas SAT, estado distinto</field>
+        <field name="name">Distinto Estado</field>
         <field name="res_model">facturas.sat</field>
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>
@@ -108,21 +108,21 @@
     <menuitem id="menu_factura_sat_action_diferencias" name="Diferencias" parent="menu_facturas_sat_root" sequence="4"/>
     <menuitem 
         id="menu_elem_factura_sat_action_dif_amount"
-        name="Facturas SAT con montos distintos"
+        name="Montos Distinto"
         action="menu_factura_sat_action_dif_amount"
         parent="menu_factura_sat_action_diferencias"
         sequence="10"
     />
     <menuitem 
         id="menu_elem_factura_sat_action_dif_emitter"
-        name="Facturas SAT Emisor incorrecto"
+        name="Emisor Distinto"
         action="menu_factura_sat_action_dif_emitter"
         parent="menu_factura_sat_action_diferencias"
         sequence="11"
     />
     <menuitem 
         id="menu_elem_factura_sat_action_dif_date"
-        name="Facturas SAT fecha distinta"
+        name="Fecha Distinta"
         action="menu_factura_sat_action_dif_date"
         parent="menu_factura_sat_action_diferencias"
         sequence="12"
@@ -130,21 +130,21 @@
 
     <menuitem 
         id="menu_elem_factura_sat_action_no_odoo"
-        name="Facturas SAT No existe en Odoo"
+        name="No Existe en Odoo"
         action="menu_factura_sat_action_no_odoo"
         parent="menu_factura_sat_action_diferencias"
         sequence="14"
     />
     <menuitem 
         id="menu_elem_factura_sat_action_all_good"
-        name="Facturas SAT Sin diferencias"
+        name="Sin Diferencias"
         action="menu_factura_sat_action_all_good"
         parent="menu_factura_sat_action_diferencias"
         sequence="15"
     />
     <menuitem 
         id="menu_elem_factura_sat_action_dif_status"
-        name="Facturas SAT diferente Estado"
+        name="Diferente Estado"
         action="menu_factura_sat_action_dif_status"
         parent="menu_factura_sat_action_diferencias"
         sequence="13"
