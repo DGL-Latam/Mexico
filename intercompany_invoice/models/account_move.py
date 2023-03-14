@@ -7,6 +7,5 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-
-        self.env["purchase.order"].create_bill()
+        #self.env["purchase.order"].create_bill()
         return res
