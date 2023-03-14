@@ -8,15 +8,7 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-        line_ids = self.mapped('line_ids').filtered(lambda line: any(line.sale_line_ids.mapped('is_downpayment')))
-        for line in line_ids:
-            try:
-                line.sale_line_ids.tax_id = line.tax_ids
-                line.sale_line_ids.price_unit = line.price_unit
-            except UserError:
-                # a UserError here means the SO was locked, which prevents changing the taxes
-                # just ignore the error - this is a nice to have feature and should not be blocking
-                pass
+
         for invoice in self:
             if not invoice.company_id:
                 continue
@@ -27,4 +19,5 @@ class AccountMove(models.Model):
 
     def create_bill(self):
         for rec in self:
-            rec.env["purchase.order"].create_bill()
+            if rec.env["sale.order"].name == rec.env["purchase.order"].partner_ref:
+                rec.env["purchase.order"].create_bill()
