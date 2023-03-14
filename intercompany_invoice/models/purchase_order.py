@@ -17,6 +17,6 @@ class purchase_order(models.Model):
         return res
 
     def action_create_invoice(self):
-        for rec in self:
-            if rec.env["sale.order"].name == rec.env["purchase.order"].partner_ref:
+
+        if self.env["sale.order"].name == self.env["purchase.order"].partner_ref:
                 super().action_create_invoice()
