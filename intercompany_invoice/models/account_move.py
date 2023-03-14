@@ -14,10 +14,5 @@ class AccountMove(models.Model):
                 continue
             company = self.env["res.company"]._find_company_from_partner(invoice.partner_id.id)
             if company and company.rule_type == 'sale_purchase_invoice_refund':
-                invoice.create_bill()
+                invoice.env["purchase.order"].action_create_invocie()
         return res
-
-    def create_bill(self):
-        for rec in self:
-            if rec.env["sale.order"].name == rec.env["purchase.order"].partner_ref:
-                rec.env["purchase.order"].create_bill()

@@ -16,6 +16,7 @@ class purchase_order(models.Model):
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(company_rec)
         return res
 
-    def create_bill(self):
-
-        super().action_create_invoice()
+    def action_create_invoice(self):
+        for rec in self:
+            if rec.env["sale.order"].name == rec.env["purchase.order"].partner_ref:
+                super().action_create_invoice()
