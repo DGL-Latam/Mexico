@@ -13,5 +13,5 @@ class AccountMove(models.Model):
             company = self.env["res.company"]._find_company_from_partner(invoice.partner_id.id)
             if company and company.rule_type == 'sale_purchase_invoice_refund':
                 invoice.with_user(company.intercompany_user_id).with_context(default_company_id=company.id).with_company(
-                    company).action_post(company)
+                    company).action_post()
         return res
