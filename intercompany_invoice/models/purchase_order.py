@@ -17,5 +17,5 @@ class purchase_order(models.Model):
         return res
 
     def create_bill(self):
-        self.env["account.move"].sudo().create(self.env["account.move"].invoice_vals_list)
-        #self.env["purchase.order"].action_create_invoice()
+
+        self.env["purchase.order"].action_create_invoice()
