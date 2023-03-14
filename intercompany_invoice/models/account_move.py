@@ -7,5 +7,11 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-        self.env["purchase.order"].create_bill()
+        for invoice in self:
+            if not invoice.company_id:
+                continue
+            company = self.env["res.company"]._find_company_from_partner(invoice.partner_id.id)
+            if company and company.rule_type == 'sale_purchase_invoice_refund':
+                invoice.with_user(company.intercompany_user_id).with_context(default_company_id=company.id).with_company(
+                    company).action_post(company)
         return res
