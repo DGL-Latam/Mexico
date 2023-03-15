@@ -31,6 +31,10 @@ class AccountPaymentRegister(models.TransientModel):
     csv_file = fields.Binary(copy=False, help='csv con el nombre de la factura y monto')
     csv_name = fields.Char(copy=False, help='nombre del archivo CSV')
     
+    def _create_payments(self):
+        payments = super()._create_payments()
+        payments._generate_factoraje_journal_entry()
+        return payments
     
     @api.depends('can_edit_wizard')
     def _compute_group_payment(self):
