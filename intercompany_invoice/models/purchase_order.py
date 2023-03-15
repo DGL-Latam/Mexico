@@ -5,8 +5,6 @@ from odoo import fields, models, _
 class purchase_order(models.Model):
     _inherit = "purchase.order"
 
-    invoice_lines = fields.One2many("account.move.line", "purchase_line_id", readonly=True, copy=False)
-
     def _prepare_sale_order_data(self):
 
         res = super(purchase_order, self).button_approve(force=force)
@@ -19,11 +17,4 @@ class purchase_order(models.Model):
         return res
 
     def action_create_invoice(self):
-        #action = super().action_create_invoice()
-        ctx = self.env["purchase.order"]
-
-        if "create_bill" in ctx:
-
-            self.sudo().action_create_invoice()
-
-        
+        super().action_create_invoice()
