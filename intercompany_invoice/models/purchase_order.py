@@ -19,7 +19,7 @@ class purchase_order(models.Model):
         return res
 
     def action_create_invoice(self):
-        action = super().action_create_invoice()
+        #action = super().action_create_invoice()
         ctx = self.env["purchase.order"]
 
         if "create_bill" in ctx:
