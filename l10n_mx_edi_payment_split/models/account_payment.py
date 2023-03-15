@@ -65,3 +65,4 @@ class AccountPayment(models.Model):
             rec.env['account.move.line'].sudo().with_user(1).create(line_vals)
             move_id.with_user(1).action_post()
             rec.write({'factoraje_move': move_id.id})
+            move_id.line_ids.filtered_domain([('reconciled', '=', False)]).with_context(no_exchange_difference = True).reconcile()
