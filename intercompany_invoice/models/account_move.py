@@ -4,7 +4,6 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-
     def action_post(self):
         super().action_post()
 
