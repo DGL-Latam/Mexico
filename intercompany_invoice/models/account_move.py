@@ -4,8 +4,4 @@ from odoo import fields, models, _
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    def _post(self, soft=True):
 
-        posted = super()._post(soft)
-        
-        return posted
