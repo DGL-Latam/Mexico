@@ -7,5 +7,5 @@ class AccountMove(models.Model):
     def _post(self, soft=True):
 
         posted = super()._post(soft)
-        self.env["purchase.order"].action_create_invoice()
+        
         return posted
