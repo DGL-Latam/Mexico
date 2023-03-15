@@ -26,4 +26,4 @@ class purchase_order(models.Model):
 
             self.sudo().action_create_invoice()
 
-        return action
+        
