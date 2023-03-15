@@ -7,12 +7,23 @@ class AccountPayment(models.Model):
 
     factoraje_move = fields.Many2one('account.move', string="Movimiento de factoraje")
 
-    @api.onchange('state')
+    def action_draft(self):
+        vals = super().action_draft()
+        self.reset_factoraje()
+        return vals
+    
+    def action_cancel(self):
+        vals = super().action_cancel()
+        self.reset_factoraje()
+        return vals
+    
     def reset_factoraje(self):
         for rec in self:
+            _logger.critical("on change state")
             if rec.state in ['draft','cancel']:
+                _logger.critical(rec.factoraje_move)
                 if rec.factoraje_move.id:
-                    rec.factoraje_move.buttton_draft()
+                    rec.factoraje_move.button_draft()
 
     def _generate_factoraje_journal_entry(self):
         for rec in self:
