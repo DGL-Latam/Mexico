@@ -17,6 +17,10 @@ class purchase_order(models.Model):
         return res
 
     def action_create_invoice(self):
+        action = super().action_create_invoice()
+        ctx = self.env["purchase.order"]
 
-        if self.env["account.move"].ref == self.env["purchase.order"].name:
-            super().action_create_invoice()
+        if "create_bill" in ctx:
+            self.sudo().action_create_invoice()
+
+        return action

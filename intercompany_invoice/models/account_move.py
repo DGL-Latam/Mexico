@@ -14,4 +14,4 @@ class AccountMove(models.Model):
             company = self.env["res.company"]._find_company_from_partner(invoice.partner_id.id)
             if company and company.rule_type == 'sale_purchase_invoice_refund'.format():
                 invoice.env["purchase.order"].action_create_invoice()
-        
+
