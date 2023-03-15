@@ -20,5 +20,5 @@ class sale_order(models.Model):
 
     def _create_invoices(self, grouped=False, final=False, date=None):
         res = super()._create_invoices()
-        self.env["purchase.order"].action_create_invoice()
+        self.auto_purchase_order_id.action_create_invoice()
         return res
