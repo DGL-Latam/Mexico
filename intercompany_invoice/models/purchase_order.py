@@ -15,3 +15,4 @@ class purchase_order(models.Model):
                 order.with_user(company_rec.intercompany_user_id).with_context(
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(company_rec)
         return res
+
