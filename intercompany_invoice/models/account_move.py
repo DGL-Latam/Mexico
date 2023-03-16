@@ -9,9 +9,10 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-        res_invoice_id = res.id
-        res_bill_id = res_invoice_id + 1
-        for rec in self:
-            if rec.id == res_bill_id:
-                rec.action_post()
+        bill_id = self.env["account.move"].id + 1
+        for rec in self.id:
+            if rec.id == bill_id:
+                rec.super.action_post()
+
+        return res
 
