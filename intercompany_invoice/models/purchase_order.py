@@ -17,4 +17,4 @@ class purchase_order(models.Model):
         return res
 
     def action_post_bill(self):
-        super().action_post()
+        self.env["account.move"].action_post()
