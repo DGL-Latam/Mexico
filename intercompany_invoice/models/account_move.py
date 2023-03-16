@@ -10,7 +10,6 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
         for rec in self:
-            if rec.move_type == "in_invoice":
                 
-                rec.super.action_post()
+                rec.super().action_post()
         return res
