@@ -9,7 +9,9 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
+        res_invoice_id = res.id
+        res_bill_id = res_invoice_id + 1
         for rec in self:
-            if rec.move_type == "in_invoice":
+            if rec.id == res_bill_id:
                 rec.action_post()
-        return res
+
