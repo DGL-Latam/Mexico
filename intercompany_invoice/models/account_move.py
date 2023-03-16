@@ -8,8 +8,9 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     def action_post(self):
-        super().action_post()
         invoice_id = self.env["account.move"].id
+        super().action_post()
+
         invoice_bill = self.env["account.move"].browse(invoice_id + 1)
         invoice_bill.sudo().action_post()
 
