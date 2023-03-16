@@ -9,7 +9,5 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-        for rec in self:
-                
-                rec.super().action_post()
+        self.super().action_post()
         return res
