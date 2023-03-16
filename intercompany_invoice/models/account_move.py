@@ -2,7 +2,7 @@
 from odoo import fields, models, _
 from datetime import datetime
 
-date = fields.Date(default=datetime.today())
+#date = fields.Date(default=datetime.today())
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -11,6 +11,6 @@ class AccountMove(models.Model):
         res = super().action_post()
         for rec in self:
             if rec.move_type == "in_invoice":
-                rec.invoice_date = date
+                
                 rec.super.action_post()
         return res
