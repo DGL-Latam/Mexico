@@ -8,9 +8,9 @@ class AccountMove(models.Model):
 
         res = super().action_post()
         bill = self.env["sale.order"].auto_purchase_order_id
-        bill_id = self.env["account.move"].browse(id)
-        for rec in bill_id:
-            if (rec == bill_id) and (rec.ref == self.env["account.move"].name):
+        bill_ids = bill.invoice_ids
+        for rec in bill_ids:
+            if rec.partner_ref == self.env["sale.order"].name:
                 rec.action_post()
 
         return res
