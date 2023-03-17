@@ -9,7 +9,7 @@ class AccountMove(models.Model):
 
         invoice = self.env["sale.order"]
         invoice_ids = invoice.invoice_ids
-        invoice_ref = invoice.ref
+        invoice_ref = invoice.client_order_ref
 
         bill = self.env["purchase.order"]
         bill_ids = bill.invoice_ids
