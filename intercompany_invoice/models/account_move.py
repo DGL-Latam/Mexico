@@ -7,13 +7,20 @@ class AccountMove(models.Model):
     def action_post(self):
 
         res = super().action_post()
-        bill = self.env["sale.order"].auto_purchase_order_id
-        bill_ids = self.env["purchase.order"].invoice_ids
-        invoice_ids = self.env["sale.order"].invoice_ids
+        invoice = self.env["sale.order"]
+        invoice_ids = invoice.invoice_ids
 
-        for rec1 in bill_ids:
-            for rec2 in invoice_ids:
-                if rec1["partner_ref"] == rec2["name"]:
-                    rec1.action_post()
+        bill = self.env["purchase.order"]
+        bill_ids = bill.invoice_ids
 
+        for rec1 in self.browse(invoice.cr, invoice.uid, invoice.ids):
+            for rec1_1 in rec1.invoice_ids:
+                temp_1 = rec1_1.name
+
+            for rec2 in self.browse(bill.cr, bill.uid, bill.ids):
+                for rec2_1 in rec2.bill_ids:
+                    temp_2 = rec2_1.partner_ref
+
+                if temp_1 == temp_2:
+                    rec2.action_post()
         return res
