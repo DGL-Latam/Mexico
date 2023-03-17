@@ -7,7 +7,8 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
         bill = self.env["sale.order"].auto_purchase_order_id
-        if bill.move_type == "in_invoice":
+        name = self.env["sale.order"].name
+        if bill.partner_ref == name:
             bill.action_post()
 
         return res
