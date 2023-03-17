@@ -13,7 +13,7 @@ class AccountMove(models.Model):
 
         for rec1 in bill_ids:
             for rec2 in invoice_ids:
-                if rec1.partner_ref == rec2.name:
-                    bill_ids.id.action_post()
+                if rec1["partner_ref"] == rec2["name"]:
+                    rec1.action_post()
 
         return res
