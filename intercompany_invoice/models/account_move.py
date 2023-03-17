@@ -8,7 +8,7 @@ class AccountMove(models.Model):
 
         res = super().action_post()
         invoice = self.env["sale.order"]
-        invoice_ids = fields.many2many('sale.order', 'res_sale_inv', 'sale_id', 'inv_id', 'Invoices')
+        invoice_ids = fields.Many2many('sale.order', 'res_sale_inv', 'sale_id', 'inv_id', 'Invoices')
 
         bill = self.env["purchase.order"]
         bill_ids = bill.invoice_ids
