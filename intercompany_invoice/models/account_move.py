@@ -7,13 +7,13 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
 
-        invoice = self.env["sale.order"].auto_purchase_order_id
+        invoice = self.env["sale.order"]
         invoice_ids = invoice.invoice_ids
         invoice_ref = invoice.ref
 
         bill = self.env["purchase.order"]
         bill_ids = bill.invoice_ids
-        bill_ref = bill.ref
+        bill_ref = bill.name
 
         for rec in self:
             temp = rec.search([("ref", "=", bill_ref)])
