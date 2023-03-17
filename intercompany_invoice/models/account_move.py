@@ -16,7 +16,7 @@ class AccountMove(models.Model):
         bill_ref = bill.partner_ref
 
         for rec in self:
-            temp = rec.search([("name", "=", bill_ref)]).ref
+            temp = rec.search([("name", "=", bill_ref)])
             if temp.ref == invoice_name:
                 temp.action_post()
 
