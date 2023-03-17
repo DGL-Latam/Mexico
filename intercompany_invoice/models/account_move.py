@@ -8,7 +8,7 @@ class AccountMove(models.Model):
 
         res = super().action_post()
         bill = self.env["sale.order"].auto_purchase_order_id
-        bill_ids = bill.invoice_ids
+        bill_ids = self.env["purchase.order"].invoice_ids
         invoice_ids = self.env["sale.order"].invoice_ids
         for rec1 in bill_ids:
             for rec2 in invoice_ids:
