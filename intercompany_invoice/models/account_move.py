@@ -5,22 +5,20 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     def action_post(self):
-
         res = super().action_post()
-        invoice = self.env["sale.order"]
-        invoice_ids = fields.Many2many('sale.order', 'res_sale_inv', 'sale_id', 'inv_id', 'Invoices')
+
+        invoice = self.env["sale.order"].auto_purchase_order_id
+        invoice_ids = invoice.invoice_ids
+        invoice_name = invoice.name
 
         bill = self.env["purchase.order"]
         bill_ids = bill.invoice_ids
+        bill_ref = bill.partner_ref
 
-        for rec1 in self.browse(invoice.cr, invoice.uid, invoice.ids):
-            for rec1_1 in rec1.invoice_ids:
-                temp_1 = rec1_1.name
+        for rec in self:
+            temp = rec.search([("name", "=", bill_ref)]).partner_ref
+            if temp.partner_ref == invoice_name:
+                temp.action_post()
 
-            for rec2 in self.browse(bill.cr, bill.uid, bill.ids):
-                for rec2_1 in rec2.bill_ids:
-                    temp_2 = rec2_1.partner_ref
 
-                if temp_1 == temp_2:
-                    rec2.action_post()
         return res
