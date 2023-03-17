@@ -9,15 +9,15 @@ class AccountMove(models.Model):
 
         invoice = self.env["sale.order"].auto_purchase_order_id
         invoice_ids = invoice.invoice_ids
-        invoice_name = invoice.name
+        invoice_ref = invoice.ref
 
         bill = self.env["purchase.order"]
         bill_ids = bill.invoice_ids
-        bill_ref = bill.partner_ref
+        bill_ref = bill.ref
 
         for rec in self:
-            temp = rec.search([("name", "=", bill_ref)])
-            if temp.ref == invoice_name:
+            temp = rec.search([("ref", "=", bill_ref)])
+            if temp.ref == invoice_ref:
                 temp.action_post()
 
 
