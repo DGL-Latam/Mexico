@@ -10,7 +10,9 @@ class AccountMove(models.Model):
         bill = self.env["sale.order"].auto_purchase_order_id
         name = self.env["sale.order"].name
         if bill.partner_ref == name:
-
-            bill.action_post_bill()
+            count = 0
+            if count > 0:
+                bill.action_post_bill()
+                count += 1
 
         return res
