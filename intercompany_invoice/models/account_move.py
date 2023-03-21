@@ -16,7 +16,7 @@ class AccountMove(models.Model):
         bill_ref = bill.name
 
         for rec in self:
-            temp = rec.search([("ref", "=", bill_ref)])
+            temp = rec.browse(bill_ids)
             for rec_1 in temp:
                 if rec_1.ref == invoice_ref:
                     temp.action_post()
