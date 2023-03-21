@@ -13,9 +13,9 @@ class AccountEdiDocument(models.Model):
     l10n_mx_edi_uuid = fields.Char(
         string="Folio Fiscal", 
         copy=False, 
-        readonly=True)
-        #store=True,
-        #compute='_compute_uuids')
+        readonly=True
+        store=True,
+        compute='_compute_uuids')
     
     @api.depends('state')
     def _compute_uuids(self):
