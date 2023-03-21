@@ -11,7 +11,7 @@ class AccountMove(models.Model):
         invoice_ids = invoice.invoice_ids
         invoice_ref = invoice.client_order_ref
 
-        bill = self.env["purchase.order"]
+        bill = self.env["sale.order"].auto_purchase_order_id
         bill_ids = bill.invoice_ids
         bill_ref = bill.name
 
