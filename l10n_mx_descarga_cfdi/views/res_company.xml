@@ -1,0 +1,20 @@
+<odoo>
+    <data>
+        <record id="res_company_inherit_fiel_cers_keys"  model="ir.ui.view">
+            <field name="name">res.company.inherit_fiel_cers_keys</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='favicon']" position="after">
+                    <field name="l10n_mx_fiel_cer"/>
+                    <field name="l10n_mx_fiel_key"/>
+                    <field name="l10n_mx_fiel_pass"/>
+                </xpath>
+            </field>
+        </record>
+        
+    
+    </data>
+    
+    
+</odoo>

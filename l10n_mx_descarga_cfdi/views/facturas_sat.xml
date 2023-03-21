@@ -1,0 +1,153 @@
+<odoo>
+    <record id="factura_sat_tree_view" model="ir.ui.view">
+        <field name="name">facturas.sat_tree</field>
+        <field name="model">facturas.sat</field>
+        <field name="arch" type="xml">
+            <tree string="facturas_sat_tree_view">
+                <field name="sat_uuid"/>
+                <field name="sat_state"/>
+                <field name="sat_rfc_emisor"/>
+                <field name="sat_fecha_timbrado"/>
+                <field name="sat_tipo_factura"/>
+                <field name="sat_monto"/>
+                <field name="diferentials"/>
+            </tree>
+        </field>
+    </record>
+    <record id="factura_sat_form" model="ir.ui.view">
+        <field name="name">facturas.sat_form</field>
+        <field name="model">facturas.sat</field>
+         <field name="arch" type="xml">
+            <form string="factura_sat_form">
+                <sheet>
+                    <h1>
+                        <field name="sat_uuid" string="Folio Fiscal"/>
+                    </h1>
+                    <group>
+                        <field name="sat_rfc_emisor" readonly="1"/>
+                        <field name="sat_monto" readonly="1"/>
+                        <field name="sat_fecha_emision" readonly="1"/>
+                        <field name="sat_tipo_factura" readonly="1"/>
+                        <field name="sat_state" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="account_move_id" readonly="1"/>
+                        <field name="account_move_partner_id" readonly="1"/>
+                        <field name="account_move_total" readonly="1"/>
+                        <field name="account_move_date" readonly="1"/>
+                        <field name="account_move_status" readonly="1"/>                
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="menu_factura_sat_action" model="ir.actions.act_window">
+        <field name="name">Facturas SAT</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids)]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_dif_amount" model="ir.actions.act_window">
+        <field name="name">Distinto Monto</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_amount')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_dif_emitter" model="ir.actions.act_window">
+        <field name="name">Emisor Distinto</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_emiter')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_dif_date" model="ir.actions.act_window">
+        <field name="name">Distinta Fecha</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_date')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_no_odoo" model="ir.actions.act_window">
+        <field name="name">No existe en Odoo</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','no_odoo')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_all_good" model="ir.actions.act_window">
+        <field name="name">Sin diferencias</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','all_good')]</field>
+    </record>
+
+    <record id="menu_factura_sat_action_dif_status" model="ir.actions.act_window">
+        <field name="name">Distinto Estado</field>
+        <field name="res_model">facturas.sat</field>
+        <field name="view_mode">form</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_status')]</field>
+    </record>
+
+    <menuitem
+        action="menu_factura_sat_action"
+        id="menu_facturas_sat_root"
+        name="Facturas SAT"
+        groups="account.group_account_manager"
+        sequence="600"
+    />
+    <menuitem id="menu_factura_sat_action_diferencias" name="Diferencias" parent="menu_facturas_sat_root" sequence="4"/>
+    <menuitem 
+        id="menu_elem_factura_sat_action_dif_amount"
+        name="Montos Distinto"
+        action="menu_factura_sat_action_dif_amount"
+        parent="menu_factura_sat_action_diferencias"
+        sequence="10"
+    />
+    <menuitem 
+        id="menu_elem_factura_sat_action_dif_emitter"
+        name="Emisor Distinto"
+        action="menu_factura_sat_action_dif_emitter"
+        parent="menu_factura_sat_action_diferencias"
+        sequence="11"
+    />
+    <menuitem 
+        id="menu_elem_factura_sat_action_dif_date"
+        name="Fecha Distinta"
+        action="menu_factura_sat_action_dif_date"
+        parent="menu_factura_sat_action_diferencias"
+        sequence="12"
+    />
+
+    <menuitem 
+        id="menu_elem_factura_sat_action_no_odoo"
+        name="No Existe en Odoo"
+        action="menu_factura_sat_action_no_odoo"
+        parent="menu_factura_sat_action_diferencias"
+        sequence="14"
+    />
+    <menuitem 
+        id="menu_elem_factura_sat_action_all_good"
+        name="Sin Diferencias"
+        action="menu_factura_sat_action_all_good"
+        parent="menu_factura_sat_action_diferencias"
+        sequence="15"
+    />
+    <menuitem 
+        id="menu_elem_factura_sat_action_dif_status"
+        name="Diferente Estado"
+        action="menu_factura_sat_action_dif_status"
+        parent="menu_factura_sat_action_diferencias"
+        sequence="13"
+    />
+
+</odoo>
