@@ -9,7 +9,7 @@ class AccountMove(models.Model):
         name_sale = self.env["sale.order"].name
         name_purchase = self.env["purchase.order"].name
 
-        invoices = self.search(["state", "=", "draft"])
+        invoices = self.search([("state", "=", "draft")])
 
         for rec1 in invoices:
             invoice_id = rec1.browse(invoices.id)
