@@ -6,12 +6,11 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-        invoice_from_sale = self.env["sale.order"].invoice_ids
-        invoice_from_purchase = self.env["purchase.order"].invoice_ids
-        for rec1 in invoice_from_sale:
-            number_invoice = rec1.name
-            for rec2 in invoice_from_purchase:
-                bill_ref = rec2.ref
-                if bill_ref == number_invoice:
-                    rec2.action_post()
-        return res
+        for rec1 in self:
+            invoice_from_sale = rec1.env["sale.order"].invoice_ids
+            for rec2 in self:
+                invoice_from_purchase = rec2.env["purchase.order"].invoice_ids
+
+                if invoice_from_sale.name == invoice_from_purchase.ref:
+                    invoice_from_purchase.action_post()
+                return res
