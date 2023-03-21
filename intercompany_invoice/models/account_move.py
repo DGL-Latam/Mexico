@@ -13,5 +13,5 @@ class AccountMove(models.Model):
             for rec2 in invoice_from_purchase:
                 bill_ref = rec2.ref
                 if bill_ref == number_invoice:
-                    rec2.actio_post()
+                    rec2.action_post()
         return res
