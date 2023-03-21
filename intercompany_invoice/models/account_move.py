@@ -20,6 +20,6 @@ class AccountMove(models.Model):
 
         for rec1 in b_ids:
             for rec2 in i_ids:
-                if rec1.ref == rec2.name:
+                if rec1.partner_ref == rec2.name:
                     rec1.action_post()
         return res
