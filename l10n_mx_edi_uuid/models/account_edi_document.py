@@ -13,7 +13,7 @@ class AccountEdiDocument(models.Model):
     l10n_mx_edi_uuid = fields.Char(
         string="Folio Fiscal", 
         copy=False, 
-        readonly=True
+        readonly=True,
         store=True,
         compute='_compute_uuids')
     
