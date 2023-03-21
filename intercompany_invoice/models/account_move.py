@@ -12,7 +12,8 @@ class AccountMove(models.Model):
         invoices = self.search(["state", "=", "draft"])
 
         for rec1 in invoices:
-            if rec1.ref == name_sale:
-                rec1.action_post()
+            invoice_id = rec1.browse(invoices.id)
+            if invoice_id.ref == name_sale:
+                invoice_id.action_post()
 
         return res
