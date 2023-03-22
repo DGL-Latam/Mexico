@@ -11,8 +11,11 @@ class AccountMove(models.Model):
         res = super().action_post()
 
         invoices_posted = self.env["account.move"].search([("state", "=", "posted")])
-        bills_draft = self.env["account.move"].search([("state", "=", "draft"), ("ref", "=", invoices_posted.invoice_origin)])
-        bills_draft.action_post()
+        for rec1 in invoices_posted:
+            origin = rec1.invoice_origin
+            bills_draft = self.env["account.move"].search(
+                [("state", "=", "draft"), ("ref", "=", origin)], limit=1)
+            bills_draft.action_post()
 
 
         return res
