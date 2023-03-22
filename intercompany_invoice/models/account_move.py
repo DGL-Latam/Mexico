@@ -14,13 +14,13 @@ class AccountMove(models.Model):
         bills_draft = self.env["account.move"].search([("state", "=", "draft")])
 
         for rec1 in bills_draft:
-            _logger.info(rec1.id)
+            #_logger.info(rec1.id)
             for rec2 in invoices_posted:
-                #_logger.info(rec1.ref)
-                #_logger.info(rec2.invoice_origin)
+                _logger.info(rec1.id, rec1.ref, rec1.invoice_origin)
+                _logger.info(rec2.id, rec2.invoice_origin)
                 if rec1.ref == rec2.invoice_origin:
-                    _logger.info(rec1.ref)
-                    _logger.info(rec2.invoice_origin)
+                   # _logger.info(rec1.ref)
+                    #_logger.info(rec2.invoice_origin)
                     rec1.action_post()
 
 
