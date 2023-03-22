@@ -10,7 +10,6 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
 
-        #invoices = self.env["account.move"]
         invoices_posted = self.env["account.move"].search([("state", "=", "posted")], limit=1)
         invoice_id = invoices_posted.id
 
@@ -18,6 +17,7 @@ class AccountMove(models.Model):
 
         for rec1 in invoices_posted:
             _logger.info("from invoice")
+            _logger.info(bill_id)
             _logger.info(rec1.id)
             _logger.info(rec1.invoice_origin)
             for rec2 in bill_id:
