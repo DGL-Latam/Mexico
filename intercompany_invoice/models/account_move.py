@@ -15,9 +15,10 @@ class AccountMove(models.Model):
 
         for rec1 in bills_draft:
             for rec2 in invoices_posted:
+                _logger.info("Mesagge from account move")
                 if rec1.ref == rec2.invoice_origin:
                     rec1.action_post()
-                    _logger.info("Mesagge from account move")
+
 
 
         return res
