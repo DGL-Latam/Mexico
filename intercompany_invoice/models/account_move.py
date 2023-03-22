@@ -12,21 +12,22 @@ class AccountMove(models.Model):
 
         #invoices = self.env["account.move"]
         invoices_posted = self.env["account.move"].search([("state", "=", "posted")], limit=1)
-        invoices_greater_id = self.env["account.move"].search([("id", ">", invoices_posted.id)])
+        invoice_id = invoices_posted.id
 
-        for rec1 in invoices_greater_id:
+        invoices_greater_id = self.env["account.move"].search([("id", ">", invoice_id)])
+
+        for rec1 in invoices_posted:
             _logger.info("from draft")
             _logger.info(rec1.id)
-            _logger.info(rec1.ref)
             _logger.info(rec1.invoice_origin)
-            for rec2 in invoices_posted:
+            for rec2 in invoices_greater_id:
                 _logger.info("from_invoice")
                 _logger.info(rec2.id)
-                _logger.info(rec2.invoice_origin)
-                if rec1.ref == rec2.invoice_origin:
+                _logger.info(rec2.ref)
+                if rec1.invoice_origin == rec2.ref:
                    # _logger.info(rec1.ref)
                     #_logger.info(rec2.invoice_origin)
-                    rec1.action_post()
+                    rec2.action_post()
 
 
 
