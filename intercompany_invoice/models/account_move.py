@@ -8,9 +8,9 @@ class AccountMove(models.Model):
         res = super().action_post()
 
         for rec1 in self:
-            rec1.invoice = self.env["account.move"].search([("state", "=", "draft")], limit=1)
+            rec1.id = self.env["account.move"].search([("state", "=", "draft")], limit=1)
             for rec2 in self:
-                rec2.bill = self.env["account.move"].search([("ref", "=", rec1.name)], limit=1)
+                rec2.id = self.env["account.move"].search([("ref", "=", rec1.name)], limit=1)
                 rec2.action_post()
 
 
