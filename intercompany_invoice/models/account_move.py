@@ -15,13 +15,14 @@ class AccountMove(models.Model):
         invoice_id = invoices_posted.id
 
         invoices_greater_id = self.env["account.move"].search([("id", ">", invoice_id)])
+        _logger.info(invoices_greater_id)
 
         for rec1 in invoices_posted:
-            _logger.info("from draft")
+            _logger.info("from invoice")
             _logger.info(rec1.id)
             _logger.info(rec1.invoice_origin)
             for rec2 in invoices_greater_id:
-                _logger.info("from_invoice")
+                _logger.info("from_draft")
                 _logger.info(rec2.id)
                 _logger.info(rec2.ref)
                 if rec1.invoice_origin == rec2.ref:
