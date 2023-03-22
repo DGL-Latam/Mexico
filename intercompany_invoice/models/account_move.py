@@ -7,7 +7,7 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
 
-        bill = self.env["account.move"].search([("ref", "=", "invoice_name"), ("state", "=", "draft")])
+        bill = self.env["account.move"].search([("ref", "=", "invoice_name"), ("state", "=", "draft")], limit=1)
         bill.action_post()
 
 
