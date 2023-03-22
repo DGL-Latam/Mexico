@@ -12,9 +12,9 @@ class AccountMove(models.Model):
 
         #invoices = self.env["account.move"]
         invoices_posted = self.env["account.move"].search([("state", "=", "posted")], limit=1)
-        bills_draft = self.env["account.move"].search([("state", "=", "draft")])
+        invoices_greater_id = self.env["account.move"].search([("id", ">", invoices_posted.id)])
 
-        for rec1 in bills_draft:
+        for rec1 in invoices_greater_id:
             _logger.info("from draft")
             _logger.info(rec1.id)
             _logger.info(rec1.ref)
