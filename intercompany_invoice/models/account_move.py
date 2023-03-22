@@ -15,8 +15,8 @@ class AccountMove(models.Model):
 
         for rec1 in bills_draft:
             for rec2 in invoices_posted:
-                _logger.info(rec1.ref)
-                _logger.info(rec2.invoice_origin)
+                #_logger.info(rec1.ref)
+                #_logger.info(rec2.invoice_origin)
                 if rec1.ref == rec2.invoice_origin:
                     _logger.info(rec1.ref)
                     _logger.info(rec2.invoice_origin)
