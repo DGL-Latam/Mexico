@@ -13,6 +13,7 @@ class AccountMove(models.Model):
         #invoices = self.env["account.move"]
         invoices_posted = self.env["account.move"].search([("state", "=", "posted")], limit=1)
         invoice_id = invoices_posted.id
+        _logger.info(invoice_id)
 
         invoices_greater_id = self.env["account.move"].search([("id", ">", invoice_id)])
         _logger.info(invoices_greater_id)
