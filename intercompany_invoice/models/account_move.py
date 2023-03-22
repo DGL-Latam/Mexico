@@ -10,10 +10,11 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
 
+        invoices = self.env["account.move"]
         invoices_posted = self.env["account.move"].search([("state", "=", "posted")])
-        bills_draft = self.env["account.move"].search([("state", "=", "draft")])
+        #bills_draft = self.env["account.move"].search([("state", "=", "draft")])
 
-        for rec1 in bills_draft:
+        for rec1 in invoices:
             _logger.info("from draft")
             _logger.info(rec1.id)
             _logger.info(rec1.ref)
