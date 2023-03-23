@@ -30,7 +30,6 @@ class AccountMove(models.Model):
                     rec2.action_post()
         return res
 
-    @api.constrains('ref', 'move_type', 'partner_id', 'journal_id', 'invoice_date', 'state')
     def _check_duplicate_supplier_reference(self):
 
         for order in self:
