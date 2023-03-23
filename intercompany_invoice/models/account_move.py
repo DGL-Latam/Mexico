@@ -26,7 +26,6 @@ class AccountMove(models.Model):
                 _logger.info(rec2.id)
                 _logger.info(rec2.ref)
                 if rec1.invoice_origin == rec2.ref:
-                    
                     rec2.invoice_date = datetime.today().date
                     rec2.action_post()
 
