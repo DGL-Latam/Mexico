@@ -13,7 +13,7 @@ class AccountMove(models.Model):
         invoices_posted = self.env["account.move"].search([("state", "=", "posted")], limit=1)
         invoice_id = invoices_posted.id
 
-        bill_id = self.env["account.move"].search([("state", "!=", "posted"), ("id", ">", invoice_id)])
+        bill_id = self.env["account.move"].search([("state", "=", "draft"), ("id", ">", invoice_id)])
 
         for rec1 in invoices_posted:
             _logger.info("from invoice")
@@ -25,7 +25,7 @@ class AccountMove(models.Model):
                 _logger.info(rec2.id)
                 _logger.info(rec2.ref)
                 if rec1.invoice_origin == rec2.ref:
-                    rec2.invoice_date = rec1.invoice_date
+                    #rec2.invoice_date = rec1.invoice_date
                     rec2.action_post()
 
 
