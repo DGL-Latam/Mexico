@@ -22,14 +22,10 @@ class AccountMove(models.Model):
             _logger.info(rec1.id)
             _logger.info(rec1.invoice_origin)
             for rec2 in bill_id:
-                _logger.info("from_draft")
+                _logger.info("from_bill")
                 _logger.info(rec2.id)
                 _logger.info(rec2.ref)
                 if rec1.invoice_origin == rec2.ref:
-                    #rec2.write({'invoice_date':datetime})
                     rec2.invoice_date = datetime.today()
                     rec2.action_post()
-
-
-
         return res
