@@ -29,3 +29,16 @@ class AccountMove(models.Model):
                     rec2.invoice_date = datetime.today()
                     rec2.action_post()
         return res
+
+    @api.constrains('ref', 'move_type', 'partner_id', 'journal_id', 'invoice_date', 'state')
+    def _check_duplicate_supplier_reference(self):
+
+        for order in self:
+            if not order.company_id:
+                continue
+            company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
+            if company and company.rule_type == 'sale_purchase_invoice_refund':
+                continue
+            res = super()._check_duplicate_supplier_reference()
+
+        return res
