@@ -21,13 +21,13 @@ class sale_order(models.Model):
 
     def _create_invoices(self, grouped=False, final=False, date=None):
         res = super()._create_invoices()
+        status_from_po = self.env["purchase"].received_less_than_billed
         for order in self:
             if not order.company_id:
                 continue
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
             if company and company.rule_type == 'sale_purchase_invoice_refund':
                 self.sudo().auto_purchase_order_id.with_company(company).action_create_invoice()
-                if order.qty_delivered < order.qty_invoiced:
-                    self.sudo().auto_purchase_order_id.with_company(company).action_create_invoice()
+
         return res
 
