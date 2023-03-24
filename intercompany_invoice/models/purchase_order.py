@@ -4,8 +4,6 @@ from odoo import fields, models, _
 class purchase_order(models.Model):
     _inherit = "purchase.order"
 
-    received_less_than_billed = fields.Boolean(default=False)
-
     def _prepare_sale_order_data(self):
 
         res = super(purchase_order, self).button_approve(force=force)
@@ -16,8 +14,3 @@ class purchase_order(models.Model):
                 order.with_user(company_rec.intercompany_user_id).with_context(
                     default_company_id=company_rec.id).with_company(company_rec).inter_company_create_sale_order(company_rec)
         return res
-
-    def change_received_less(self):
-        for rec in self:
-            if rec.qty_received < rec.qty_invoiced:
-                rec.received_less_than_billed = True

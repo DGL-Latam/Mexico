@@ -21,7 +21,7 @@ class sale_order(models.Model):
 
     def _create_invoices(self, grouped=False, final=False, date=None):
         res = super()._create_invoices()
-        status_from_po = self.env["purchase"].received_less_than_billed
+
         for order in self:
             if not order.company_id:
                 continue
