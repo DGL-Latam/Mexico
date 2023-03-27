@@ -22,6 +22,9 @@ class sale_order(models.Model):
     def _create_invoices(self, grouped=False, final=False, date=None):
         res = super()._create_invoices()
 
+        if not self.invoice_vals_list :
+            pass
+
         for order in self:
             if not order.company_id:
                 continue
@@ -31,7 +34,3 @@ class sale_order(models.Model):
 
 
         return res
-
-    @api.model
-    def _nothing_to_invoice_error(self):
-        return
