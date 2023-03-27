@@ -29,8 +29,8 @@ class sale_order(models.Model):
             if company and company.rule_type == 'sale_purchase_invoice_refund':
                 self.sudo().auto_purchase_order_id.with_company(company).action_create_invoice()
             if self.env["stock.picking"].name:
-                super()._nothing_to_invoice_error()
+                try:
+                    super()._nothing_to_invoice_error()
+                except:
+                    pass
         return res
-
-    def _nothing_to_invoice_error(self):
-        return None
