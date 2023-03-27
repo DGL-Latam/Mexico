@@ -33,5 +33,5 @@ class sale_order(models.Model):
         return res
 
     def _nothing_to_invoice_error(self):
-        super()._create_invoices()
-        return 
+        
+        return
