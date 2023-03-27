@@ -11,7 +11,7 @@ class AccountMove(models.Model):
     def action_post(self):
         res = super().action_post()
 
-        invoices_posted = self.env["account.move"].search([("state", "=", "posted")], limit=1)
+        invoices_posted = self.env["account.move"].search([("state", "=", "posted")])
         invoice_id = invoices_posted.id
 
         bill_id = self.env["account.move"].search([("state", "=", "draft"), ("id", ">", invoice_id)])

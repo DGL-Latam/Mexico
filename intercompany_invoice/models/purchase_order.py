@@ -8,7 +8,7 @@ class purchase_order(models.Model):
 
         res = super(purchase_order, self).button_approve(force=force)
         for order in self:
-            
+
             company_rec = self.env['res.company']._find_company_from_partner(order.partner_id.id)
             if company_rec and company_rec.rule_type == 'sale_purchase_invoice_refund' and (not order.auto_generated):
                 order.with_user(company_rec.intercompany_user_id).with_context(
