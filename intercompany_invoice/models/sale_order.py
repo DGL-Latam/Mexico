@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models, _
+from odoo import fields, models, _, api
 
 class sale_order(models.Model):
     _inherit = "sale.order"
@@ -28,9 +28,10 @@ class sale_order(models.Model):
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
             if company and company.rule_type == 'sale_purchase_invoice_refund':
                 self.sudo().auto_purchase_order_id.with_company(company).action_create_invoice()
-            if self.env["stock.picking"].name:
-                try:
-                    super()._nothing_to_invoice_error()
-                except:
-                    pass
+
+
         return res
+
+    @api.model
+    def _nothing_to_invoice_error(self):
+        return
