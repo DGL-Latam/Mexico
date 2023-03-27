@@ -28,6 +28,9 @@ class sale_order(models.Model):
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
             if company and company.rule_type == 'sale_purchase_invoice_refund':
                 self.sudo().auto_purchase_order_id.with_company(company).action_create_invoice()
+                if self.env["stock.picking"].name and self.env["stock.picking"].group_id == self.env["sale.order"].name:
+                    self._nothing_to_invoice_error() == False
+                    super()._create_invoices()
 
         return res
 
