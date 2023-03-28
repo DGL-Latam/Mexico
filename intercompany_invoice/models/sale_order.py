@@ -36,5 +36,4 @@ class sale_order(models.Model):
         for rec1 in self:
             rec1.source_document_return = rec1.env["stock.picking"].origin
             if rec1.env["stock.picking"].group_id == self.env["sale.order"].name:
-                continue
-            super()._nothing_to_invoice_error()
+                return
