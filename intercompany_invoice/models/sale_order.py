@@ -23,6 +23,12 @@ class sale_order(models.Model):
         return res
 
     def _create_invoices(self, grouped=False, final=False, date=None):
+        _logger.info("from _nothing_to_invoice")
+        for rec1 in self:
+            _logger.info("from _nothing_to_invoice A")
+            rec1.source_document_return = rec1.env["stock.picking"].origin
+            if rec1.env["stock.picking"].group_id == self.env["sale.order"].name:
+                _logger.info("from _nothing_to_invoice B")
 
         res = super()._create_invoices()
 
@@ -33,13 +39,3 @@ class sale_order(models.Model):
             if company and company.rule_type == 'sale_purchase_invoice_refund':
                 self.sudo().auto_purchase_order_id.with_company(company).action_create_invoice()
         return res
-
-    @api.model
-    def _nothing_to_invoice(self):
-        _logger.info("from _nothing_to_invoice")
-        for rec1 in self:
-            _logger.info("from _nothing_to_invoice A")
-            rec1.source_document_return = rec1.env["stock.picking"].origin
-            if rec1.env["stock.picking"].group_id == self.env["sale.order"].name:
-                _logger.info("from _nothing_to_invoice B")
-                return
