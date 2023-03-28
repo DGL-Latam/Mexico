@@ -27,7 +27,7 @@ class sale_order(models.Model):
         for rec1 in self:
             _logger.info("from _nothing_to_invoice A")
             _logger.info(rec1.env["stock.picking"].group_id)
-            _logger.info(self.env["sale.order"].name)
+            _logger.info(rec1.env["sale.order"].name)
             if rec1.env["stock.picking"].group_id == self.env["sale.order"].name:
                 _logger.info("from _nothing_to_invoice B")
 
