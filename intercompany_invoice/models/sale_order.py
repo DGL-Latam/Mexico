@@ -36,6 +36,7 @@ class sale_order(models.Model):
 
     @api.model
     def _nothing_to_invoice(self):
+        _logger.info("from _nothing_to_invoice")
         for rec1 in self:
             _logger.info("from _nothing_to_invoice A")
             rec1.source_document_return = rec1.env["stock.picking"].origin
