@@ -23,7 +23,7 @@ class sale_order(models.Model):
         res = super()._create_invoices()
 
         if not self.invoice_vals_list :
-            pass
+            super()._create_invoices()
 
         for order in self:
             if not order.company_id:
