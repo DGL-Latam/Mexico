@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import fields, models, _, api
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class sale_order(models.Model):
     _inherit = "sale.order"
@@ -34,6 +37,8 @@ class sale_order(models.Model):
     @api.model
     def _nothing_to_invoice(self):
         for rec1 in self:
+            _logger.info("from _nothing_to_invoice A")
             rec1.source_document_return = rec1.env["stock.picking"].origin
             if rec1.env["stock.picking"].group_id == self.env["sale.order"].name:
+                _logger.info("from _nothing_to_invoice B")
                 return
