@@ -25,8 +25,7 @@ class sale_order(models.Model):
     def _create_invoices(self, grouped=False, final=False, date=None):
 
         name_so = self.env["sale.order"].name
-        from_stock_picking = self.env["stock.picking"].search([("group_id", "=", name_so)])
-        from_stock_picking_id = from_stock_picking.group_id
+        from_stock_picking_id = self.picking_ids.group_id
 
         _logger.info(name_so)
         _logger.info(from_stock_picking_id)
