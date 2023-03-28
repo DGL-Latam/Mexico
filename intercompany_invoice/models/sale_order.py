@@ -23,13 +23,13 @@ class sale_order(models.Model):
         return res
 
     def _create_invoices(self, grouped=False, final=False, date=None):
-        _logger.info("from _nothing_to_invoice")
-        for rec1 in self:
-            _logger.info("from _nothing_to_invoice A")
-            _logger.info(rec1.env["stock.picking"].group_id)
-            _logger.info(rec1.env["sale.order"].name)
-            if rec1.env["stock.picking"].group_id == self.env["sale.order"].name:
-                _logger.info("from _nothing_to_invoice B")
+
+        name_so = self.env["sale.order"].name
+        from_stock_picking = self.env["stock.picking"].search([("group_id", "=", name_so)])
+        from_stock_picking_id = from_stock_picking.group_id
+
+        _logger.info(name_so)
+        _logger.info(from_stock_picking_id)
 
         res = super()._create_invoices()
 
