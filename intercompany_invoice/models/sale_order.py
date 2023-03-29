@@ -24,7 +24,7 @@ class sale_order(models.Model):
 
     def _create_invoices(self, grouped=False, final=False, date=None):
 
-        so_id = self.env["sale.order"].id
+        so_id = self.id
         from_stock_picking_id = self.picking_ids
 
         _logger.info(so_id)
