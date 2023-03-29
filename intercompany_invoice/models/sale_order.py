@@ -24,10 +24,10 @@ class sale_order(models.Model):
 
     def _create_invoices(self, grouped=False, final=False, date=None):
 
-        name_so = self.env["sale.order"].name
+        so_id = self.env["sale.order"].id
         from_stock_picking_id = self.picking_ids
 
-        _logger.info(name_so)
+        _logger.info(so_id)
         _logger.info(from_stock_picking_id)
 
         res = super()._create_invoices()
