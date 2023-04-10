@@ -53,10 +53,10 @@ class AccountEdiFormat(models.Model):
                 base_val_proportion = float_round(detail['base_amount_currency'] * percentage_paid * sign, precision)
                 tax_val_proportion = float_round(base_val_proportion * tax_amount, precision)
                 detail.update({
-                    'base_val_prop_amt_curr': base_val_proportion,
-                    'tax_val_prop_amt_curr': tax_val_proportion if tax.l10n_mx_tax_type != 'Exento' else False,
-                    'tax_class': get_tax_cfdi_name(detail),
-                    'tax_amount': tax_amount,
+                    'base_val_prop_amt_curr': base_val_proportion, #Base sobre el cual se calcula el impuesto, format_float(this,6 decimales)
+                    'tax_val_prop_amt_curr': tax_val_proportion if tax.l10n_mx_tax_type != 'Exento' else False, #valor monetario del impuesto, format_float(this,6 decimales)
+                    'tax_class': get_tax_cfdi_name(detail), #tipo de impuesto, eg IVA == 002
+                    'tax_amount': tax_amount, #porcentaje del impuesto eg, 0.160000
                 })
             return tax_details
 
@@ -166,8 +166,8 @@ class AccountEdiFormat(models.Model):
                 tax = detail['tax']
                 tax_class = detail['tax_class']
                 key = (float_round(tax.amount / 100, 6), tax.l10n_mx_tax_type, tax_class)
-                base_val_pay_curr = detail['base_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)
-                tax_val_pay_curr = detail['tax_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)
+                base_val_pay_curr = float( "%.6f" % (detail['base_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)))
+                tax_val_pay_curr = float( "%.6f" % (detail['tax_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)))
                 if key in total_taxes_paid:
                     total_taxes_paid[key]['base_value'] += base_val_pay_curr
                     total_taxes_paid[key]['tax_value'] += tax_val_pay_curr
