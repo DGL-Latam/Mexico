@@ -10,13 +10,20 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super().action_post()
-        company = self.env["res.company"]._find_company_from_partner(self.partner_id.id)
-        if company and company.rule_type == 'sale_purchase_invoice_refund':
-            sale_orders = self.env['sale.order'].sudo().search('invoice_ids', 'in', self.id)
-            purchase_orders = sale_orders.mapped('auto_purchase_order_id')
-            bill = purchase_orders.sudo().with_user(1).with_company(company).action_create_invoice()
-            bill.invoice_date = datetime.today()
-            bill.action_post()
+        for record in self:
+            company = self.env["res.company"]._find_company_from_partner(record.partner_id.id)
+
+            if company and company.rule_type == 'sale_purchase_invoice_refund' and record.move_type in ['out_invoice', 'out_refund'] :
+
+                sale_orders = self.env['sale.order'].sudo().search([('invoice_ids', 'in', [record.id])])
+                purchase_orders = sale_orders.mapped('auto_purchase_order_id')
+                bill_view_action = purchase_orders.sudo().with_user(1).with_company(company).with_context({'default_move_type': 'in_invoice'}).action_create_invoice()
+
+                bill = self.env['account.move'].search([('id','=',bill_view_action['res_id'])])
+
+                if not bill:
+                    continue
+                bill.invoice_date = datetime.today()
         return res
 
     def _check_duplicate_supplier_reference(self):
