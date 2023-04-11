@@ -166,8 +166,8 @@ class AccountEdiFormat(models.Model):
                 tax = detail['tax']
                 tax_class = detail['tax_class']
                 key = (float_round(tax.amount / 100, 6), tax.l10n_mx_tax_type, tax_class)
-                base_val_pay_curr = float( "%.6f" % (detail['base_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)))
-                tax_val_pay_curr = float( "%.6f" % (detail['tax_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)))
+                base_val_pay_curr = float( "%.2f" % (detail['base_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)))
+                tax_val_pay_curr = float( "%.2f" % (detail['tax_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)))
                 if key in total_taxes_paid:
                     total_taxes_paid[key]['base_value'] += base_val_pay_curr
                     total_taxes_paid[key]['tax_value'] += tax_val_pay_curr
