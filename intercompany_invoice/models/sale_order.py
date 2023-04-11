@@ -22,20 +22,4 @@ class sale_order(models.Model):
 
         return res
 
-    def _create_invoices(self, grouped=False, final=False, date=None):
 
-        so_id = self.name
-        from_stock_picking_id = self.picking_ids
-
-        _logger.info(so_id)
-        _logger.info(from_stock_picking_id)
-
-        res = super()._create_invoices()
-
-        for order in self:
-            if not order.company_id:
-                continue
-            company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
-            if company and company.rule_type == 'sale_purchase_invoice_refund':
-                self.sudo().auto_purchase_order_id.with_company(company).action_create_invoice()
-        return res
