@@ -7,6 +7,8 @@
                 <field name="sat_uuid"/>
                 <field name="sat_state"/>
                 <field name="sat_rfc_emisor"/>
+                <field name="sat_name_emisor"/>
+                <field name="sat_name_receptor"/>
                 <field name="sat_fecha_timbrado"/>
                 <field name="sat_tipo_factura"/>
                 <field name="sat_monto"/>
@@ -25,7 +27,9 @@
                     </h1>
                     <group>
                         <field name="sat_rfc_emisor" readonly="1"/>
+                        <field name="sat_name_emisor" readonly="1"/>
                         <field name="sat_monto" readonly="1"/>
+                        <field name="sat_name_receptor" readonly="1"/>
                         <field name="sat_fecha_emision" readonly="1"/>
                         <field name="sat_tipo_factura" readonly="1"/>
                         <field name="sat_state" readonly="1"/>

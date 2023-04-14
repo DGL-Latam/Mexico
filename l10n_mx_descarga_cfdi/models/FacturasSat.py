@@ -156,6 +156,8 @@ class SolicitudesDescarga(models.Model):
         fact = self.env['facturas.sat'].sudo().create({
             'sat_uuid' : nodes['tfd_node'].get('UUID'),
             'sat_rfc_emisor' : nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
+            'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('rfc')),
+            'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('rfc')),
             'sat_monto' : float(nodes['cfdi_node'].get('Total')),
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
@@ -225,6 +227,8 @@ class FacturasSat(models.Model):
     sat_uuid = fields.Char(string="Folio Fiscal", copy=False, readonly=True,  required=True)
     sat_state = fields.Char(string="Estado Factura SAT", readonly=True)
     sat_rfc_emisor = fields.Char(string="RFC Emisor", readonly=True)
+    sat_name_emisor = fields.Char(string="Nombre Emisor", readonly=True)
+    sat_name_receptor = fields.Char(string="Nombre Receptor", readonly=True)
     sat_monto = fields.Float(string="Monto", readonly=True)
     sat_fecha_emision = fields.Datetime(string="Fecha Emision", readonly=True)
     sat_fecha_timbrado = fields.Datetime(string="Fecha de Timbrado", readonly=True)
