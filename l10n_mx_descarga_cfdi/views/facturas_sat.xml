@@ -43,7 +43,7 @@
                     </group>
                     <notebook>
                         <page string="Descripcion">
-                            <field name="sat_details_products" readonly="1"/>
+                            <field name="sat_rfc_emisor" readonly="1"/>
                         </page>    
                     </notebook>
                 </sheet>
