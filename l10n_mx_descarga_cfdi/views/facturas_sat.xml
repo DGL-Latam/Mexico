@@ -44,7 +44,7 @@
                         </group>
                         <notebook>
                             <page string="Description">
-                                <field name="description"/>
+                                <field name="sat_rfc_emisor"/>
                             </page>
                         </notebook>
                     </group>
