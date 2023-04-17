@@ -167,24 +167,7 @@ class SolicitudesDescarga(models.Model):
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id
-        })
-        fact = self.env['details.facturasat'].sudo().create({
-            'code_service_product' : nodes['concepto_nodo'].get('ClaveProdServ', nodes['concepto_nodo'].get('ClaveProdServ')),
-            'id_product' : nodes['concepto_nodo'].get('NoIdentificacion', nodes['concepto_nodo'].get('NoIdentificacion')),
-            'name_product' : nodes['concepto_nodo'].get('Descripcion', nodes['concepto_nodo'].get('Descripcion')),
-            'quantity' : nodes['concepto_nodo'].get('Cantidad', nodes['concepto_nodo'].get('Cantidad')),
-            'unit' : nodes['concepto_nodo'].get('Unidad', nodes['concepto_nodo'].get('Unidad')),
-            'value_unitary' : nodes['concepto_nodo'].get('ValorUnitario', nodes['concepto_nodo'].get('ValorUnitario')),
-            'amount' : nodes['traslado_nodo'].get('Importe', nodes['concepto_nodo'].get('Importe')),
-            'type_factory' : nodes['traslado_nodo'].get('TipoFactor', nodes['traslado_nodo'].get('TipoFactor')),
-            'value_tasa' : nodes['traslado_nodo'].get('TasaOCuota', nodes['traslado_nodo'].get('TasaOCuota')),
-            'subtotal' : nodes['comprobante_nodo'].get('SubTotal', nodes['comprobante_nodo'].get('SubTotal')),
-            'type_moneda' : nodes['comprobante_nodo'].get('Moneda', nodes['comprobante_nodo'].get('Moneda')),
-            'total' : nodes['comprobante_nodo'].get('Total', nodes['comprobante_nodo'].get('Total')),
-            'type_pay': nodes['comprobante_nodo'].get('CondicionesDePago', nodes['comprobante_nodo'].get('CondicionesDePago'))
-        })
-
-        
+        })    
         #fact.SearchOdooInvoice()
         
     def printEstado(self):
@@ -262,7 +245,7 @@ class FacturasSat(models.Model):
         ('T', 'Traslado (Carta Porte)'),
     ], default='1', string='Tipo de Factura', readonly=True)
 
-    #sat_details_products = fields.One2Many(comodel_name='details.facturasat', string='Detalles Facturas',readonly=True)
+    id_details_products = fields.One2Many('details.facturasat','','Productos')
     account_move_id = fields.Many2one(
         comodel_name='account.move',
         string="Factura Odoo", readonly=True)
@@ -324,6 +307,7 @@ class FacturasSatDetails(models.Model):
     _description = "Detalles Facturas SAT"
    
     code_service_product = fields.Char(string="Codigo Servicio")
+    factura_id = fields.Many2One('facturas.sat')
     id_product = fields.Char(string="Identificacion Producto")
     name_product = fields.Char(string="Nombre Producto", readonly=True,  required=True)
     quantity = fields.Char(string="Cantidad")
