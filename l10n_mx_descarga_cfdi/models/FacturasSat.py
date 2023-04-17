@@ -168,6 +168,22 @@ class SolicitudesDescarga(models.Model):
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id
         })
+        fact = self.env['details.facturasat'].sudo().create({
+            'code_service_product' : nodes['concepto_nodo'].get('ClaveProdServ', nodes['concepto_nodo'].get('ClaveProdServ')),
+            'id_product' : nodes['concepto_nodo'].get('NoIdentificacion', nodes['concepto_nodo'].get('NoIdentificacion')),
+            'name_product' : nodes['concepto_nodo'].get('Descripcion', nodes['concepto_nodo'].get('Descripcion')),
+            'quantity' : nodes['concepto_nodo'].get('Cantidad', nodes['concepto_nodo'].get('Cantidad')),
+            'unit' : nodes['concepto_nodo'].get('Unidad', nodes['concepto_nodo'].get('Unidad')),
+            'value_unitary' : nodes['concepto_nodo'].get('ValorUnitario', nodes['concepto_nodo'].get('ValorUnitario')),
+            'amount' : nodes['traslado_nodo'].get('Importe', nodes['concepto_nodo'].get('Importe')),
+            'type_factory' : nodes['traslado_nodo'].get('TipoFactor', nodes['traslado_nodo'].get('TipoFactor')),
+            'value_tasa' : nodes['traslado_nodo'].get('TasaOCuota', nodes['traslado_nodo'].get('TasaOCuota')),
+            'subtotal' : nodes['comprobante_nodo'].get('SubTotal', nodes['comprobante_nodo'].get('SubTotal')),
+            'type_moneda' : nodes['comprobante_nodo'].get('Moneda', nodes['comprobante_nodo'].get('Moneda')),
+            'total' : nodes['comprobante_nodo'].get('Total', nodes['comprobante_nodo'].get('Total')),
+            'type_pay': nodes['comprobante_nodo'].get('CondicionesDePago', nodes['comprobante_nodo'].get('CondicionesDePago'))
+        })
+
         
         #fact.SearchOdooInvoice()
         
