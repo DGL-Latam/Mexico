@@ -115,6 +115,10 @@ class SolicitudesDescarga(models.Model):
             cfdi_node = fromstring(cfdi_data)
             emisor_node = cfdi_node.Emisor
             receptor_node = cfdi_node.Receptor
+            concepto_node = cfdi_node.Concepto
+            traslado_node = cfdi_node.Traslado
+            comprobante_node = cfdi_node.Comprobante
+
 
             tfd_node = get_node(
             cfdi_node,
@@ -133,6 +137,7 @@ class SolicitudesDescarga(models.Model):
                     cfdi_node = element[1]
                 if '}TimbreFiscalDigital' in element[1].tag:
                     tfd_node = element[1]
+                
         except AttributeError:
             # Not a CFDI
             return {}
@@ -140,7 +145,10 @@ class SolicitudesDescarga(models.Model):
             'cfdi_node' : cfdi_node,
             'emisor_node' : emisor_node,
             'receptor_node' : receptor_node,
-            'tfd_node' : tfd_node
+            'tfd_node' : tfd_node,
+            'concepto_node' : cfdi_node.Concepto,
+            'traslado_node' : cfdi_node.Traslado,
+            'comprobante_node' : cfdi_node.Comprobante
         }
 
     def _ProcessXML(self, xml : str):
@@ -163,6 +171,21 @@ class SolicitudesDescarga(models.Model):
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id
+        })
+        fact = self.env['details.facturasat'].sudo().create({
+            'code_service_product' : nodes['concepto_nodo'].get('ClaveProdServ', nodes['concepto_nodo'].get('ClaveProdServ')),
+            'id_product' : nodes['concepto_nodo'].get('NoIdentificacion', nodes['concepto_nodo'].get('NoIdentificacion')),
+            'name_product' : nodes['concepto_nodo'].get('Descripcion', nodes['concepto_nodo'].get('Descripcion')),
+            'quantity' : nodes['concepto_nodo'].get('Cantidad', nodes['concepto_nodo'].get('Cantidad')),
+            'unit' : nodes['concepto_nodo'].get('Unidad', nodes['concepto_nodo'].get('Unidad')),
+            'value_unitary' : nodes['concepto_nodo'].get('ValorUnitario', nodes['concepto_nodo'].get('ValorUnitario')),
+            'amount' : nodes['traslado_nodo'].get('Importe', nodes['concepto_nodo'].get('Importe')),
+            'type_factory' : nodes['traslado_nodo'].get('TipoFactor', nodes['traslado_nodo'].get('TipoFactor')),
+            'value_tasa' : nodes['traslado_nodo'].get('TasaOCuota', nodes['traslado_nodo'].get('TasaOCuota')),
+            'subtotal' : nodes['comprobante_nodo'].get('SubTotal', nodes['comprobante_nodo'].get('SubTotal')),
+            'type_moneda' : nodes['comprobante_nodo'].get('Moneda', nodes['comprobante_nodo'].get('Moneda')),
+            'total' : nodes['comprobante_nodo'].get('Total', nodes['comprobante_nodo'].get('Total')),
+            'type_pay': nodes['comprobante_nodo'].get('CondicionesDePago', nodes['comprobante_nodo'].get('CondicionesDePago'))
         })
         #fact.SearchOdooInvoice()
         
@@ -241,6 +264,7 @@ class FacturasSat(models.Model):
         ('T', 'Traslado (Carta Porte)'),
     ], default='1', string='Tipo de Factura', readonly=True)
 
+    sat_details_products = fields.One2Many(comodel_name='details.facturasat', string='Detalles Facturas',readonly=True)
     account_move_id = fields.Many2one(
         comodel_name='account.move',
         string="Factura Odoo", readonly=True)
@@ -295,3 +319,23 @@ class FacturasSat(models.Model):
     def printinfo(self):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
+
+
+class FacturasSatDetails(models.Model):
+    _name = "details.facturasat"
+    _description = "Facturas SAT"
+   
+    code_service_product = fields.Char(string="Codigo Servicio")
+    id_product = fields.Char(string="Identificacion Producto")
+    name_product = fields.Char(string="Nombre Producto", readonly=True,  required=True)
+    quantity = fields.Char(string="Cantidad")
+    unit = fields.Char(string="Unidad")
+    value_unitary = fields.Char(string="Precio Unitario") 
+    amount = fields.Char(string="Importe")
+    type_factory = fields.Char(string="Tipo Factor")
+    value_tasa = fields.Char(string="Valor Factor")
+    subtotal = fields.Char(string="SubTotal")
+    total = fields.Char(string="Total")
+    type_moneda = fields.Char(string="Tipo Moneda")
+    type_pay = fields.Char(string="Condiciones Pago")
+    

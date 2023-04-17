@@ -41,6 +41,11 @@
                         <field name="account_move_date" readonly="1"/>
                         <field name="account_move_status" readonly="1"/>                
                     </group>
+                    <notebook>
+                        <page string="Descripcion">
+                            <field name="sat_details_products" readonly="1"/>
+                        </page>    
+                    </notebook>
                 </sheet>
             </form>
         </field>
