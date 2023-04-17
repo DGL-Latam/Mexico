@@ -138,9 +138,9 @@ class SolicitudesDescarga(models.Model):
                 if '}Concepto' in element[1].tag:
                     concepto_node = element[1]
                 if '}Traslado' in element[1].tag:
-                    concepto_node = element[1]
+                    traslado_node = element[1]
                 if '}Comprobante' in element[1].tag:
-                    concepto_node = element[1]
+                    comprobante_node = element[1]
                 if '}TimbreFiscalDigital' in element[1].tag:
                     tfd_node = element[1]
         
