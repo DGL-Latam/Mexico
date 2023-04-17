@@ -245,7 +245,7 @@ class FacturasSat(models.Model):
         ('T', 'Traslado (Carta Porte)'),
     ], default='1', string='Tipo de Factura', readonly=True)
 
-    id_details_products = fields.One2many('details.facturasat','','Productos')
+    id_details_products = fields.One2many('details.facturasat','factura_id','Productos')
     account_move_id = fields.Many2one(
         comodel_name='account.move',
         string="Factura Odoo", readonly=True)
