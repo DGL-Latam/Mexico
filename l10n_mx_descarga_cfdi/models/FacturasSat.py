@@ -172,7 +172,7 @@ class SolicitudesDescarga(models.Model):
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id
         })
-        fact = self.env['details.facturasat'].sudo().create({
+        fact1 = self.env['details.facturasat'].sudo().create({
             'code_service_product' : nodes['concepto_nodo'].get('ClaveProdServ', nodes['concepto_nodo'].get('ClaveProdServ')),
             'id_product' : nodes['concepto_nodo'].get('NoIdentificacion', nodes['concepto_nodo'].get('NoIdentificacion')),
             'name_product' : nodes['concepto_nodo'].get('Descripcion', nodes['concepto_nodo'].get('Descripcion')),
