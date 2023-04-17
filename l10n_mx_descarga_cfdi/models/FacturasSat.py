@@ -323,7 +323,7 @@ class FacturasSat(models.Model):
 
 class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
-    _description = "Facturas SAT"
+    _description = "Detalles Facturas SAT"
    
     code_service_product = fields.Char(string="Codigo Servicio")
     id_product = fields.Char(string="Identificacion Producto")
