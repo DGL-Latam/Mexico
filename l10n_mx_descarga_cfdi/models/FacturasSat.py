@@ -115,9 +115,7 @@ class SolicitudesDescarga(models.Model):
             cfdi_node = fromstring(cfdi_data)
             emisor_node = cfdi_node.Emisor
             receptor_node = cfdi_node.Receptor
-            concepto_node = cfdi_node.Concepto
-            traslado_node = cfdi_node.Traslado
-            comprobante_node = cfdi_node.Comprobante
+            
 
 
             tfd_node = get_node(
@@ -135,12 +133,6 @@ class SolicitudesDescarga(models.Model):
                     receptor_node = element[1]
                 if '}Comprobante' in element[1].tag:
                     cfdi_node = element[1]
-                if '}Concepto' in element[1].tag:
-                    concepto_node = element[1]
-                if '}Traslado' in element[1].tag:
-                    traslado_node = element[1]
-                if '}Comprobante' in element[1].tag:
-                    comprobante_node = element[1]
                 if '}TimbreFiscalDigital' in element[1].tag:
                     tfd_node = element[1]
         
@@ -152,9 +144,7 @@ class SolicitudesDescarga(models.Model):
             'emisor_node' : emisor_node,
             'receptor_node' : receptor_node,
             'tfd_node' : tfd_node,
-            'concepto_node' : concepto_node,
-            'traslado_node' : traslado_node,
-            'comprobante_node' : comprobante_node
+            
         }
 
     def _ProcessXML(self, xml : str):
