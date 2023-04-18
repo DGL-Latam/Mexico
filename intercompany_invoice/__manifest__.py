@@ -1,6 +1,6 @@
 {
     'name': 'Intercompany Invoices',
-    'version': '15.0.0.1',
+    'version': '15.0.0.2',
     'author': 'DGL-Latam',
     'description': 'Facturas intercompañias',
     'license': 'LGPL-3',

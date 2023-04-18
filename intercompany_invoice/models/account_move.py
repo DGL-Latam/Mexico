@@ -8,6 +8,7 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+    related_id = float.Integer(string="Related Document")
     def action_post(self):
         res = super().action_post()
         for record in self:
@@ -20,10 +21,11 @@ class AccountMove(models.Model):
                 bill_view_action = purchase_orders.sudo().with_user(1).with_company(company).with_context({'default_move_type': 'in_invoice'}).action_create_invoice()
 
                 bill = self.env['account.move'].search([('id','=',bill_view_action['res_id'])])
-
+                
                 if not bill:
                     continue
                 bill.invoice_date = datetime.today()
+                record.sudo().write({'related_id': bill.id})
         return res
 
     def _check_duplicate_supplier_reference(self):
