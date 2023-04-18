@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    related_id = float.Integer(string="Related Document")
+    related_id = fields.Integer(string="Related Document")
     def action_post(self):
         res = super().action_post()
         for record in self:
