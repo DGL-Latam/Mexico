@@ -342,5 +342,5 @@ class FacturasSatDetails(models.Model):
     subtotal = fields.Char(string="SubTotal")
     total = fields.Char(string="Total")
     type_moneda = fields.Char(string="Tipo Moneda")
-    type_pay = fields.Char(string="Condiciones Pago")
+    type_pay = fields.Char(string="Condiciones pago")
 
