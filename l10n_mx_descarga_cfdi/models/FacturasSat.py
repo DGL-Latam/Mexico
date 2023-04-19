@@ -115,7 +115,7 @@ class SolicitudesDescarga(models.Model):
             cfdi_node = fromstring(cfdi_data)
             emisor_node = cfdi_node.Emisor
             receptor_node = cfdi_node.Receptor
-            
+            conceptos_node = cfdi_node.Conceptos
 
 
             tfd_node = get_node(
@@ -128,11 +128,13 @@ class SolicitudesDescarga(models.Model):
 
             for element in etree.iterparse(file):
                 if '}Emisor' in element[1].tag:
-                    emisor_node = element[1]
+                    emisor_node = element[1]    
                 if '}Receptor' in element[1].tag:
                     receptor_node = element[1]
                 if '}Comprobante' in element[1].tag:
                     cfdi_node = element[1]
+                if '}Conceptos' in element[1].tag:
+                    conceptos_node = element[1]
                 if '}TimbreFiscalDigital' in element[1].tag:
                     tfd_node = element[1]
         
@@ -143,12 +145,14 @@ class SolicitudesDescarga(models.Model):
             'cfdi_node' : cfdi_node,
             'emisor_node' : emisor_node,
             'receptor_node' : receptor_node,
+            'conceptos_node': conceptos_node,
             'tfd_node' : tfd_node,
-            
+
         }
 
     def _ProcessXML(self, xml : str):
         nodes = self._getNodes(xml)
+        registros = []
         if not nodes:
             return
         reg = self.env['facturas.sat'].sudo().search([('sat_uuid','=',nodes['tfd_node'].get('UUID'))])
@@ -160,14 +164,33 @@ class SolicitudesDescarga(models.Model):
         fact = self.env['facturas.sat'].sudo().create({
             'sat_uuid' : nodes['tfd_node'].get('UUID'),
             'sat_rfc_emisor' : nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
-            'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('rfc')),
-            'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('rfc')),
+            'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
+            'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
             'sat_monto' : float(nodes['cfdi_node'].get('Total')),
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id
-        })    
+        })
+        
+        for element in nodes['conceptos_node'].Concepto:
+            registros.append({
+                'code_service_product':element.get('ClaveProdServ'),
+                'factura_id': fact.id,
+                'id_product':element.get('NoIdentificacion'),
+                'name_product':element.get('Descripcion'),
+                'quantity':element.get('Cantidad'),
+                'unit':element.get('Unidad'),
+                'valaue_unitary':element.get('ValorUnitario'),
+                'amount':element.get('NoIdentificacion'),
+                'type_factory':element.Impuestos.Traslados.Traslado.get('TipoFactor'),
+                'value_tasa':element.Impuestos.Traslados.Traslado.get('NoIdentificacion'),
+                'subtotal':nodes['cfdi_node'].get('SubTotal'),
+                'total': nodes['cfdi_node'].get('Total'),
+                'type_moneda': nodes['cfdi_node'].get('Moneda'),
+                'type_pay':nodes['cfdi_node'].get('CondicionDePago')
+            })
+        fact1 = self.env['details.facturasat'].sudo().create(registros) 
         #fact.SearchOdooInvoice()
         
     def printEstado(self):
@@ -320,4 +343,4 @@ class FacturasSatDetails(models.Model):
     total = fields.Char(string="Total")
     type_moneda = fields.Char(string="Tipo Moneda")
     type_pay = fields.Char(string="Condiciones Pago")
-    
+
