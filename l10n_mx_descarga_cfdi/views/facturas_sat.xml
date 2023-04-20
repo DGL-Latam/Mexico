@@ -51,10 +51,10 @@
                                         <field name="unit"></field>
                                         <field name="value_unitary"></field>
                                         <field name="value_tasa"></field>
-                                        <field name="total"></field>
+                                        <field name="value_unitary_amount"></field>
                                     </tree>
-                                    <field name="subtotal"></field>
-                                    <field name="total"></field>
+                                    <field name="sat_monto"></field>
+                                    
                                 </field>
                             </page>
                         </notebook>

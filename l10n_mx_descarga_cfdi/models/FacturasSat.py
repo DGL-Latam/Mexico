@@ -182,9 +182,10 @@ class SolicitudesDescarga(models.Model):
                 'quantity':element.get('Cantidad'),
                 'unit':element.get('Unidad'),
                 'valaue_unitary':element.get('ValorUnitario'),
-                'amount':element.get('NoIdentificacion'),
+                'amount':element.Impuestos.Traslados.Traslado.get('Importe'),
                 'type_factory':element.Impuestos.Traslados.Traslado.get('TipoFactor'),
-                'value_tasa':element.Impuestos.Traslados.Traslado.get('NoIdentificacion'),
+                'value_tasa':element.Impuestos.Traslados.Traslado.get('TasaOCuota'),
+                'value_unitary_amount': int(element.get('ValorUnitario') + int(element.Impuestos.Traslados.Traslado.get('Importe'))),
                 'subtotal':nodes['cfdi_node'].get('SubTotal'),
                 'total': nodes['cfdi_node'].get('Total'),
                 'type_moneda': nodes['cfdi_node'].get('Moneda'),
@@ -329,18 +330,19 @@ class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
     _description = "Detalles Facturas SAT"
    
-    code_service_product = fields.Char(string="Codigo Servicio")
-    factura_id = fields.Many2one('facturas.sat')
+    code_service_product = fields.Char(string="Clave Producto")
     id_product = fields.Char(string="Producto")
     name_product = fields.Char(string="Descripcion Producto", readonly=True,  required=True)
     quantity = fields.Char(string="Cantidad")
-    unit = fields.Char(string="Unidad")
+    unit = fields.Char(string="UdM")
     value_unitary = fields.Char(string="Precio Unitario") 
     amount = fields.Char(string="Importe")
+    value_unitary_amount = fields.Char(string="Total")
     type_factory = fields.Char(string="Tipo Factor")
     value_tasa = fields.Char(string="Impuesto")
     subtotal = fields.Char(string="SubTotal")
     total = fields.Char(string="Total")
     type_moneda = fields.Char(string="Tipo Moneda")
     type_pay = fields.Char(string="Condiciones pago")
+    factura_id = fields.Many2one('facturas.sat')
 
