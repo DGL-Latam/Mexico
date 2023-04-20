@@ -43,10 +43,11 @@
                         </group>
                         <notebook>
                             <page string="Descripción">
-                                <field name="id_details_products" widget="One2many"/>
-                                <tree >
-                                    <field name="name_product"></field>
-                                </tree>
+                                <field name="id_details_products" widget="One2many">
+                                    <tree >
+                                        <field name="name_product"></field>
+                                    </tree>
+                                </field>
                             </page>
                         </notebook>
                     
