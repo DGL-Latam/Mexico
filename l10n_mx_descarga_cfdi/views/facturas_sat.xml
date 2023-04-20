@@ -22,7 +22,6 @@
          <field name="arch" type="xml">
             <form string="factura_sat_form">
                 <sheet>
-                    <group>
                         <h1>
                             <field name="sat_uuid" string="Folio Fiscal"/>
                         </h1>
@@ -47,7 +46,7 @@
                                 <field name="sat_rfc_emisor"/>
                             </page>
                         </notebook>
-                    </group>
+                    
                 </sheet>
             </form>
         </field>
