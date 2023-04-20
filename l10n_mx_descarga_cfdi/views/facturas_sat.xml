@@ -53,6 +53,8 @@
                                         <field name="value_tasa"></field>
                                         <field name="total"></field>
                                     </tree>
+                                    <field name="subtotal"></field>
+                                    <field name="total"></field>
                                 </field>
                             </page>
                         </notebook>
