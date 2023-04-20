@@ -45,14 +45,11 @@
                             <page string="Descripción">
                                 <field name="id_details_products" widget="One2many">
                                     <tree >
-                                        <field name="code_service_product"></field>
                                         <field name="id_product"></field>
                                         <field name="name_product"></field>
                                         <field name="quantity"></field>
                                         <field name="unit"></field>
                                         <field name="value_unitary"></field>
-                                        <field name="amount"></field>
-                                        <field name="type_factory"></field>
                                         <field name="value_tasa"></field>
                                         <field name="total"></field>
                                     </tree>
