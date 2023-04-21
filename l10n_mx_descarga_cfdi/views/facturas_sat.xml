@@ -33,10 +33,9 @@
                                 <field name="sat_name_receptor" readonly="1"/>
                                 <field name="sat_fecha_emision" readonly="1"/>
                                 <field name="sat_tipo_factura" readonly="1"/>
-                                
+                                <field name="sat_state" readonly="1"/>
                             </group>
                             <group>
-                                <field name="sat_state" readonly="1"/>
                                 <field name="account_move_id" readonly="1"/>
                                 <field name="account_move_partner_id" readonly="1"/>
                                 <field name="account_move_total" readonly="1"/>

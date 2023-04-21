@@ -277,9 +277,9 @@ class FacturasSat(models.Model):
     account_move_status = fields.Selection(string="Estado Factura Odoo", related='account_move_id.state', readonly=True)
     account_move_currency = fields.Many2one(comodel_name='res.currency', related="account_move_id.currency_id", readonly=True)
     account_move_total = fields.Monetary(string="Total Factura Odoo", related="account_move_id.amount_total", readonly=True, currency_field='account_move_currency')
-    account_move_partner_id = fields.Many2one(comodel_name="res.partner", related="account_move_id.partner_id", readonly=True)
+    account_move_partner_id = fields.Many2one(string="Socio",comodel_name="res.partner", related="account_move_id.partner_id", readonly=True)
     account_move_partner_vat = fields.Char(related="account_move_partner_id.vat", readonly=True)
-    account_move_date = fields.Date(related="account_move_id.date", readonly=True)
+    account_move_date = fields.Date(string="Fecha Movimiento",related="account_move_id.date", readonly=True)
 
     company = fields.Many2one(comodel_name="res.company",string="Empresa")
 
