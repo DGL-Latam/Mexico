@@ -331,8 +331,8 @@ class FacturasSatDetails(models.Model):
     _description = "Detalles Facturas SAT"
    
     code_service_product = fields.Char(string="Clave Producto")
-    id_product = fields.Char(string="Producto")
-    name_product = fields.Char(string="Descripcion Producto", readonly=True,  required=True)
+    id_product = fields.Char(string="Ideentificador Producto")
+    name_product = fields.Char(string="Nombre Producto", readonly=True,  required=True)
     quantity = fields.Char(string="Cantidad")
     unit = fields.Char(string="UdM")
     value_unitary = fields.Char(string="Precio Unitario") 
