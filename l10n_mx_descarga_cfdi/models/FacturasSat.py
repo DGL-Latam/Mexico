@@ -185,7 +185,7 @@ class SolicitudesDescarga(models.Model):
                 'amount':element.Impuestos.Traslados.Traslado.get('Importe'),
                 'type_factory':element.Impuestos.Traslados.Traslado.get('TipoFactor'),
                 'value_tasa':element.Impuestos.Traslados.Traslado.get('TasaOCuota'),
-                'value_unitary_amount': int(element.get('ValorUnitario') + int(element.Impuestos.Traslados.Traslado.get('Importe'))),
+                'value_unitary_amount': float(element.get('ValorUnitario') + float(element.Impuestos.Traslados.Traslado.get('Importe'))),
                 'subtotal':nodes['cfdi_node'].get('SubTotal'),
                 'total': nodes['cfdi_node'].get('Total'),
                 'type_moneda': nodes['cfdi_node'].get('Moneda'),
