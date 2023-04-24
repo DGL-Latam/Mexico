@@ -115,6 +115,8 @@ class SolicitudesDescarga(models.Model):
             cfdi_node = fromstring(cfdi_data)
             emisor_node = cfdi_node.Emisor
             receptor_node = cfdi_node.Receptor
+            conceptos_node = cfdi_node.Conceptos
+
 
             tfd_node = get_node(
             cfdi_node,
@@ -126,13 +128,16 @@ class SolicitudesDescarga(models.Model):
 
             for element in etree.iterparse(file):
                 if '}Emisor' in element[1].tag:
-                    emisor_node = element[1]
+                    emisor_node = element[1]    
                 if '}Receptor' in element[1].tag:
                     receptor_node = element[1]
                 if '}Comprobante' in element[1].tag:
                     cfdi_node = element[1]
+                if '}Conceptos' in element[1].tag:
+                    conceptos_node = element[1]
                 if '}TimbreFiscalDigital' in element[1].tag:
                     tfd_node = element[1]
+        
         except AttributeError:
             # Not a CFDI
             return {}
@@ -140,11 +145,14 @@ class SolicitudesDescarga(models.Model):
             'cfdi_node' : cfdi_node,
             'emisor_node' : emisor_node,
             'receptor_node' : receptor_node,
-            'tfd_node' : tfd_node
+            'conceptos_node': conceptos_node,
+            'tfd_node' : tfd_node,
+
         }
 
     def _ProcessXML(self, xml : str):
         nodes = self._getNodes(xml)
+        registros = []
         if not nodes:
             return
         reg = self.env['facturas.sat'].sudo().search([('sat_uuid','=',nodes['tfd_node'].get('UUID'))])
@@ -156,12 +164,34 @@ class SolicitudesDescarga(models.Model):
         fact = self.env['facturas.sat'].sudo().create({
             'sat_uuid' : nodes['tfd_node'].get('UUID'),
             'sat_rfc_emisor' : nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
+            'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
+            'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
             'sat_monto' : float(nodes['cfdi_node'].get('Total')),
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id
         })
+        
+        for element in nodes['conceptos_node'].Concepto:
+            registros.append({
+                'code_service_product':element.get('ClaveProdServ'),
+                'factura_id': fact.id,
+                'id_product':element.get('NoIdentificacion'),
+                'name_product':element.get('Descripcion'),
+                'quantity':element.get('Cantidad'),
+                'unit':element.get('Unidad'),
+                'value_unitary':element.get('ValorUnitario'),
+                'amount':element.Impuestos.Traslados.Traslado.get('Importe'),
+                'type_factory':element.Impuestos.Traslados.Traslado.get('TipoFactor'),
+                'value_tasa':element.Impuestos.Traslados.Traslado.get('TasaOCuota'),
+                'value_unitary_amount': str(float(element.get('ValorUnitario')) + float(element.Impuestos.Traslados.Traslado.get('Importe'))),
+                'subtotal':nodes['cfdi_node'].get('SubTotal'),
+                'total': nodes['cfdi_node'].get('Total'),
+                'type_moneda': nodes['cfdi_node'].get('Moneda'),
+                'type_pay':nodes['cfdi_node'].get('CondicionDePago')
+            })
+        fact1 = self.env['details.facturasat'].sudo().create(registros) 
         #fact.SearchOdooInvoice()
         
     def printEstado(self):
@@ -225,6 +255,8 @@ class FacturasSat(models.Model):
     sat_uuid = fields.Char(string="Folio Fiscal", copy=False, readonly=True,  required=True)
     sat_state = fields.Char(string="Estado Factura SAT", readonly=True)
     sat_rfc_emisor = fields.Char(string="RFC Emisor", readonly=True)
+    sat_name_emisor = fields.Char(string="Nombre Emisor", readonly=True)
+    sat_name_receptor = fields.Char(string="Nombre Receptor", readonly=True)
     sat_monto = fields.Float(string="Monto", readonly=True)
     sat_fecha_emision = fields.Datetime(string="Fecha Emision", readonly=True)
     sat_fecha_timbrado = fields.Datetime(string="Fecha de Timbrado", readonly=True)
@@ -237,6 +269,7 @@ class FacturasSat(models.Model):
         ('T', 'Traslado (Carta Porte)'),
     ], default='1', string='Tipo de Factura', readonly=True)
 
+    id_details_products = fields.One2many('details.facturasat','factura_id','Productos')
     account_move_id = fields.Many2one(
         comodel_name='account.move',
         string="Factura Odoo", readonly=True)
@@ -244,9 +277,9 @@ class FacturasSat(models.Model):
     account_move_status = fields.Selection(string="Estado Factura Odoo", related='account_move_id.state', readonly=True)
     account_move_currency = fields.Many2one(comodel_name='res.currency', related="account_move_id.currency_id", readonly=True)
     account_move_total = fields.Monetary(string="Total Factura Odoo", related="account_move_id.amount_total", readonly=True, currency_field='account_move_currency')
-    account_move_partner_id = fields.Many2one(comodel_name="res.partner", related="account_move_id.partner_id", readonly=True)
+    account_move_partner_id = fields.Many2one(string="Socio",comodel_name="res.partner", related="account_move_id.partner_id", readonly=True)
     account_move_partner_vat = fields.Char(related="account_move_partner_id.vat", readonly=True)
-    account_move_date = fields.Date(related="account_move_id.date", readonly=True)
+    account_move_date = fields.Date(string="Fecha Movimiento",related="account_move_id.date", readonly=True)
 
     company = fields.Many2one(comodel_name="res.company",string="Empresa")
 
@@ -291,3 +324,25 @@ class FacturasSat(models.Model):
     def printinfo(self):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
+
+
+class FacturasSatDetails(models.Model):
+    _name = "details.facturasat"
+    _description = "Detalles Facturas SAT"
+   
+    code_service_product = fields.Char(string="Clave Producto")
+    id_product = fields.Char(string="Ideentificador Producto")
+    name_product = fields.Char(string="Nombre Producto", readonly=True,  required=True)
+    quantity = fields.Char(string="Cantidad")
+    unit = fields.Char(string="UdM")
+    value_unitary = fields.Char(string="Precio Unitario") 
+    amount = fields.Char(string="Importe")
+    value_unitary_amount = fields.Char(string="Total")
+    type_factory = fields.Char(string="Tipo Factor")
+    value_tasa = fields.Char(string="Impuesto")
+    subtotal = fields.Char(string="SubTotal")
+    total = fields.Char(string="Total")
+    type_moneda = fields.Char(string="Tipo Moneda")
+    type_pay = fields.Char(string="Condiciones pago")
+    factura_id = fields.Many2one('facturas.sat')
+
