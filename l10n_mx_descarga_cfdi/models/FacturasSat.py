@@ -181,7 +181,7 @@ class SolicitudesDescarga(models.Model):
                 'name_product':element.get('Descripcion'),
                 'quantity':element.get('Cantidad'),
                 'unit':element.get('Unidad'),
-                'valaue_unitary':element.get('ValorUnitario'),
+                'value_unitary':element.get('ValorUnitario'),
                 'amount':element.Impuestos.Traslados.Traslado.get('Importe'),
                 'type_factory':element.Impuestos.Traslados.Traslado.get('TipoFactor'),
                 'value_tasa':element.Impuestos.Traslados.Traslado.get('TasaOCuota'),
