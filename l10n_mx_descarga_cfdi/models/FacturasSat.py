@@ -363,3 +363,20 @@ class FacturasSatDetails(models.Model):
     type_moneda = fields.Char(string="Tipo Moneda")
     type_pay = fields.Char(string="Condiciones pago")
     factura_id = fields.Many2one('facturas.sat')
+
+class AccountMoveInherit(models.Model):
+   _inherit = 'account.move'
+   def action_get_attachment(self):
+       pdf = self.env.ref('facturasat.report_pdf')._render_qweb_pdf(self.ids)
+       b64_pdf = base64.b64encode(pdf[0])
+       # save pdf as attachment
+       name = "My Attachment"
+       return self.env['ir.attachment'].create({
+           'name': name,
+           'type': 'binary',
+           'datas': b64_pdf,
+           'store_fname': name,
+           'res_model': self._name,
+           'res_id': self.id,
+           'mimetype': 'application/x-pdf'
+       })
