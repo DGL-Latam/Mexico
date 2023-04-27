@@ -203,7 +203,16 @@ class SolicitudesDescarga(models.Model):
             if rec.document_downloaded.id:
                 rec._ProcessZip(rec.document_downloaded.attachment_id.raw)
                 rec.write({'to_process_zip' : False})
-                
+    
+    
+    def createPdf(self):
+        pdf = self.env['reporte'].sudo().get_pdf()
+
+        pdfhttpheaders = [('Content-Type', 'application/pdf'), ('Content-Lenth', len(pdf))]
+
+        return pdfhttpheaders 
+
+
     def _ProcessZip(self, zipBytes):
         z = zipfile.ZipFile(io.BytesIO(zipBytes))
         for filename in z.infolist():
