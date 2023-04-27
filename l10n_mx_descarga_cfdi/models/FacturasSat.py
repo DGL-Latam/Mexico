@@ -330,7 +330,7 @@ class FacturasSat(models.Model):
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
     def createPdf(self):
-        pdf = self.env.ref('account.report_pdf')._render_qweb_pdf(self.ids)
+        pdf = self.env.ref('account.report_invoice_with_payments_no_cp')._render_qweb_pdf(self.ids)
         b64_pdf = base64.b64encode(pdf[0])
         name= "Hola"
 
