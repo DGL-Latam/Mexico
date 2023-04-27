@@ -20,6 +20,9 @@
         <field name="name">facturas.sat_form</field>
         <field name="model">facturas.sat</field>
          <field name="arch" type="xml">
+         <xpath expr="//header" position="inside">
+           <button name="action_get_attachment" string="Generate Attachment" type="object" class="oe_highlight"/>
+       </xpath>
             <form string="factura_sat_form">
                 <sheet>
                         <h1>
