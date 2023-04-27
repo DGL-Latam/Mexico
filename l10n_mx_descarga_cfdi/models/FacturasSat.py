@@ -207,7 +207,7 @@ class SolicitudesDescarga(models.Model):
     
     def createPdf(self,xml: str):
         nodes = self._getNodes(xml)
-        pdf = self.env.ref(module_name.report_id)._render_qweb_pdf(self.ids)
+        pdf = self.env.ref('facturasat.report_pdf')._render_qweb_pdf(self.ids)
         b64_pdf = base64.b64encode(pdf[0])
         name= nodes['tfd_node'].get('UUID')
 
