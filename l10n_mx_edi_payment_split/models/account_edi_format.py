@@ -83,7 +83,7 @@ class AccountEdiFormat(models.Model):
         else:
             rate_payment_curr_mxn = move.currency_id._convert(1.0, mxn_currency, move.company_id, move.date, round=False)
             paid_amount_comp_curr = move.company_currency_id.round(paid_amount * rate_payment_curr_mxn)
-
+        total_en_moneda_factura = 0
         for field1, field2 in (('debit', 'credit'), ('credit', 'debit')):
             for partial in pay_rec_lines[f'matched_{field1}_ids']:
                 payment_line = partial[f'{field2}_move_id']
@@ -112,6 +112,7 @@ class AccountEdiFormat(models.Model):
                     invoice_rate = move.currency_id._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
                     _logger.critical(invoice_rate)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
+                    total_en_moneda_factura += amount_paid_invoice_curr # sumatoria del valor total de las facturas 
                     exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
                     exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
                     _logger.critical(exchange_rate)
@@ -133,6 +134,11 @@ class AccountEdiFormat(models.Model):
                     'tax_details_withholding': tax_details_withholding,
                     **self._l10n_mx_edi_get_serie_and_folio(invoice),
                 })
+            #lector de los valores de cambio de la moneda siendo tasa_cambio la que recibe el total de las facturas en USD entre el valor en mxn 
+            tasa_cambio = total_en_moneda_factura / move.amount # usd / pesos
+            for val in invoice_vals_list:
+                val['exchange_rate'] = float("{:.10f}".format(tasa_cambio)) #delimitador del total contenido en exchange_rate de tipo float con 10 decimales
+
 
         payment_method_code = move.l10n_mx_edi_payment_method_id.code
         is_payment_code_emitter_ok = payment_method_code in ('02', '03', '04', '05', '06', '28', '29', '99')
@@ -151,7 +157,7 @@ class AccountEdiFormat(models.Model):
         payment_account_receiver = re.sub(r'\s+', '', move.journal_id.bank_account_id.acc_number or '') or None
 
         # CFDI 4.0: prepare the tax summaries
-        rate_payment_curr_mxn_40 = rate_payment_curr_mxn or 1
+        rate_payment_curr_mxn_40 = tasa_cambio or 1
         total_taxes_paid = {}
         total_taxes_withheld = {
             '001': {'amount_curr': 0.0, 'amount_mxn': 0.0},
@@ -189,8 +195,8 @@ class AccountEdiFormat(models.Model):
         for v in total_taxes_paid.values():
             v['base_value'] = float_round(v['base_value'], move.currency_id.decimal_places, rounding_method='DOWN')
             v['tax_value'] = float_round(v['tax_value'], move.currency_id.decimal_places, rounding_method='DOWN')
-            v['base_value_mxn'] = float_round(v['base_value'] * rate_payment_curr_mxn_40, mxn_currency.decimal_places)
-            v['tax_value_mxn'] = float_round(v['tax_value'] * rate_payment_curr_mxn_40, mxn_currency.decimal_places)
+            v['base_value_mxn'] = float_round(v['base_value'] / rate_payment_curr_mxn_40, mxn_currency.decimal_places)
+            v['tax_value_mxn'] = float_round(v['tax_value'] / rate_payment_curr_mxn_40, mxn_currency.decimal_places)
         for v in total_taxes_withheld.values():
             v['amount_curr'] = float_round(v['amount_curr'], move.currency_id.decimal_places, rounding_method='DOWN')
             v['amount_mxn'] = float_round(v['amount_curr'] * rate_payment_curr_mxn_40, mxn_currency.decimal_places)
