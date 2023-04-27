@@ -114,9 +114,9 @@ class AccountEdiFormat(models.Model):
                     _logger.critical(invoice_rate)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
                     total_en_moneda_factura += amount_paid_invoice_curr # sumatoria del valor total de las facturas 
-#                    exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
-#                    exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
-#                   _logger.critical(exchange_rate)
+                    exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
+                    exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='DOWN')
+                    _logger.critical(exchange_rate)
 
                 # for CFDI 4.0
                 cfdi_values = self._l10n_mx_edi_get_invoice_cfdi_values(invoice)
