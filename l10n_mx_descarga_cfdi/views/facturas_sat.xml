@@ -72,6 +72,9 @@
         <field name="view_mode">form</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('company', 'in', allowed_company_ids)]</field>
+        <xpath expr="//header" position="inside">
+           <button name="action_get_attachment" string="Generate Attachment" type="object" class="oe_highlight"/>
+       </xpath>
     </record>
 
     <record id="menu_factura_sat_action_dif_amount" model="ir.actions.act_window">

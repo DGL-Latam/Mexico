@@ -205,12 +205,21 @@ class SolicitudesDescarga(models.Model):
                 rec.write({'to_process_zip' : False})
     
     
-    def createPdf(self):
-        pdf = self.env['reporte'].sudo().get_pdf()
+    def createPdf(self,xml: str):
+        nodes = self._getNodes(xml)
+        pdf = self.env.ref(module_name.report_id)._render_qweb_pdf(self.ids)
+        b64_pdf = base64.b64encode(pdf[0])
+        name= nodes['tfd_node'].get('UUID')
 
-        pdfhttpheaders = [('Content-Type', 'application/pdf'), ('Content-Lenth', len(pdf))]
-
-        return pdfhttpheaders 
+        return self.env['ir.attachment'].create({
+            'name': name,
+            'type': 'binary',
+            'datas': b64_pdf,
+            'store_fname': name,
+            'res_model':self._name,
+            'res_id': self.id,
+            'mimetype': 'application/x-pdf'      
+        })
 
 
     def _ProcessZip(self, zipBytes):
@@ -354,4 +363,3 @@ class FacturasSatDetails(models.Model):
     type_moneda = fields.Char(string="Tipo Moneda")
     type_pay = fields.Char(string="Condiciones pago")
     factura_id = fields.Many2one('facturas.sat')
-
