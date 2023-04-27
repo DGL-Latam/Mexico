@@ -205,21 +205,7 @@ class SolicitudesDescarga(models.Model):
                 rec.write({'to_process_zip' : False})
     
     
-    def createPdf(self,xml: str):
-        nodes = self._getNodes(xml)
-        pdf = self.env.ref('facturasat.report_pdf')._render_qweb_pdf(self.ids)
-        b64_pdf = base64.b64encode(pdf[0])
-        name= nodes['tfd_node'].get('UUID')
-
-        return self.env['ir.attachment'].create({
-            'name': name,
-            'type': 'binary',
-            'datas': b64_pdf,
-            'store_fname': name,
-            'res_model':self._name,
-            'res_id': self.id,
-            'mimetype': 'application/x-pdf'      
-        })
+    
 
 
     def _ProcessZip(self, zipBytes):
@@ -343,6 +329,21 @@ class FacturasSat(models.Model):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
+    def createPdf(self,xml: str):
+        nodes = self._getNodes(xml)
+        pdf = self.env.ref('facturasat.report_pdf')._render_qweb_pdf(self.ids)
+        b64_pdf = base64.b64encode(pdf[0])
+        name= "Hola"
+
+        return self.env['ir.attachment'].create({
+            'name': name,
+            'type': 'binary',
+            'datas': b64_pdf,
+            'store_fname': name,
+            'res_model':self._name,
+            'res_id': self.id,
+            'mimetype': 'application/x-pdf'      
+        })
 
 class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
