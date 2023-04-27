@@ -10,6 +10,7 @@ import json
 import requests
 import random
 import string
+import math
 
 from lxml import etree
 from lxml.objectify import fromstring
@@ -137,7 +138,7 @@ class AccountEdiFormat(models.Model):
             #lector de los valores de cambio de la moneda siendo tasa_cambio la que recibe el total de las facturas en USD entre el valor en mxn 
             tasa_cambio = total_en_moneda_factura / move.amount # usd / pesos
             for val in invoice_vals_list:
-                val['exchange_rate'] = float("{:.10f}".format(tasa_cambio)) #delimitador del total contenido en exchange_rate de tipo float con 10 decimales
+                val['exchange_rate'] = float(f'{tasa_cambio:.10f}'.format) #delimitador del total contenido en exchange_rate de tipo float con 10 decimales
 
 
         payment_method_code = move.l10n_mx_edi_payment_method_id.code
