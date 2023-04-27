@@ -65,7 +65,14 @@
             </form>
         </field>
     </record>
-
+    <data>
+        <record id="report_pdf" model="ir.actions.report">
+            <field name="name"></field>
+            <field name="model">facturas.sat</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">account_report_invoice_with_payments</field>
+        </record>
+    </data>
     <record id="menu_factura_sat_action" model="ir.actions.act_window">
         <field name="name">Facturas SAT</field>
         <field name="res_model">facturas.sat</field>
