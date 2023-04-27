@@ -115,7 +115,7 @@ class AccountEdiFormat(models.Model):
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
                     total_en_moneda_factura += amount_paid_invoice_curr # sumatoria del valor total de las facturas 
                     exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
-                    exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='DOWN')
+                    exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
                     _logger.critical(exchange_rate)
 
                 # for CFDI 4.0
@@ -138,7 +138,7 @@ class AccountEdiFormat(models.Model):
             #lector de los valores de cambio de la moneda siendo tasa_cambio la que recibe el total de las facturas en USD entre el valor en mxn 
             tasa_cambio = total_en_moneda_factura / move.amount # usd / pesos
             for val in invoice_vals_list:
-                val['exchange_rate'] = (float(f'{tasa_cambio:.10f}')).format #delimitador del total contenido en exchange_rate de tipo float con 10 decimales
+                val['exchange_rate'] = (float(f'{tasa_cambio:.10f}')) #delimitador del total contenido en exchange_rate de tipo float con 10 decimales
 
 
         payment_method_code = move.l10n_mx_edi_payment_method_id.code
