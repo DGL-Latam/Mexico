@@ -75,7 +75,7 @@
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">account.report_invoice_with_payments</field>
         </record>
-        <template id="report_invoice">
+        <template id="template_cfdi">
             <t t-call="web.external_layout">
                 <div class="page">
                     <label>Hola como estas</label>
