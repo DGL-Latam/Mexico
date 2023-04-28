@@ -124,7 +124,7 @@ class AccountEdiFormat(models.Model):
                 invoice_vals_list.append({
                     'invoice': invoice,
                     'exchange_rate': exchange_rate,
-                    'EQUIVALENCIADR_PRECISION_DIGITS': EQUIVALENCIADR_PRECISION_DIGITS,
+                    'EQUIVALENCIADR_PRECISION_DIGITS': EQUIVALENCIADR_PRECISION_DIGITS-1,
                     'payment_policy': invoice.l10n_mx_edi_payment_policy,
                     'number_of_payments': len(invoice._get_reconciled_payments()) + len(invoice._get_reconciled_statement_lines()),
                     'amount_paid': amount_paid_invoice_curr,
