@@ -20,9 +20,9 @@
         <field name="name">facturas.sat_form</field>
         <field name="model">facturas.sat</field>
          <field name="arch" type="xml">
-         <xpath expr="//header" position="inside">
-           <button name="createPdf" string="Generate Attachment" type="object" class="oe_highlight"/>
-       </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="createPdf" string="Generate Attachment" type="object" class="oe_highlight"/>
+            </xpath>
             <form string="factura_sat_form">
                 <sheet>
                         <h1>
@@ -71,9 +71,9 @@
     <data>
         <record id="report_pdf" model="ir.actions.report">
             <field name="name">Reporte CFDI</field>
-            <field name="model">account.move</field>
+            <field name="model">facturas.sat</field>
             <field name="report_type">qweb-pdf</field>
-            <field name="report_name">account.report_invoice_with_payments</field>
+            <field name="report_name">l10n_mx_descarga_cfdi.template_cfdi</field>
         </record>
         <template id="template_cfdi">
             <t t-call="web.external_layout">
