@@ -330,8 +330,7 @@ class FacturasSat(models.Model):
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
     def createPdf(self):
-        pdf = self.env.ref('l10n_mx_descarga_cfdi.report_pdf').sudo()._render_qweb_pdf(self.ids)
-        
+        pass
 
 class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
