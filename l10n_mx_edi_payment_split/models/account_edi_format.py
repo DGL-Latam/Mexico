@@ -10,7 +10,6 @@ import json
 import requests
 import random
 import string
-import math
 
 from lxml import etree
 from lxml.objectify import fromstring
@@ -24,7 +23,7 @@ from json.decoder import JSONDecodeError
 _logger = logging.getLogger(__name__)
 
 
-EQUIVALENCIADR_PRECISION_DIGITS = 10
+EQUIVALENCIADR_PRECISION_DIGITS = 11
 class AccountEdiFormat(models.Model):
     _inherit = 'account.edi.format'
     
@@ -113,7 +112,7 @@ class AccountEdiFormat(models.Model):
                     invoice_rate = move.currency_id._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
                     _logger.critical(invoice_rate)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
-                    total_en_moneda_factura += amount_paid_invoice_curr # sumatoria del valor total de las facturas 
+                    total_en_moneda_factura += amount_paid_invoice_curr                                     # sumatoria del valor total de las facturas 
                     exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
                     exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
                     _logger.critical(exchange_rate)
@@ -200,7 +199,7 @@ class AccountEdiFormat(models.Model):
             v['tax_value_mxn'] = float_round(v['tax_value'] / rate_payment_curr_mxn_40, mxn_currency.decimal_places)
         for v in total_taxes_withheld.values():
             v['amount_curr'] = float_round(v['amount_curr'], move.currency_id.decimal_places, rounding_method='DOWN')
-            v['amount_mxn'] = float_round(v['amount_curr'] * rate_payment_curr_mxn_40, mxn_currency.decimal_places)
+            v['amount_mxn'] = float_round(v['amount_curr'] / rate_payment_curr_mxn_40, mxn_currency.decimal_places)
 
         cfdi_values = {
             **self._l10n_mx_edi_get_common_cfdi_values(move),
