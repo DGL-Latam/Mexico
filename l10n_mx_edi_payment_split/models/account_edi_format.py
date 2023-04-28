@@ -23,7 +23,7 @@ from json.decoder import JSONDecodeError
 _logger = logging.getLogger(__name__)
 
 
-EQUIVALENCIADR_PRECISION_DIGITS = 11
+EQUIVALENCIADR_PRECISION_DIGITS = 10
 class AccountEdiFormat(models.Model):
     _inherit = 'account.edi.format'
     
@@ -113,7 +113,7 @@ class AccountEdiFormat(models.Model):
                     _logger.critical(invoice_rate)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
                     exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
-                    exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
+                    exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='DOWN')
                     _logger.critical(exchange_rate)
 
                 # for CFDI 4.0
