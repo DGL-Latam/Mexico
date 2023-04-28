@@ -331,8 +331,8 @@ class FacturasSat(models.Model):
 
     def createPdf(self):
         pdf = self.env.ref('l10n_mx_descarga_cfdi.report_pdf').sudo()._render_qweb_pdf(self.id)[0]
-        b64_pdf = base64.b64encode(pdf[0])
-        name= "hola"
+        # b64_pdf = base64.b64encode(pdf[0])
+        # name= "hola"
 
         # return self.env['ir.attachment'].create({
         #     'name': name,
