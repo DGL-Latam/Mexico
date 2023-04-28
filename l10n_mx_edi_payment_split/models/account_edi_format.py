@@ -23,7 +23,7 @@ from json.decoder import JSONDecodeError
 _logger = logging.getLogger(__name__)
 
 
-EQUIVALENCIADR_PRECISION_DIGITS = 11
+EQUIVALENCIADR_PRECISION_DIGITS = 10
 class AccountEdiFormat(models.Model):
     _inherit = 'account.edi.format'
     
@@ -84,6 +84,8 @@ class AccountEdiFormat(models.Model):
             rate_payment_curr_mxn = move.currency_id._convert(1.0, mxn_currency, move.company_id, move.date, round=False)
             paid_amount_comp_curr = move.company_currency_id.round(paid_amount * rate_payment_curr_mxn)
 
+
+        currency_invoice = self.env["res.currency"]
         for field1, field2 in (('debit', 'credit'), ('credit', 'debit')):
             for partial in pay_rec_lines[f'matched_{field1}_ids']:
                 payment_line = partial[f'{field2}_move_id']
@@ -91,6 +93,7 @@ class AccountEdiFormat(models.Model):
                 invoice_amount = partial[f'{field1}_amount_currency']
                 exchange_move = invoice_line.full_reconcile_id.exchange_move_id
                 invoice = invoice_line.move_id
+                currency_invoice = invoice.currency_id
 
                 if not invoice.l10n_mx_edi_cfdi_request:
                     continue
@@ -100,21 +103,16 @@ class AccountEdiFormat(models.Model):
                         .filtered(lambda x: x[f'{field2}_move_id'].move_id == exchange_move)
                     if exchange_partial:
                         invoice_amount += exchange_partial[f'{field2}_amount_currency']
-
+                
                 if invoice_line.currency_id == payment_line.currency_id:
                     # Same currency
                     amount_paid_invoice_curr = invoice_amount
-                    exchange_rate = None
+                    
                 else:
                     # It needs to be how much invoice currency you pay for one payment currency
-                    amount_paid_invoice_comp_curr = payment_line.company_currency_id.round(
-                        total_amount * (partial.amount / paid_amount_comp_curr))
                     invoice_rate = move.currency_id._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
-                    _logger.critical(invoice_rate)
-                    amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate)
-                    exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
-                    exchange_rate = (float(f'{exchange_rate:.10f}'))    #float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='DOWN')
-                    _logger.critical(exchange_rate)
+                    amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate) #monto pagado en moneda de la factura 
+                  
 
                 # for CFDI 4.0
                 cfdi_values = self._l10n_mx_edi_get_invoice_cfdi_values(invoice)
@@ -123,8 +121,7 @@ class AccountEdiFormat(models.Model):
 
                 invoice_vals_list.append({
                     'invoice': invoice,
-                    'exchange_rate': exchange_rate,
-                    'EQUIVALENCIADR_PRECISION_DIGITS': EQUIVALENCIADR_PRECISION_DIGITS-1,
+                    'EQUIVALENCIADR_PRECISION_DIGITS': EQUIVALENCIADR_PRECISION_DIGITS,
                     'payment_policy': invoice.l10n_mx_edi_payment_policy,
                     'number_of_payments': len(invoice._get_reconciled_payments()) + len(invoice._get_reconciled_statement_lines()),
                     'amount_paid': amount_paid_invoice_curr,
@@ -159,6 +156,10 @@ class AccountEdiFormat(models.Model):
             '003': {'amount_curr': 0.0, 'amount_mxn': 0.0},
             None: {'amount_curr': 0.0, 'amount_mxn': 0.0},
         }
+
+        amoun_inv_curr = move.currenxy_id._convert(move.amount,currency_invoice,move.company_id, move.date, round=False)
+        exch = (float(f'{(amoun_inv_curr / move.amount):.10f}'))
+
         for inv_vals in invoice_vals_list:
             wht_detail = list(inv_vals['tax_details_withholding']['tax_details'].values())
             trf_detail = list(inv_vals['tax_details_transferred']['tax_details'].values())
@@ -166,8 +167,8 @@ class AccountEdiFormat(models.Model):
                 tax = detail['tax']
                 tax_class = detail['tax_class']
                 key = (float_round(tax.amount / 100, 6), tax.l10n_mx_tax_type, tax_class)
-                base_val_pay_curr = detail['base_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)
-                tax_val_pay_curr = detail['tax_val_prop_amt_curr'] / (inv_vals['exchange_rate'] or 1.0)
+                base_val_pay_curr = detail['base_val_prop_amt_curr'] / (exch )
+                tax_val_pay_curr = detail['tax_val_prop_amt_curr'] / (exch )
                 if key in total_taxes_paid:
                     total_taxes_paid[key]['base_value'] += base_val_pay_curr
                     total_taxes_paid[key]['tax_value'] += tax_val_pay_curr
@@ -211,6 +212,7 @@ class AccountEdiFormat(models.Model):
             'cfdi_date': move.l10n_mx_edi_post_time.strftime('%Y-%m-%dT%H:%M:%S'),
             'tax_summary': total_taxes_paid,
             'withholding_summary': total_taxes_withheld,
+            "exch" : exch,
         }
 
         cfdi_payment_datetime = datetime.combine(fields.Datetime.from_string(move.date), datetime.strptime('12:00:00', '%H:%M:%S').time())
