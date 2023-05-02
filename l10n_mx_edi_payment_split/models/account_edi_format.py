@@ -41,7 +41,7 @@ class AccountEdiFormat(models.Model):
             elif tax_detail_vals['tax'].l10n_mx_tax_type == 'Exento':
                 return '002'
             else:
-                return None
+                return None                                                                                                                                 
 
         def divide_tax_details(invoice, tax_details, amount_paid):
             percentage_paid = amount_paid / invoice.amount_total
@@ -58,7 +58,8 @@ class AccountEdiFormat(models.Model):
                     'tax_class': get_tax_cfdi_name(detail),
                     'tax_amount': tax_amount,
                 })
-            return tax_details
+                return None                                                                                                                                 
+            return tax_details                                                                                                                                
 
         if move.payment_id:
             currency = move.payment_id.currency_id
@@ -69,7 +70,8 @@ class AccountEdiFormat(models.Model):
                 currency = move.statement_line_id.foreign_currency_id
             else:
                 total_amount = move.statement_line_id.amount
-                currency = move.statement_line_id.currency_id
+                currency = move.statement_line_id.currency_id                                                                                               
+                return None                                                                                                                                 
 
         # Process reconciled invoices.
         invoice_vals_list = []
@@ -102,17 +104,21 @@ class AccountEdiFormat(models.Model):
                     exchange_partial = invoice_line[f'matched_{field2}_ids']\
                         .filtered(lambda x: x[f'{field2}_move_id'].move_id == exchange_move)
                     if exchange_partial:
-                        invoice_amount += exchange_partial[f'{field2}_amount_currency']
-                
+                        invoice_amount += exchange_partial[f'{field2}_amount_currency']                                                                     #s/n cambios
+                                                                                                   
                 if invoice_line.currency_id == payment_line.currency_id:
                     # Same currency
                     amount_paid_invoice_curr = invoice_amount
-                    
+                   #exchange_rate = None 
                 else:
                     # It needs to be how much invoice currency you pay for one payment currency
+                   #amount_paid_invoice_comp_curr = payment_line.company_currency_id.round(
+                        #total_amount * (partial.amount / paid_amount_comp_curr)) 
                     invoice_rate = move.currency_id._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate) #monto pagado en moneda de la factura 
-                  
+                   #exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
+                   #exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
+                   #_logger.critical(exchange_rate)   
 
                 # for CFDI 4.0
                 cfdi_values = self._l10n_mx_edi_get_invoice_cfdi_values(invoice)
@@ -156,9 +162,9 @@ class AccountEdiFormat(models.Model):
             '003': {'amount_curr': 0.0, 'amount_mxn': 0.0},
             None: {'amount_curr': 0.0, 'amount_mxn': 0.0},
         }
-
-        amoun_inv_curr = move.currenxy_id._convert(move.amount,currency_invoice,move.company_id, move.date, round=False)
+        amoun_inv_curr = move.currency_id._convert(move.amount,currency_invoice,move.company_id, move.date, round=False)
         exch = float(f'{(amoun_inv_curr / move.amount):.10f}')  # delimitacion de 10 decimales del valor de la divisa en dls
+        _logger.critical(exch)
 
         for inv_vals in invoice_vals_list:
             wht_detail = list(inv_vals['tax_details_withholding']['tax_details'].values())
