@@ -74,7 +74,9 @@
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
                     <div class="page">
-                        <label>Hola como estas</label>
+                        <label>
+                          <field name="sat_uuid"/>
+                        </label>
                     </div>
                 </t>
             </t>
