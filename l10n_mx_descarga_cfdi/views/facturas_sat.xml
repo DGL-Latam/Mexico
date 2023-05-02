@@ -19,51 +19,43 @@
     <record id="factura_sat_form" model="ir.ui.view">
         <field name="name">facturas.sat_form</field>
         <field name="model">facturas.sat</field>
-         <field name="arch" type="xml">
-            <xpath expr="//header" position="inside">
-                <button name="createPdf" string="Generate Attachment" type="object" class="oe_highlight"/>
-            </xpath>
+        <field name="arch" type="xml">
             <form string="factura_sat_form">
                 <sheet>
-                        <h1>
-                            <field name="sat_uuid" string="Folio Fiscal"/>
-                        </h1>
+                    <h1><field name="sat_uuid" string="Folio Fiscal"/></h1>
+                    <group>
                         <group>
-                            <group>
-                                <field name="sat_rfc_emisor" readonly="1"/>
-                                <field name="sat_name_emisor" readonly="1"/>
-                                <field name="sat_monto" readonly="1"/>
-                                <field name="sat_name_receptor" readonly="1"/>
-                                <field name="sat_fecha_emision" readonly="1"/>
-                                <field name="sat_tipo_factura" readonly="1"/>
-                                <field name="sat_state" readonly="1"/>
-                            </group>
-                            <group>
-                                <field name="account_move_id" readonly="1"/>
-                                <field name="account_move_partner_id" readonly="1"/>
-                                <field name="account_move_total" readonly="1"/>
-                                <field name="account_move_date" readonly="1"/>
-                                <field name="account_move_status" readonly="1"/>                
-                            </group>
+                            <field name="sat_rfc_emisor" readonly="1"/>
+                            <field name="sat_name_emisor" readonly="1"/>
+                            <field name="sat_monto" readonly="1"/>
+                            <field name="sat_name_receptor" readonly="1"/>
+                            <field name="sat_fecha_emision" readonly="1"/>
+                            <field name="sat_tipo_factura" readonly="1"/>
+                            <field name="sat_state" readonly="1"/>
                         </group>
-                        <notebook>
-                            <page string="Descripción">
-                                <field name="id_details_products" widget="One2many">
-                                    <tree >
-                                        <field name="id_product"></field>
-                                        <field name="name_product"></field>
-                                        <field name="quantity"></field>
-                                        <field name="unit"></field>
-                                        <field name="value_unitary"></field>
-                                        <field name="value_tasa"></field>
-                                        <field name="value_unitary_amount"></field>
-                                    </tree>
-                                    <field name="sat_monto"></field>
-                                    
-                                </field>
-                            </page>
-                        </notebook>
-                    
+                        <group>
+                            <field name="account_move_id" readonly="1"/>
+                            <field name="account_move_partner_id" readonly="1"/>
+                            <field name="account_move_total" readonly="1"/>
+                            <field name="account_move_date" readonly="1"/>
+                            <field name="account_move_status" readonly="1"/>                
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Descripción">
+                            <field name="id_details_products" widget="One2many">
+                                <tree>
+                                    <field name="id_product" />
+                                    <field name="name_product" />
+                                    <field name="quantity" />
+                                    <field name="unit"/>
+                                    <field name="value_unitary" />
+                                    <field name="value_tasa" />
+                                    <field name="value_unitary_amount" />
+                                </tree>             
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -83,7 +75,6 @@
                     </div>
                 </t>
             </t>
-            
         </template>
     </data>
     <record id="menu_factura_sat_action" model="ir.actions.act_window">
