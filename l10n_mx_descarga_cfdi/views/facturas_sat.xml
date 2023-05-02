@@ -22,7 +22,7 @@
         <field name="arch" type="xml">
             <form string="factura_sat_form">
                 <header>
-                    <button name="createPDF" string="Generate Attachment" type="object" class="oe_highlight"/>
+                    <button name="createPdf" string="Generate Attachment" type="object" class="oe_highlight"/>
                 </header>
                 <sheet>
                     <h1><field name="sat_uuid" string="Folio Fiscal"/></h1>
