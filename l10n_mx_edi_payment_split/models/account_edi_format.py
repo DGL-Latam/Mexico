@@ -25,7 +25,7 @@ _logger = logging.getLogger(__name__)
 
 EQUIVALENCIADR_PRECISION_DIGITS = 10
 class AccountEdiFormat(models.Model):
-    _inherit = 'accoun.edi.format'
+    _inherit = 'account.edi.format'
     
     
     def _l10n_mx_edi_get_payment_cfdi_values(self, move):
