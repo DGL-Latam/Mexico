@@ -71,8 +71,7 @@ class AccountEdiFormat(models.Model):
             else:
                 total_amount = move.statement_line_id.amount
                 currency = move.statement_line_id.currency_id                                                                                               
-                return None                                                                                                                                 
-
+                
         # Process reconciled invoices.
         invoice_vals_list = []
         pay_rec_lines = move.line_ids.filtered(lambda line: line.account_internal_type in ('receivable', 'payable'))
