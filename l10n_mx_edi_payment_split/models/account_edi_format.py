@@ -10,6 +10,7 @@ import json
 import requests
 import random
 import string
+import math
 
 from lxml import etree
 from lxml.objectify import fromstring
@@ -58,7 +59,6 @@ class AccountEdiFormat(models.Model):
                     'tax_class': get_tax_cfdi_name(detail),
                     'tax_amount': tax_amount,
                 })
-                return None                                                                                                                                 
             return tax_details                                                                                                                                
 
         if move.payment_id:
@@ -107,18 +107,10 @@ class AccountEdiFormat(models.Model):
                         invoice_amount += exchange_partial[f'{field2}_amount_currency']                                                                     #s/n cambios
                                                                                                    
                 if invoice_line.currency_id == payment_line.currency_id:
-                    # Same currency
                     amount_paid_invoice_curr = invoice_amount
-                   #exchange_rate = None 
-                else:
-                    # It needs to be how much invoice currency you pay for one payment currency
-                   #amount_paid_invoice_comp_curr = payment_line.company_currency_id.round(
-                        #total_amount * (partial.amount / paid_amount_comp_curr)) 
+                else: 
                     invoice_rate = move.currency_id._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
-                    amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate) #monto pagado en moneda de la factura 
-                   #exchange_rate = amount_paid_invoice_curr / amount_paid_invoice_comp_curr
-                   #exchange_rate = float_round(exchange_rate, precision_digits=EQUIVALENCIADR_PRECISION_DIGITS, rounding_method='UP')
-                   #_logger.critical(exchange_rate)   
+                    amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate) # monto pagado en moneda de la factura 
 
                 # for CFDI 4.0
                 cfdi_values = self._l10n_mx_edi_get_invoice_cfdi_values(invoice)
@@ -163,16 +155,18 @@ class AccountEdiFormat(models.Model):
             None: {'amount_curr': 0.0, 'amount_mxn': 0.0},
         }
 
+        #operation that returns the value of the local currency mxn / usd
         amoun_inv_curr = move.currency_id._convert(move.payment_id.amount, currency_invoice, move.company_id, move.date, round=False)
-        _logger.critical(amoun_inv_curr)
-        div_total = (amoun_inv_curr / move.payment_id.amount)
-        exch = ("{:.10f}".format(div_total))  # delimitacion de 10 decimales del valor de la divisa en dls
-        #exch = float(f'{(amoun_inv_curr / move.payment_id.amount):.10f}')  # delimitacion de 10 decimales del valor de la divisa en dls
-        _logger.critical(exch)
+        div_total = (amoun_inv_curr / move.payment_id.amount)   
+        div_totalm = div_total*10000000000
+        exch = math.trunc(div_totalm) / 10000000000           
 
         for inv_vals in invoice_vals_list:
             wht_detail = list(inv_vals['tax_details_withholding']['tax_details'].values())
+            _logger.critical(tax_details_transferred)
+            _logger.critical(inv_vals)
             trf_detail = list(inv_vals['tax_details_transferred']['tax_details'].values())
+            
             for detail in wht_detail + trf_detail:
                 tax = detail['tax']
                 tax_class = detail['tax_class']
