@@ -163,9 +163,9 @@ class AccountEdiFormat(models.Model):
             None: {'amount_curr': 0.0, 'amount_mxn': 0.0},
         }
 
-        amoun_inv_curr = move.currency_id._convert(move.payment_idamount, currency_invoice, move.company_id, move.date, round=False)
+        amoun_inv_curr = move.currency_id._convert(move.payment_id.amount, currency_invoice, move.company_id, move.date, round=False)
         _logger.critical(amoun_inv_curr)
-        exch = float(f'{(amoun_inv_curr / move.payment_idamount.amount):.10f}')  # delimitacion de 10 decimales del valor de la divisa en dls
+        exch = float(f'{(amoun_inv_curr / move.payment_id.amount.amount):.10f}')  # delimitacion de 10 decimales del valor de la divisa en dls
         _logger.critical(exch)
 
         for inv_vals in invoice_vals_list:
