@@ -161,6 +161,8 @@ class SolicitudesDescarga(models.Model):
         fact = self.env['facturas.sat'].sudo().create({
             'sat_uuid' : nodes['tfd_node'].get('UUID'),
             'sat_rfc_emisor' : nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
+            'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
+            'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
             'sat_monto' : float(nodes['cfdi_node'].get('Total')),
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
@@ -186,6 +188,7 @@ class SolicitudesDescarga(models.Model):
                 'type_moneda': nodes['cfdi_node'].get('Moneda'),
                 'type_pay':nodes['cfdi_node'].get('CondicionDePago')
             })
+        fact1 = self.env['details.facturasat'].sudo().create(registros)
         #fact.SearchOdooInvoice()
         
     def printEstado(self):
