@@ -63,21 +63,13 @@
     <data>
         <record id="report_pdf" model="ir.actions.report">
             <field name="name">Reporte CFDI</field>
-            <field name="model">solicitud.descargas</field>
+            <field name="model">facturas.sat</field>
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">l10n_mx_descarga_cfdi.template_cfdi</field>
         </record>
         <template id="template_cfdi">
            <t t-call="web.html_container">
-              <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout_factura_attachment">
-                    <div class="page">
-                      <h2>UUID:</h2>
-                      <p><t t-esc="o.sat_uuid"></t></p>
-                    </div>
-                </t>
-              </t>
-                
+              <h1>Hola mundo</h1>
             </t>
         </template>
     </data>

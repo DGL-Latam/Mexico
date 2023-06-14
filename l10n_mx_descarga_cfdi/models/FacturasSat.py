@@ -149,8 +149,9 @@ class SolicitudesDescarga(models.Model):
 
     def _ProcessXML(self, xml : str):
         nodes = self._getNodes(xml)
-        a=CreatePdf()
-        a.nodes(nodes)
+        _logger.warning(nodes)
+        _logger.info("A")
+        #self.env['create.pdf'].nodes(nodes)
         registros = []
         if not nodes:
             return
@@ -191,6 +192,7 @@ class SolicitudesDescarga(models.Model):
                 'type_pay':nodes['cfdi_node'].get('CondicionDePago')
             })
         fact1 = self.env['details.facturasat'].sudo().create(registros)
+        
         #fact.SearchOdooInvoice()
         
     def printEstado(self):
@@ -361,9 +363,11 @@ class FacturasSatDetails(models.Model):
 
 class CreatePdf(models.Model):
     _name="create.pdf"
-    _inherit=["account.move", "facturas.sat"]
+    _inherit= "facturas.sat"
     _description= "Creacion del PDF"
-
+    
+    #transaction_ids = fields.Many2many("account.move.transaction_ids", "account_move")
+    
     def nodes(self, nodes):
         productos =[]
         for element in nodes['conceptos_node'].Concepto:
@@ -377,7 +381,7 @@ class CreatePdf(models.Model):
                 'importo': element.get('Importe'),
                 'descripcion': element.get('Descripcion')                
             })
-
+ 
         cfdi_data ={
                 'folio': nodes['cfdi_node'].get('Folio'),
                 'rfc_emisor': nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
@@ -402,11 +406,11 @@ class CreatePdf(models.Model):
                 'certificado':nodes['cfdi_node'].get('NoCertificado'),
                 'certificado_sat': nodes['tfd_node'].get('NoCertificadoSAT'),
                 'lugar_expedicion': nodes['cfdi_node'].get('LugarExpedicion'),
-                'fecha_timbrado': nodes['tdf_node'].get('FechaTimbrado').replace('T', ' ')
+                'fecha_timbrado': nodes['tfd_node'].get('FechaTimbrado').replace('T', ' ')
         }
+        #_logger.warning(cfdi_data)
+        #self.env['facturas.sat'].createPdf(cfdi_data)
         
-        for rec in self:
-            rec.createPdf(cfdi_data)
              
 
        
