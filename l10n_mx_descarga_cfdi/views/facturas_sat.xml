@@ -69,7 +69,111 @@
         </record>
         <template id="template_cfdi">
            <t t-call="web.html_container">
-              <h1>Hola mundo</h1>
+             <t t-name="l10n_mx_descarga_cfdi.template_cfdi">
+           <t t-call="web.html_container">
+             <div class="container-fluid">
+                <div class="row">
+                  <div class="col">
+                    <p>RFC emisor: <t t-esc="rfc_emisor"></t></p>
+                    <p>Nombre emisor: <t t-esc="nombre_emisor"></t></p>
+                    <p>RFC receptor: <t t-esc="rfc_receptor"></t></p>
+                    <p>Nombre receptor: <t t-esc="nombre_emisor"></t></p>
+                    <p>Uso CDFI: <t t-esc="uso_cfdi"></t></p>
+                  
+                  </div>
+                  <div class="col">
+                    <p>Folio fiscal: <t t-esc="folio_fiscal"></t></p>
+                    <p>No. de serie del CSD: <t t-esc="no_serie_csd"></t></p>
+                    <p>Codigo postal, fecha y hora de emision: <t t-esc="cp_fecha_hora_emision"></t></p>
+                    <p>Efecto de comprobante : <t t-esc="efecto_comprobante"></t></p>
+                    <p>Réimen fiscal: <t t-esc="regimen_fiscal"></t></p>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Clave del producto y/o servicio</th>
+                      <th>No. identificacion</th>
+                      <th>Cantidad</th>
+                      <th>Clave de unidad</th>
+                      <th>Unidad</th>
+                      <th>Valor unitario</th>
+                      <th>Importe</th>
+                      <th>Descuento</th>
+                      <th>No. de pedimento</th>
+                      <th>No. de cuenta gradial</th>
+                      <th>Descripcion</th>  
+                    </tr>
+                  </thead>
+                  <tbody>
+                   <tr t-foreach="productos" t-as="p">
+                      <td><t t-esc="p['clave_ser_product']"></t></td>
+                      <td><t t-esc="p['identiificacion']"></t></td>
+                      <td><t t-esc="p['cantidad']z"></t></td>
+                      <td><t t-esc="p.catidad_clave"></t></td>
+                      <td><t t-esc="p.unidad"></t></td>
+                      <td><t t-esc="p.valor_unitario"></t></td>
+                      <td><t t-esc="p.importo"></t></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td><t t-esc="p.descripcion"></t></td>
+                   </tr>
+                  </tbody>
+                </table>
+                <div class="row">
+                  <div class="col">
+                    <p>Moneda: <t t-esc="tipo_moneda"></t></p>
+                    <p>Forma de pago: <t t-esc="formato_pago"></t></p>
+                    <p>Método de pago: <t t-esc="metodo_pago"></t></p>
+                  </div>
+                  <div class="col">
+                    <p>Subtotal: <t t-esc="subtotal"></t></p>
+                    <p>Impuestos: <t t-esc="importe"></t></p>
+                    <p>Total: <t t-esc="total"></t></p>
+                  </div>
+                </div>
+                <div class="row" id="complement">
+                  <div t-if="sello" class="barcode col-3">
+                      
+                  </div>
+                  <div class="complement-details col-9">
+                    <div class="digital-stamp">
+                      <span>Digital stamp of the emitter</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                      <span t-esc="sello"/>
+                    </div>
+                    <div class="digital-stamp">
+                      <span>Digital stamp SAT</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                      <span t-esc="sello_sat"/>
+                    </div>
+                    <div class="digital-stamp">
+                      <span>Original chain complement of digital certification SAT</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                      <span class="nowrap" t-esc=""/>
+                    </div>
+                    <div class="digital-stamp">
+                      <span>Extra Info</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                      <span>Emitter certificate:</span> <span t-esc="certificado"/>
+                      <span> | SAT Certificate:</span> <span t-esc="certificado_sat"/>
+                      <span> | Expedition place:</span> <span t-esc="lugar_expedicion"/>
+                      <span> | Fiscal Regime:</span><span t-esc="regimen_fiscal"/>
+                      <span> | Emission Date:</span> <span t-esc="fecha_"/>
+                      <span> | Certification Date:</span> <span t-esc="fecha_timbrado"/>
+                      <span> | Fiscal Folio:</span> <span t-esc="folio_fiscal"/>
+                    </div>
+                    <div class="digital-stamp-content text-center">
+                      <strong>This document is a printed representation of a CFDI</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </t>
         </template>
     </data>

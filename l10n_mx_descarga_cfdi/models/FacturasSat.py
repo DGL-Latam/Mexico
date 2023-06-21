@@ -149,9 +149,6 @@ class SolicitudesDescarga(models.Model):
 
     def _ProcessXML(self, xml : str):
         nodes = self._getNodes(xml)
-        _logger.warning(nodes)
-        _logger.info("A")
-        #self.env['create.pdf'].nodes(nodes)
         registros = []
         if not nodes:
             return
@@ -170,7 +167,7 @@ class SolicitudesDescarga(models.Model):
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
-            'company' : self.company_id.id
+            'company' : self.company_id.id,
         })
 
         for element in nodes['conceptos_node'].Concepto:
@@ -192,7 +189,7 @@ class SolicitudesDescarga(models.Model):
                 'type_pay':nodes['cfdi_node'].get('CondicionDePago')
             })
         fact1 = self.env['details.facturasat'].sudo().create(registros)
-        
+       
         #fact.SearchOdooInvoice()
         
     def printEstado(self):
@@ -297,10 +294,12 @@ class FacturasSat(models.Model):
         ('wrong_status', 'Distinto Estado'),
         ('no_odoo', 'No existe en Odoo')    
     ], compute="_check_diferential", store=True)
-
+    
     @api.depends('account_move_id','account_move_total','account_move_partner_vat','account_move_date','account_move_status')
     def _check_diferential(self):
         for rec in self:
+            a = rec.nodes()
+            rec.createPdf(a)
             if not rec.account_move_id:
                 rec.SearchOdooInvoice()
                 if not rec.account_move_id:
@@ -326,20 +325,67 @@ class FacturasSat(models.Model):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
     
-    def createPdf(self,data):
-        pdf = self.env.ref('l10n_mx_descarga_cfdi.report_pdf')._render_qweb_pdf(self.ids, data=data)[0]
-        b64_pdf = base64.b64encode(pdf)
-        name= self.sat_uuid + ".pdf"
+    def nodes(self):
+       
+        productos =[]
+        for element in nodes['conceptos_node'].Concepto:
+            productos.append({
+                'clave_serv_product':element.get('ClaveProdServ'),
+                'identificacion': element.get('NoIdentificacion'),
+                'cantidad': element.get('Cantidad'),
+                'cantidad_clave':element.get('ClaveUnidad'),
+                'unidad': element.get('Unidad'),
+                'valor_unitario': element.get('ValorUnitario'),
+                'importo': element.get('Importe'),
+                'descripcion': element.get('Descripcion')                
+            })
+ 
+            cfdi_data ={
+                'folio': nodes['cfdi_node'].get('Folio'),
+                'rfc_emisor': nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
+                'nombre_emisor': nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
+                'rfc_receptor': nodes['receptor_node'].get('Rfc', nodes['receptor_node'].get('rfc')),
+                'nombre_receptor': nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
+                'uso_cfdi':nodes['receptor_node'].get('UsoCFDI'),
+                'folio_fiscal': nodes['tfd_node'].get('UUID'),
+                'no_serie_csd': nodes['cfdi_node'].get('NoCertificado'),
+                'serie': nodes['cfdi_node'].get('Serie'),
+                'cp_fecha_hora_emision': str(nodes['cfdi_node'].get('LugarExpedicion')) +  str(nodes['cfdi_node'].get('Fecha').replace('T',' ')),
+                'efecto_comprobante': nodes['cfdi_node'].get('TipoDeComprobante'),
+                'regimen_fiscal': nodes['emisor_node'].get('RegimenFiscal'),
+                'productos': productos,
+                'tipo_moneda': nodes['cfdi_node'].get('Moneda'),
+                'formato_pago': nodes['cfdi_node'].get('FormatoPago'),
+                'metodo_pago': nodes['cfdi_node'].get('MetodoPago'),
+                'subtotal':nodes['cfdi_node'].get('SubTotal'),
+                'total':nodes['cfdi_node'].get('Total'),
+                'sello': nodes['cfdi_node'].get('Sello'),
+                'sello_sat': nodes['tfd_node'].get('SelloSat'),
+                'certificado':nodes['cfdi_node'].get('NoCertificado'),
+                'certificado_sat': nodes['tfd_node'].get('NoCertificadoSAT'),
+                'lugar_expedicion': nodes['cfdi_node'].get('LugarExpedicion'),
+                'fecha_timbrado': nodes['tfd_node'].get('FechaTimbrado').replace('T', ' ')
+            }
+        return cfdi_data
 
-        return self.env['ir.attachment'].create({
+    def createPdf(self, data):
+        _logger.critical(self.ids)
+        _logger.critical(self.sat_uuid)
+        
+        pdf = self.env.ref('l10n_mx_descarga_cfdi.report_pdf')._render_qweb_pdf(self.ids)[0]
+        b64_pdf = base64.b64encode(pdf)
+        name= str(self.sat_uuid)  + ".pdf"
+
+        self.env['ir.attachment'].create({
             'name': name,
             'type': 'binary',
             'datas': b64_pdf,
             'store_fname': name,
             'res_model':self._name,
-            'res_id': self.id,
-            'mimetype': 'application/x-pdf'  
+            'res_id': self.ids,
+            'mimetype': 'application/x-pdf'
         })
+    
 
 class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
@@ -369,48 +415,6 @@ class CreatePdf(models.Model):
     #transaction_ids = fields.Many2many("account.move.transaction_ids", "account_move")
     
     def nodes(self, nodes):
-        productos =[]
-        for element in nodes['conceptos_node'].Concepto:
-            productos.append({
-                'clave_serv_product':element.get('ClaveProdServ'),
-                'identificacion': element.get('NoIdentificacion'),
-                'cantidad': element.get('Cantidad'),
-                'cantidad_clave':element.get('ClaveUnidad'),
-                'unidad': element.get('Unidad'),
-                'valor_unitario': element.get('ValorUnitario'),
-                'importo': element.get('Importe'),
-                'descripcion': element.get('Descripcion')                
-            })
- 
-        cfdi_data ={
-                'folio': nodes['cfdi_node'].get('Folio'),
-                'rfc_emisor': nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
-                'nombre_emisor': nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
-                'rfc_receptor': nodes['receptor_node'].get('Rfc', nodes['receptor_node'].get('rfc')),
-                'nombre_receptor': nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
-                'uso_cfdi':nodes['receptor_node'].get('UsoCFDI'),
-                'folio_fiscal': nodes['tfd_node'].get('UUID'),
-                'no_serie_csd': nodes['cfdi_node'].get('NoCertificado'),
-                'serie': nodes['cfdi_node'].get('Serie'),
-                'cp_fecha_hora_emision': str(nodes['cfdi_node'].get('LugarExpedicion')) +  str(nodes['cfdi_node'].get('Fecha').replace('T',' ')),
-                'efecto_comprobante': nodes['cfdi_node'].get('TipoDeComprobante'),
-                'regimen_fiscal': nodes['emisor_node'].get('RegimenFiscal'),
-                'productos': productos,
-                'tipo_moneda': nodes['cfdi_node'].get('Moneda'),
-                'formato_pago': nodes['cfdi_node'].get('FormatoPago'),
-                'metodo_pago': nodes['cfdi_node'].get('MetodoPago'),
-                'subtotal':nodes['cfdi_node'].get('SubTotal'),
-                'total':nodes['cfdi_node'].get('Total'),
-                'sello': nodes['cfdi_node'].get('Sello'),
-                'sello_sat': nodes['tfd_node'].get('SelloSat'),
-                'certificado':nodes['cfdi_node'].get('NoCertificado'),
-                'certificado_sat': nodes['tfd_node'].get('NoCertificadoSAT'),
-                'lugar_expedicion': nodes['cfdi_node'].get('LugarExpedicion'),
-                'fecha_timbrado': nodes['tfd_node'].get('FechaTimbrado').replace('T', ' ')
-        }
-        #_logger.warning(cfdi_data)
-        #self.env['facturas.sat'].createPdf(cfdi_data)
+        pass
         
              
-
-       
