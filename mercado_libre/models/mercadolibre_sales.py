@@ -224,6 +224,10 @@ class MercadoLibreSales(models.Model):
             self.cancel_order()
             return 
 
+        if not 'substatus_history' in shipping_details:
+            _logger.critical(order_details)
+            return 
+            
         if len(shipping_details['substatus_history']) == 0:
             return 
    

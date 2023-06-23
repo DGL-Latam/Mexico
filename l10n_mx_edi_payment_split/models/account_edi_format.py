@@ -155,7 +155,7 @@ class AccountEdiFormat(models.Model):
         }
 
         #operation that returns the value of the local currency mxn / usd
-        amoun_inv_curr = move.currency_id._convert(move.payment_id.amount, currency_invoice, move.company_id, move.date, round=False)
+        amoun_inv_curr = move.currency_id._convert(move.payment_id.amount, currency_invoice, move.company_id, move.date, round=True)
         div_total = (amoun_inv_curr / move.payment_id.amount)   
         div_totalm = div_total*10000000000
         exch = math.trunc(div_totalm) / 10000000000           
@@ -226,5 +226,6 @@ class AccountEdiFormat(models.Model):
         else:
             cfdi_values['customer_fiscal_residence'] = None
         cfdi_values.update(self._l10n_mx_edi_get_40_values(move))
+        _logger.critical(cfdi_values)
         return cfdi_values
 

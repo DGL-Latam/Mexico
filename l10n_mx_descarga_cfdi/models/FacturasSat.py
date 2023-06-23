@@ -116,7 +116,6 @@ class SolicitudesDescarga(models.Model):
             emisor_node = cfdi_node.Emisor
             receptor_node = cfdi_node.Receptor
             conceptos_node = cfdi_node.Conceptos
-
             tfd_node = get_node(
             cfdi_node,
             'tfd:TimbreFiscalDigital[1]',
@@ -127,7 +126,7 @@ class SolicitudesDescarga(models.Model):
 
             for element in etree.iterparse(file):
                 if '}Emisor' in element[1].tag:
-                    emisor_node = element[1]
+                    emisor_node = element[1]    
                 if '}Receptor' in element[1].tag:
                     receptor_node = element[1]
                 if '}Comprobante' in element[1].tag:
@@ -136,6 +135,7 @@ class SolicitudesDescarga(models.Model):
                     conceptos_node = element[1]
                 if '}TimbreFiscalDigital' in element[1].tag:
                     tfd_node = element[1]
+        
         except AttributeError:
             # Not a CFDI
             return {}
@@ -144,7 +144,7 @@ class SolicitudesDescarga(models.Model):
             'emisor_node' : emisor_node,
             'receptor_node' : receptor_node,
             'conceptos_node': conceptos_node,
-            'tfd_node' : tfd_node
+            'tfd_node' : tfd_node,
         }
 
     def _ProcessXML(self, xml : str):
@@ -179,17 +179,18 @@ class SolicitudesDescarga(models.Model):
                 'quantity':element.get('Cantidad'),
                 'unit':element.get('Unidad'),
                 'value_unitary':element.get('ValorUnitario'),
-                'amount': "0",#element.Impuestos.Traslados.Traslado.get('Importe') if element.Impuestos.Traslados.Traslado.get('Importe') else "0",
-                'type_factory': "0", #element.Impuestos.Traslados.Traslado.get('TipoFactor') if element.Impuestos.Traslados.Traslado.get('TipoFactor') else "0",
-                'value_tasa': "0",#element.Impuestos.Traslados.Traslado.get('TasaOCuota') if element.Impuestos.Traslados.Traslado.get('TasaOCuota') else "0",
-                'value_unitary_amount': "0", #str(float(element.get('ValorUnitario')) + float(element.Impuestos.Traslados.Traslado.get('Importe'))),
+                'amount':element.Impuestos.Traslados.Traslado.get('Importe'),
+                'type_factory':element.Impuestos.Traslados.Traslado.get('TipoFactor'),
+                'value_tasa':element.Impuestos.Traslados.Traslado.get('TasaOCuota'),
+                'value_unitary_amount': str(float(element.get('ValorUnitario')) + float(element.Impuestos.Traslados.Traslado.get('Importe'))),
                 'subtotal':nodes['cfdi_node'].get('SubTotal'),
                 'total': nodes['cfdi_node'].get('Total'),
                 'type_moneda': nodes['cfdi_node'].get('Moneda'),
                 'type_pay':nodes['cfdi_node'].get('CondicionDePago')
             })
-        fact1 = self.env['details.facturasat'].sudo().create(registros)
-       
+
+        fact1 = self.env['details.facturasat'].sudo().create(registros) 
+
         #fact.SearchOdooInvoice()
         
     def printEstado(self):
@@ -275,9 +276,9 @@ class FacturasSat(models.Model):
     account_move_status = fields.Selection(string="Estado Factura Odoo", related='account_move_id.state', readonly=True)
     account_move_currency = fields.Many2one(comodel_name='res.currency', related="account_move_id.currency_id", readonly=True)
     account_move_total = fields.Monetary(string="Total Factura Odoo", related="account_move_id.amount_total", readonly=True, currency_field='account_move_currency')
-    account_move_partner_id = fields.Many2one(comodel_name="res.partner", related="account_move_id.partner_id", readonly=True)
+    account_move_partner_id = fields.Many2one(string="Socio",comodel_name="res.partner", related="account_move_id.partner_id", readonly=True)
     account_move_partner_vat = fields.Char(related="account_move_partner_id.vat", readonly=True)
-    account_move_date = fields.Date(related="account_move_id.date", readonly=True)
+    account_move_date = fields.Date(string="Fecha Movimiento",related="account_move_id.date", readonly=True)
 
     company = fields.Many2one(comodel_name="res.company",string="Empresa")
 
@@ -324,6 +325,7 @@ class FacturasSat(models.Model):
     def printinfo(self):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
+
     
     def nodes(self):
        
@@ -340,32 +342,32 @@ class FacturasSat(models.Model):
                 'descripcion': element.get('Descripcion')                
             })
  
-            cfdi_data ={
-                'folio': nodes['cfdi_node'].get('Folio'),
-                'rfc_emisor': nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
-                'nombre_emisor': nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
-                'rfc_receptor': nodes['receptor_node'].get('Rfc', nodes['receptor_node'].get('rfc')),
-                'nombre_receptor': nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
-                'uso_cfdi':nodes['receptor_node'].get('UsoCFDI'),
-                'folio_fiscal': nodes['tfd_node'].get('UUID'),
-                'no_serie_csd': nodes['cfdi_node'].get('NoCertificado'),
-                'serie': nodes['cfdi_node'].get('Serie'),
-                'cp_fecha_hora_emision': str(nodes['cfdi_node'].get('LugarExpedicion')) +  str(nodes['cfdi_node'].get('Fecha').replace('T',' ')),
-                'efecto_comprobante': nodes['cfdi_node'].get('TipoDeComprobante'),
-                'regimen_fiscal': nodes['emisor_node'].get('RegimenFiscal'),
-                'productos': productos,
-                'tipo_moneda': nodes['cfdi_node'].get('Moneda'),
-                'formato_pago': nodes['cfdi_node'].get('FormatoPago'),
-                'metodo_pago': nodes['cfdi_node'].get('MetodoPago'),
-                'subtotal':nodes['cfdi_node'].get('SubTotal'),
-                'total':nodes['cfdi_node'].get('Total'),
-                'sello': nodes['cfdi_node'].get('Sello'),
-                'sello_sat': nodes['tfd_node'].get('SelloSat'),
-                'certificado':nodes['cfdi_node'].get('NoCertificado'),
-                'certificado_sat': nodes['tfd_node'].get('NoCertificadoSAT'),
-                'lugar_expedicion': nodes['cfdi_node'].get('LugarExpedicion'),
-                'fecha_timbrado': nodes['tfd_node'].get('FechaTimbrado').replace('T', ' ')
-            }
+          cfdi_data ={
+              'folio': nodes['cfdi_node'].get('Folio'),
+              'rfc_emisor': nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
+              'nombre_emisor': nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
+              'rfc_receptor': nodes['receptor_node'].get('Rfc', nodes['receptor_node'].get('rfc')),
+              'nombre_receptor': nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
+              'uso_cfdi':nodes['receptor_node'].get('UsoCFDI'),
+              'folio_fiscal': nodes['tfd_node'].get('UUID'),
+              'no_serie_csd': nodes['cfdi_node'].get('NoCertificado'),
+              'serie': nodes['cfdi_node'].get('Serie'),
+              'cp_fecha_hora_emision': str(nodes['cfdi_node'].get('LugarExpedicion')) +  str(nodes['cfdi_node'].get('Fecha').replace('T',' ')),
+              'efecto_comprobante': nodes['cfdi_node'].get('TipoDeComprobante'),
+              'regimen_fiscal': nodes['emisor_node'].get('RegimenFiscal'),
+              'productos': productos,
+              'tipo_moneda': nodes['cfdi_node'].get('Moneda'),
+              'formato_pago': nodes['cfdi_node'].get('FormatoPago'),
+              'metodo_pago': nodes['cfdi_node'].get('MetodoPago'),
+              'subtotal':nodes['cfdi_node'].get('SubTotal'),
+              'total':nodes['cfdi_node'].get('Total'),
+              'sello': nodes['cfdi_node'].get('Sello'),
+              'sello_sat': nodes['tfd_node'].get('SelloSat'),
+              'certificado':nodes['cfdi_node'].get('NoCertificado'),
+              'certificado_sat': nodes['tfd_node'].get('NoCertificadoSAT'),
+              'lugar_expedicion': nodes['cfdi_node'].get('LugarExpedicion'),
+              'fecha_timbrado': nodes['tfd_node'].get('FechaTimbrado').replace('T', ' ')
+          }
         return cfdi_data
 
     def createPdf(self, data):
@@ -387,6 +389,7 @@ class FacturasSat(models.Model):
         })
     
 
+
 class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
     _description = "Detalles Facturas SAT"
@@ -407,6 +410,7 @@ class FacturasSatDetails(models.Model):
     type_pay = fields.Char(string="Condiciones pago")
     factura_id = fields.Many2one('facturas.sat')
 
+
 class CreatePdf(models.Model):
     _name="create.pdf"
     _inherit= "facturas.sat"
@@ -418,3 +422,4 @@ class CreatePdf(models.Model):
         pass
         
              
+
