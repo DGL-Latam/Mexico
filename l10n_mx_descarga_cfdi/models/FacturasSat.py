@@ -342,7 +342,7 @@ class FacturasSat(models.Model):
                 'descripcion': element.get('Descripcion')                
             })
  
-          cfdi_data ={
+        cfdi_data ={
               'folio': nodes['cfdi_node'].get('Folio'),
               'rfc_emisor': nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
               'nombre_emisor': nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
@@ -367,7 +367,7 @@ class FacturasSat(models.Model):
               'certificado_sat': nodes['tfd_node'].get('NoCertificadoSAT'),
               'lugar_expedicion': nodes['cfdi_node'].get('LugarExpedicion'),
               'fecha_timbrado': nodes['tfd_node'].get('FechaTimbrado').replace('T', ' ')
-          }
+        }
         return cfdi_data
 
     def createPdf(self, data):
