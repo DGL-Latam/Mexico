@@ -170,29 +170,45 @@ class SolicitudesDescarga(models.Model):
             'company' : self.company_id.id,
         })
 
-        for element in nodes['conceptos_node'].Concepto:
-            registros.append({
-                'code_service_product':element.get('ClaveProdServ'),
-                'factura_id': fact.id,
-                'id_product':element.get('NoIdentificacion'),
-                'name_product':element.get('Descripcion'),
-                'quantity':element.get('Cantidad'),
-                'unit':element.get('Unidad'),
-                'value_unitary':element.get('ValorUnitario'),
-                'amount':element.Impuestos.Traslados.Traslado.get('Importe'),
-                'type_factory':element.Impuestos.Traslados.Traslado.get('TipoFactor'),
-                'value_tasa':element.Impuestos.Traslados.Traslado.get('TasaOCuota'),
-                'value_unitary_amount': str(float(element.get('ValorUnitario')) + float(element.Impuestos.Traslados.Traslado.get('Importe'))),
-                'subtotal':nodes['cfdi_node'].get('SubTotal'),
-                'total': nodes['cfdi_node'].get('Total'),
-                'type_moneda': nodes['cfdi_node'].get('Moneda'),
-                'type_pay':nodes['cfdi_node'].get('CondicionDePago')
-            })
 
-        fact1 = self.env['details.facturasat'].sudo().create(registros) 
+        fact1 = self.env['details.facturasat'].sudo().create(self.getProducts(self,nodes,fact.id)) 
 
         #fact.SearchOdooInvoice()
         
+    def getProducts(self, nodes, fact_id):
+        productos = []
+        tax_type = {"001" : "ISR ", "002" : "IVA ", "003" : "IEPS "}
+        for element in nodes['conceptos_node'].Concepto:
+            values = {
+                'factura_id' : fact_id,
+                'code_service_product': element.get('ClaveProdServ'),
+                'id_product' : element.get('NoIdentificacion'),
+                'quantity' : element.get('Cantidad'),
+                'unit' : element.get('ClaveUnidad'),
+                'name_product' : element.get('Descripcion'),
+                'value_unitary' : element.get('ValorUnitario'),
+                'amount' : element.get('Importe'),
+                'discount' : element.get('Descuento'),
+                'objeto_impuesto' : element.get('ObjetoImp'),
+            }
+            if element.get('ObjetoImp') != "02":
+                productos.append(values)
+                continue
+            impuestos_trasladados = element.Impuestos.Traslados
+            impuestos_Retenidos = element.Impuestos.Retenciones
+           
+            taxt_text = ""
+
+            for imp in impuestos_trasladados:
+                taxt_text += tax_type[imp.get('Impuesto')] + str(float(element.get('TasaOCuota')) * 100) + "\n"
+            for imp in impuestos_Retenidos:
+                taxt_text += tax_type[imp.get('Impuesto')] + "-" + str(float(element.get('TasaOCuota')) * 100) + "\n"
+            values['taxes'] = taxt_text
+            productos.append(values)
+
+        return productos
+
+
     def printEstado(self):
         for rec in self:
             _logger.critical(rec.estado_solicitud)
@@ -326,9 +342,7 @@ class FacturasSat(models.Model):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
-    
-    def nodes(self):
-       
+    def getproducts(self):
         productos =[]
         for element in nodes['conceptos_node'].Concepto:
             productos.append({
@@ -341,6 +355,12 @@ class FacturasSat(models.Model):
                 'importo': element.get('Importe'),
                 'descripcion': element.get('Descripcion')                
             })
+        return productos
+    
+
+    def nodes(self):
+       
+        productos = self.getproducts()
  
         cfdi_data ={
               'folio': nodes['cfdi_node'].get('Folio'),
@@ -394,32 +414,25 @@ class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
     _description = "Detalles Facturas SAT"
    
+
+   #Producto aka concepto
     code_service_product = fields.Char(string="Clave Producto")
     id_product = fields.Char(string="Ideentificador Producto")
-    name_product = fields.Char(string="Nombre Producto", readonly=True,  required=True)
     quantity = fields.Char(string="Cantidad")
     unit = fields.Char(string="UdM")
+    name_product = fields.Char(string="Descripcion", readonly=True,  required=True)
     value_unitary = fields.Char(string="Precio Unitario") 
     amount = fields.Char(string="Importe")
-    value_unitary_amount = fields.Char(string="Total")
-    type_factory = fields.Char(string="Tipo Factor")
-    value_tasa = fields.Char(string="Impuesto")
-    subtotal = fields.Char(string="SubTotal")
-    total = fields.Char(string="Total")
-    type_moneda = fields.Char(string="Tipo Moneda")
-    type_pay = fields.Char(string="Condiciones pago")
+    discount = fields.Char(string="Descuento")
+    objeto_impuesto = fields.Char(string="Objeto de impuesto")
+    
+
+
+    #Impuestos
+    taxes = fields.Char(string="Impuesto")
+
+
+    #conexion a factura
     factura_id = fields.Many2one('facturas.sat')
 
-
-class CreatePdf(models.Model):
-    _name="create.pdf"
-    _inherit= "facturas.sat"
-    _description= "Creacion del PDF"
-    
-    #transaction_ids = fields.Many2many("account.move.transaction_ids", "account_move")
-    
-    def nodes(self, nodes):
-        pass
-        
-             
 
