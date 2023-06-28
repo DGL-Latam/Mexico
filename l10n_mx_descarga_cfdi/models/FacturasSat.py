@@ -171,7 +171,7 @@ class SolicitudesDescarga(models.Model):
         })
 
 
-        fact1 = self.env['details.facturasat'].sudo().create(self.getProducts(self,nodes,fact.id)) 
+        fact1 = self.env['details.facturasat'].sudo().create(self.getProducts(nodes,fact.id)) 
 
         #fact.SearchOdooInvoice()
         
