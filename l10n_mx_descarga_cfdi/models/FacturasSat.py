@@ -194,8 +194,8 @@ class SolicitudesDescarga(models.Model):
             if element.get('ObjetoImp') != "02":
                 productos.append(values)
                 continue
-            impuestos_trasladados = element.Impuestos.Traslados if 'Traslados' in element.Impuestos.attrib else None
-            impuestos_Retenidos = element.Impuestos.Retenciones if 'Retenciones' in element.Impuestos.attrib else None
+            impuestos_trasladados = element.Impuestos.Traslados if 'Traslados' in element.Impuestos.attrib else []
+            impuestos_Retenidos = element.Impuestos.Retenciones if 'Retenciones' in element.Impuestos.attrib else []
            
             taxt_text = ""
 
