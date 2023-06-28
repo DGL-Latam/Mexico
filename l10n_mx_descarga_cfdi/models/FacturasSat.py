@@ -315,8 +315,7 @@ class FacturasSat(models.Model):
     @api.depends('account_move_id','account_move_total','account_move_partner_vat','account_move_date','account_move_status')
     def _check_diferential(self):
         for rec in self:
-            a = rec.nodes()
-            rec.createPdf(a)
+
             if not rec.account_move_id:
                 rec.SearchOdooInvoice()
                 if not rec.account_move_id:
