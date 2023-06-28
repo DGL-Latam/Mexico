@@ -436,3 +436,12 @@ class FacturasSatDetails(models.Model):
     factura_id = fields.Many2one('facturas.sat')
 
 
+class CreatePdf(models.Model):
+    _name="create.pdf"
+    _inherit= "facturas.sat"
+    _description= "Creacion del PDF"
+    
+    #transaction_ids = fields.Many2many("account.move.transaction_ids", "account_move")
+    
+    def nodes(self, nodes):
+        pass
