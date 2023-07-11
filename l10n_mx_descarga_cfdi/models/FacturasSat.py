@@ -85,6 +85,28 @@ class SolicitudesDescarga(models.Model):
             'fechaFin' : fechaF,
         } )
 
+    def _NuevaSolicitudFechada(self,company,inicio,fin):
+        fiel = self._getFiel(company)
+        token = self._getToken(company,fiel)
+        solicitudDes = SolicitudDescarga(fiel)
+                
+        fechaI = datetime.datetime.strptime(inicio, '%d/%m/%y %H:%M:%S')
+        fechaF = datetime.datetime.strptime(fin, '%d/%m/%y %H:%M:%S')
+        solicitud = solicitudDes.SolicitarDescarga(
+            token,
+            company.vat, 
+            fechaI,
+            fechaF,
+            rfc_receptor = company.vat
+        )
+        self.env['solicitud.descarga'].sudo().create( {
+            'id_solicitud' : solicitud['id_solicitud'], 
+            'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
+            'company_id' : company.id,
+            'fechaInicio' : fechaI,
+            'fechaFin' : fechaF,
+        } )
+
     def reintentar(self):
         fiel = self._getFiel(self.company_id)
         token = self._getToken(self.company_id,fiel)
@@ -164,6 +186,7 @@ class SolicitudesDescarga(models.Model):
             'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
             'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
             'sat_monto' : float(nodes['cfdi_node'].get('Total')),
+            'sat_moneda' : nodes['cfdi_node'].get('Moneda'),
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
@@ -194,15 +217,19 @@ class SolicitudesDescarga(models.Model):
             if element.get('ObjetoImp') != "02":
                 productos.append(values)
                 continue
-            impuestos_trasladados = element.Impuestos.Traslados if 'Traslados' in element.Impuestos.attrib else []
-            impuestos_Retenidos = element.Impuestos.Retenciones if 'Retenciones' in element.Impuestos.attrib else []
-           
+            Impuestos = element.Impuestos
+            impuestos_trasladados = []
+            impuestos_Retenidos = []
+            for el in Impuestos.getchildren():
+                impuestos_trasladados = el if 'Traslados' in el.tag else []
+                impuestos_Retenidos = el if 'Retenciones' in el.tag else []
             taxt_text = ""
-
-            for imp in impuestos_trasladados:
-                taxt_text += tax_type[imp.get('Impuesto')] + str(float(element.get('TasaOCuota')) * 100) + "\n"
-            for imp in impuestos_Retenidos:
-                taxt_text += tax_type[imp.get('Impuesto')] + "-" + str(float(element.get('TasaOCuota')) * 100) + "\n"
+            if type(impuestos_trasladados) != type([]):
+                for imp in impuestos_trasladados.Traslado:
+                    taxt_text += tax_type[imp.get('Impuesto')] + str(float(imp.get('TasaOCuota')) * 100) + "\n"
+            if type(impuestos_Retenidos) != type([]):
+                for imp in impuestos_Retenidos.Retencion:
+                    taxt_text += tax_type[imp.get('Impuesto')] + "-" + str(float(imp.get('TasaOCuota')) * 100) + "\n"
             values['taxes'] = taxt_text
             productos.append(values)
 
@@ -276,6 +303,7 @@ class FacturasSat(models.Model):
     sat_fecha_emision = fields.Datetime(string="Fecha Emision", readonly=True)
     sat_fecha_timbrado = fields.Datetime(string="Fecha de Timbrado", readonly=True)
     sat_fecha_cancelacion = fields.Datetime(string="Fecha Cancelacion", readonly=True)
+    sat_moneda = fields.Char(string="Moneda", readonly=True)
     sat_tipo_factura = fields.Selection(selection = [
         ('I', 'Ingreso'),
         ('E', 'Egreso'),
@@ -341,71 +369,6 @@ class FacturasSat(models.Model):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
-    def getproducts(self):
-        productos =[]
-        for element in nodes['conceptos_node'].Concepto:
-            productos.append({
-                'clave_serv_product':element.get('ClaveProdServ'),
-                'identificacion': element.get('NoIdentificacion'),
-                'cantidad': element.get('Cantidad'),
-                'cantidad_clave':element.get('ClaveUnidad'),
-                'unidad': element.get('Unidad'),
-                'valor_unitario': element.get('ValorUnitario'),
-                'importo': element.get('Importe'),
-                'descripcion': element.get('Descripcion')                
-            })
-        return productos
-    
-
-    def nodes(self):
-       
-        productos = self.getproducts()
- 
-        cfdi_data ={
-              'folio': nodes['cfdi_node'].get('Folio'),
-              'rfc_emisor': nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
-              'nombre_emisor': nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
-              'rfc_receptor': nodes['receptor_node'].get('Rfc', nodes['receptor_node'].get('rfc')),
-              'nombre_receptor': nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
-              'uso_cfdi':nodes['receptor_node'].get('UsoCFDI'),
-              'folio_fiscal': nodes['tfd_node'].get('UUID'),
-              'no_serie_csd': nodes['cfdi_node'].get('NoCertificado'),
-              'serie': nodes['cfdi_node'].get('Serie'),
-              'cp_fecha_hora_emision': str(nodes['cfdi_node'].get('LugarExpedicion')) +  str(nodes['cfdi_node'].get('Fecha').replace('T',' ')),
-              'efecto_comprobante': nodes['cfdi_node'].get('TipoDeComprobante'),
-              'regimen_fiscal': nodes['emisor_node'].get('RegimenFiscal'),
-              'productos': productos,
-              'tipo_moneda': nodes['cfdi_node'].get('Moneda'),
-              'formato_pago': nodes['cfdi_node'].get('FormatoPago'),
-              'metodo_pago': nodes['cfdi_node'].get('MetodoPago'),
-              'subtotal':nodes['cfdi_node'].get('SubTotal'),
-              'total':nodes['cfdi_node'].get('Total'),
-              'sello': nodes['cfdi_node'].get('Sello'),
-              'sello_sat': nodes['tfd_node'].get('SelloSat'),
-              'certificado':nodes['cfdi_node'].get('NoCertificado'),
-              'certificado_sat': nodes['tfd_node'].get('NoCertificadoSAT'),
-              'lugar_expedicion': nodes['cfdi_node'].get('LugarExpedicion'),
-              'fecha_timbrado': nodes['tfd_node'].get('FechaTimbrado').replace('T', ' ')
-        }
-        return cfdi_data
-
-    def createPdf(self, data):
-        _logger.critical(self.ids)
-        _logger.critical(self.sat_uuid)
-        
-        pdf = self.env.ref('l10n_mx_descarga_cfdi.report_pdf')._render_qweb_pdf(self.ids)[0]
-        b64_pdf = base64.b64encode(pdf)
-        name= str(self.sat_uuid)  + ".pdf"
-
-        self.env['ir.attachment'].create({
-            'name': name,
-            'type': 'binary',
-            'datas': b64_pdf,
-            'store_fname': name,
-            'res_model':self._name,
-            'res_id': self.ids,
-            'mimetype': 'application/x-pdf'
-        })
     
 
 
@@ -434,13 +397,3 @@ class FacturasSatDetails(models.Model):
     #conexion a factura
     factura_id = fields.Many2one('facturas.sat')
 
-
-class CreatePdf(models.Model):
-    _name="create.pdf"
-    _inherit= "facturas.sat"
-    _description= "Creacion del PDF"
-    
-    #transaction_ids = fields.Many2many("account.move.transaction_ids", "account_move")
-    
-    def nodes(self, nodes):
-        pass

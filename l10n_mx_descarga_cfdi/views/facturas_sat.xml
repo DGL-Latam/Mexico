@@ -1,3 +1,4 @@
+
 <odoo>
     <record id="factura_sat_tree_view" model="ir.ui.view">
         <field name="name">facturas.sat_tree</field>
@@ -116,7 +117,7 @@
                    <tr t-foreach="productos" t-as="p">
                       <td><t t-esc="p['clave_ser_product']"></t></td>
                       <td><t t-esc="p['identiificacion']"></t></td>
-                      <td><t t-esc="p['cantidad']z"></t></td>
+                      <td><t t-esc="p['cantidad']"></t></td>
                       <td><t t-esc="p.catidad_clave"></t></td>
                       <td><t t-esc="p.unidad"></t></td>
                       <td><t t-esc="p.valor_unitario"></t></td>
