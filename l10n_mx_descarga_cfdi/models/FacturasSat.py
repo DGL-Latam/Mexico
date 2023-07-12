@@ -362,7 +362,10 @@ class FacturasSat(models.Model):
 
     def SearchOdooInvoice(self):
         for r in self:
-            fact = self.env['account.move'].search([('company_id', '=', r.company.id), ('l10n_mx_edi_cfdi_uuid','=',r.sat_uuid)])
+            fact = self.env['account.move'].search([('company_id', '=', r.company.id), ('l10n_mx_edi_cfdi_uuid','=',r.sat_uuid),('state','=','posted')])
+            if len(fact) > 1:
+                r.account_move_id = fact[0].id
+                continue
             r.account_move_id = fact.id
 
     def printinfo(self):
