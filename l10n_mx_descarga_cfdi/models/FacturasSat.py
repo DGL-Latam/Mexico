@@ -197,6 +197,7 @@ class SolicitudesDescarga(models.Model):
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id,
+            'emitida' : self.emitidas,
         })
 
 
@@ -329,6 +330,8 @@ class FacturasSat(models.Model):
     account_move_partner_vat = fields.Char(related="account_move_partner_id.vat", readonly=True)
     account_move_date = fields.Date(string="Fecha Movimiento",related="account_move_id.date", readonly=True)
 
+    emitida = fields.Boolean(string="La factura es nuestra", readonly=True)
+
     company = fields.Many2one(comodel_name="res.company",string="Empresa")
 
     _sql_constraints = [
@@ -340,9 +343,10 @@ class FacturasSat(models.Model):
         ('all_good', 'No hay diferencia'),
         ('wrong_amount', 'Monto Distinto'),
         ('wrong_emiter', 'Emisor Distinto'),
+        ('wrong_receptor', 'Receptor Distinto'),
         ('wrong_date', 'Fecha distinta'),
         ('wrong_status', 'Distinto Estado'),
-        ('no_odoo', 'No existe en Odoo')    
+        ('no_odoo', 'No existe en Odoo'),
     ], compute="_check_diferential", store=True)
     
     @api.depends('account_move_id','account_move_total','account_move_partner_vat','account_move_date','account_move_status')
@@ -357,9 +361,15 @@ class FacturasSat(models.Model):
             if rec.account_move_total != rec.sat_monto:
                 rec.write({'diferentials' : 'wrong_amount'})
                 continue
-            if rec.account_move_partner_vat != rec.sat_rfc_emisor:
-                rec.write({'diferentials' : 'wrong_emiter'})
-                continue
+            if rec.emitida:
+                if rec.sat_name_receptor != rec.account_move_partner_vat:
+                    rec.write({'diferentials' : 'wrong_receptor'})
+                    continue
+            else:
+                if rec.account_move_partner_vat != rec.sat_rfc_emisor:
+                    rec.write({'diferentials' : 'wrong_emiter'})
+                    continue
+
             if rec.account_move_date != rec.sat_fecha_emision.date():
                 rec.write({'diferentials' : 'wrong_date'})
                 continue
