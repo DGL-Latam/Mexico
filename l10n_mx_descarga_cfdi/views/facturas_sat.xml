@@ -6,7 +6,6 @@
         <field name="arch" type="xml">
             <tree string="facturas_sat_tree_view">
                 <field name="sat_uuid"/>
-                <field name="sat_state"/>
                 <field name="sat_rfc_emisor"/>
                 <field name="sat_name_emisor"/>
                 <field name="sat_name_receptor"/>
@@ -35,7 +34,6 @@
                                 <field name="sat_name_receptor" readonly="1"/>
                                 <field name="sat_fecha_emision" readonly="1"/>
                                 <field name="sat_tipo_factura" readonly="1"/>
-                                <field name="sat_state" readonly="1"/>
                             </group>
                             <group>
                                 <field name="account_move_id" readonly="1"/>
@@ -212,6 +210,14 @@
         <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_emiter')]</field>
     </record>
 
+    <record id="menu_factura_sat_action_dif_receptor" model="ir.actions.act_window">
+      <field name="name">Receptor Distinto</field>
+      <field name="res_model">facturas.sat</field>
+      <field name="view_mode">form</field>
+      <field name="view_mode">list,form</field>
+      <field name="domain">[('company', 'in', allowed_company_ids),('diferentials','=','wrong_receptor')]</field>
+    </record>
+
     <record id="menu_factura_sat_action_dif_date" model="ir.actions.act_window">
         <field name="name">Distinta Fecha</field>
         <field name="res_model">facturas.sat</field>
@@ -267,11 +273,18 @@
         sequence="11"
     />
     <menuitem 
+        id="menu_elem_factura_sat_action_dif_receptor"
+        name="Emisor Distinto"
+        action="menu_factura_sat_action_dif_receptor"
+        parent="menu_factura_sat_action_diferencias"
+        sequence="12"
+    />
+    <menuitem 
         id="menu_elem_factura_sat_action_dif_date"
         name="Fecha Distinta"
         action="menu_factura_sat_action_dif_date"
         parent="menu_factura_sat_action_diferencias"
-        sequence="12"
+        sequence="13"
     />
 
     <menuitem 
@@ -293,7 +306,7 @@
         name="Diferente Estado"
         action="menu_factura_sat_action_dif_status"
         parent="menu_factura_sat_action_diferencias"
-        sequence="13"
+        sequence="16"
     />
 
 </odoo>
