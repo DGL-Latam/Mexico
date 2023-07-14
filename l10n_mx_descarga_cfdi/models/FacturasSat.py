@@ -45,6 +45,8 @@ class SolicitudesDescarga(models.Model):
 
     fechaInicio = fields.Datetime(string="fecha inicio busqueda")
     fechaFin = fields.Datetime(string="fecha fin busqueda")
+
+    emitidas = fields.Boolean(default=False)
     
     def _getFiel(self, company):
         cer = company.l10n_mx_fiel_cer
@@ -59,71 +61,75 @@ class SolicitudesDescarga(models.Model):
         autentificacion = Autentificacion(fiel)
         token = autentificacion.obtener_token()
         return token
-
-    def _NuevaSolicitud(self,company):
+    
+    def _GetSolicitudxma(self,company):
         fiel = self._getFiel(company)
         token = self._getToken(company,fiel)
-        solicitudDes = SolicitudDescarga(fiel)
-        yesterday = datetime.datetime.today() - datetime.timedelta(days=1,hours=6)
-        
-        datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
-        datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
-        fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
-        fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
-        solicitud = solicitudDes.SolicitarDescarga(
-            token,
-            company.vat, 
-            fechaI,
-            fechaF,
-            rfc_receptor = company.vat
-        )
+        solicitudDes = SolicitudDescarga(fiel) 
+        return solicitudDes, token 
+    
+    def _NuevaSolicitud(self,company, fechaInicio = None, fechaFin = None, emitidas = False):
+        solicitudDes, token = self._GetSolicitudxma(company)
+        fechaI, fechaF = ""
+        if fechaInicio or fechaFin:
+            fechaI = datetime.datetime.strptime(fechaInicio, '%d/%m/%y %H:%M:%S')
+            fechaF = datetime.datetime.strptime(fechaFin, '%d/%m/%y %H:%M:%S') 
+        else:
+            yesterday = datetime.datetime.today() - datetime.timedelta(days=1,hours=6)
+            datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
+            datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
+            fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
+            fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
+        if emitidas:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                company.vat, 
+                fechaI,
+                fechaF,
+                rfc_emisor = company.vat
+            )
+        else:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                company.vat, 
+                fechaI,
+                fechaF,
+                rfc_receptor = company.vat
+            )
         self.env['solicitud.descarga'].sudo().create( {
             'id_solicitud' : solicitud['id_solicitud'], 
             'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
             'company_id' : company.id,
             'fechaInicio' : fechaI,
             'fechaFin' : fechaF,
-        } )
-
-    def _NuevaSolicitudFechada(self,company,inicio,fin):
-        fiel = self._getFiel(company)
-        token = self._getToken(company,fiel)
-        solicitudDes = SolicitudDescarga(fiel)
-                
-        fechaI = datetime.datetime.strptime(inicio, '%d/%m/%y %H:%M:%S')
-        fechaF = datetime.datetime.strptime(fin, '%d/%m/%y %H:%M:%S')
-        solicitud = solicitudDes.SolicitarDescarga(
-            token,
-            company.vat, 
-            fechaI,
-            fechaF,
-            rfc_receptor = company.vat
-        )
-        self.env['solicitud.descarga'].sudo().create( {
-            'id_solicitud' : solicitud['id_solicitud'], 
-            'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
-            'company_id' : company.id,
-            'fechaInicio' : fechaI,
-            'fechaFin' : fechaF,
+            'emitidas' : emitidas,
         } )
 
     def reintentar(self):
-        fiel = self._getFiel(self.company_id)
-        token = self._getToken(self.company_id,fiel)
-        solicitudDes = SolicitudDescarga(fiel)
-        solicitud = solicitudDes.SolicitarDescarga(
-            token,
-            self.company_id, 
-            self.fechaInicio,
-            self.fechaFin,
-            rfc_receptor = self.company_id.vat
-        ) 
+        solicitudDes,token = self._GetSolicitudxma(self.company_id)
+        if self.emitidas:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                self.company_id, 
+                self.fechaInicio,
+                self.fechaFin,
+                rfc_emisor = self.company_id.vat
+            ) 
+        else:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                self.company_id, 
+                self.fechaInicio,
+                self.fechaFin,
+                rfc_receptor = self.company_id.vat
+            )
         self.env['solicitud.descarga'].sudo().create( {
             'id_solicitud' : solicitud['id_solicitud'], 
             'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
             'company_id' : self.company_id.id,
             'fechaInicio' : self.fechaInicio,
             'fechaFin' : self.fechaFin,
+            'emitidas' : self.emitidas
         } )
 
     def _getNodes(self, cfdi_data : str):
@@ -196,7 +202,6 @@ class SolicitudesDescarga(models.Model):
 
         fact1 = self.env['details.facturasat'].sudo().create(self.getProducts(nodes,fact.id)) 
 
-        #fact.SearchOdooInvoice()
         
     def getProducts(self, nodes, fact_id):
         productos = []
