@@ -70,7 +70,7 @@ class SolicitudesDescarga(models.Model):
     
     def _NuevaSolicitud(self,company, fechaInicio = None, fechaFin = None, emitidas = False):
         solicitudDes, token = self._GetSolicitudxma(company)
-        fechaI, fechaF = ""
+        fechaI, fechaF = "" , ""
         if fechaInicio or fechaFin:
             fechaI = datetime.datetime.strptime(fechaInicio, '%d/%m/%y %H:%M:%S')
             fechaF = datetime.datetime.strptime(fechaFin, '%d/%m/%y %H:%M:%S') 
