@@ -190,6 +190,7 @@ class SolicitudesDescarga(models.Model):
             'sat_uuid' : nodes['tfd_node'].get('UUID'),
             'sat_rfc_emisor' : nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
             'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
+            'sat_rfc_receptor' : nodes['receptor_node'].get('Rfc', nodes['receptor_node'].get('rfc')),
             'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
             'sat_monto' : float(nodes['cfdi_node'].get('Total')),
             'sat_moneda' : nodes['cfdi_node'].get('Moneda'),
@@ -304,6 +305,7 @@ class FacturasSat(models.Model):
     sat_state = fields.Char(string="Estado Factura SAT", readonly=True)
     sat_rfc_emisor = fields.Char(string="RFC Emisor", readonly=True)
     sat_name_emisor = fields.Char(string="Nombre Emisor", readonly=True)
+    sat_rfc_receptor = fields.Char(string="RFC Receptor", readonly=True)
     sat_name_receptor = fields.Char(string="Nombre Receptor", readonly=True)
     sat_monto = fields.Float(string="Monto", readonly=True)
     sat_fecha_emision = fields.Datetime(string="Fecha Emision", readonly=True)
@@ -362,7 +364,7 @@ class FacturasSat(models.Model):
                 rec.write({'diferentials' : 'wrong_amount'})
                 continue
             if rec.emitida:
-                if rec.sat_name_receptor != rec.account_move_partner_vat:
+                if rec.sat_rfc_receptor != rec.account_move_partner_vat:
                     rec.write({'diferentials' : 'wrong_receptor'})
                     continue
             else:
