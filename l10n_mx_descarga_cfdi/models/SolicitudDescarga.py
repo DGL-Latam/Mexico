@@ -11,7 +11,7 @@ class SolicitudDescarga(WebServiceRequestSAT):
     def SolicitarDescarga(
         self, token, rfc_solicitante, fecha_inicial, fecha_final,
         rfc_emisor = None, rfc_receptor=None, tipo_solicitud="CFDI",
-        tipo_comprobante = None, estado_comprobante = 1,
+        tipo_comprobante = None, estado_comprobante = "1",
         rfc_a_cuenta_terceros = None, complemento = None, uuid = None 
     ):
         arguments = {
