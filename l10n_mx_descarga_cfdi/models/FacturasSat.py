@@ -438,9 +438,31 @@ class FacturasSat(models.Model):
             'currency_id' : currency.id,
             'invoice_line_ids' : products,
         })
+        self.AddAttachment(move_id)
         self.write({
             'account_move_id' : move_id.id
         })
+
+    
+    def AddAttachment(self, move_id):
+        zipBytes = self.zip_downloaded.attachment_id.raw
+        z = zipfile.ZipFile(io.BytesIO(zipBytes))
+        xml = z.open(self.document_name)
+        attachment = self.env['ir.attachment'].create({
+            'name': self.document_name,
+            'datas': xml.read(),
+            'description': _('XML signed from Invoice %s.') % move_id.name,
+            'res_model': 'account.move',
+            'res_id': move_id.id,
+        })
+        self.env['account.edi.document'].create({
+            'move_id': move_id.id,
+            'edi_format_id': self.env.ref('l10n_mx_edi.edi_cfdi_3_3').id,
+            'attachment_id': attachment.id,
+            'state': 'sent',
+        })
+
+
 
     def CreateMoveLines(self):
         account_id = self.env['account.account'].search([
