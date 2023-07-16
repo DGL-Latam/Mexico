@@ -22,7 +22,6 @@
         <field name="arch" type="xml">
             <form string="factura_sat_form">
                 <sheet>
-
                         <h1>
                             <field name="sat_uuid" string="Folio Fiscal"/>
                         </h1>
@@ -63,6 +62,10 @@
                         </notebook>
                     
                 </sheet>
+                <div class="oe_chatter">
+                  <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                  <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>

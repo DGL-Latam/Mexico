@@ -175,7 +175,7 @@ class SolicitudesDescarga(models.Model):
             'tfd_node' : tfd_node,
         }
 
-    def _ProcessXML(self, xml : str):
+    def _ProcessXML(self, xml : str, filename : str):
         nodes = self._getNodes(xml)
         registros = []
         if not nodes:
@@ -199,6 +199,8 @@ class SolicitudesDescarga(models.Model):
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id,
             'emitida' : self.emitidas,
+            'zip_downloaded' : self.document_downloaded,
+            'document_filename' : filename,
         })
 
 
@@ -257,7 +259,7 @@ class SolicitudesDescarga(models.Model):
         z = zipfile.ZipFile(io.BytesIO(zipBytes))
         for filename in z.infolist():
             file = z.read(filename)
-            self._ProcessXML(file)
+            self._ProcessXML(file, filename)
         z.close()
         
     def attachzip(self):
@@ -300,6 +302,7 @@ class FacturasSat(models.Model):
     _name = "facturas.sat"
     _rec_name = "sat_uuid"
     _description = "Facturas SAT"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     sat_uuid = fields.Char(string="Folio Fiscal", copy=False, readonly=True,  required=True)
     sat_state = fields.Char(string="Estado Factura SAT", readonly=True)
@@ -351,6 +354,10 @@ class FacturasSat(models.Model):
         ('no_odoo', 'No existe en Odoo'),
     ], compute="_check_diferential", store=True)
     
+
+    zip_downloaded = fields.Many2one('documents.document', string="Zip Relacionado")
+    document_name = fields.Char(string = "Nombre del archivo")
+
     @api.depends('account_move_id','account_move_total','account_move_partner_vat','account_move_date','account_move_status')
     def _check_diferential(self):
         for rec in self:
@@ -389,8 +396,58 @@ class FacturasSat(models.Model):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
-    
+    def createInvoice(self):
+        if self.sat_tipo_factura not in ["I","E","P"]:
+            return
+        move_type = self._getMoveType()
+        if "invoice" in move_type or "refund" in move_type:
+            self._CreateAccountMove(move_type)
+        #else:
+            #self._CreatePayment()
 
+    def _CreateAccountMove(self, move_type : str):
+        journal_id = self.env['account.journal'].search([
+            ('type', '=', 'sale'),
+            ('company_id', '=', self.env.user.company_id.id)
+        ], limit=1)
+        date = self.sat_fecha_emision.date()
+        partner_id = self.env['res.partner']
+        currency = self.env['res.currency']
+        if self.emitida:
+            partner_id = self.env['res.partner'].search([('vat','=',self.sat_rfc_receptor)], limit = 1)
+        else:
+            partner_id = self.env['res.partner'].search([('vat','=',self.sat_rfc_emisor)], limit = 1)
+        currency = self.env['res.currency'].search([('name','ilike',self.sat_moneda), ('active','=',True)])
+        if not partner_id.id:
+            raise UserWarning("No existe el partner para generar la factura")
+        if not currency.id:
+            raise UserWarning("La moneda esta inactiva o no existe en la base de datos")
+        move_id = self.env['account.move'].create({
+            'move_type' : move_type,
+            'partner_id' : partner_id.id,
+            'journal_id' : journal_id.id,
+            'invoice_date' : date,
+            'date' : date,
+            'currency_id' : currency.id,
+        })
+        self.write({
+            'account_move_id' : move_id.id
+        })
+    def _getMoveType(self):
+        if self.emitida:
+            if self.sat_tipo_factura == "I":
+                return "out_invoice"
+            elif self.sat_tipo_factura == "E":
+                return "out_refund"
+            elif self.sat_tipo_factura == "P":
+                return "entry"
+        else:
+            if self.sat_tipo_factura == "I":
+                return "in_invoice"
+            elif self.sat_tipo_factura == "E":
+                return "in_refund"
+            elif self.sat_tipo_factura == "P":
+                return "entry"
 
 class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
