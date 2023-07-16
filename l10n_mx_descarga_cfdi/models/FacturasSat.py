@@ -452,11 +452,21 @@ class FacturasSat(models.Model):
         values = []
         for product in self.id_details_products:
             product_obj = self.env['product.product']
+            tax_obj = self.env['account.tax']
 
             product_obj = product_obj.search([('default_code', '=', product.id_product)], limit=1)
             if not product_obj :
                 product_obj = product_obj.search([('name', '=', product.name_product)], limit=1)
-
+            if product_obj:
+                tax_obj = product_obj.taxes_id
+            else:
+                for tax in product.taxes.split("\n"):
+                    imp = tax.split(" ")
+                    tax_obj += tax_obj.search([
+                        ('name', 'ilike', imp[0]),
+                        ('amount', '=', float(imp[1])),
+                        ('type_tax_use', '=', 'sale' if self.emitida else 'purchase')
+                    ])
             values.append({
                 'product_id' : product_obj.id,
                 'name' : product.name_product,
@@ -464,6 +474,7 @@ class FacturasSat(models.Model):
                 'quantity' : float(product.quantity),
                 'price_unit' : float(product.value_unitary),
                 'discount' : float(product.discount) / float(product.value_unitary),
+                'tax_ids' : tax_obj.ids
             })
         return values
 
