@@ -260,7 +260,7 @@ class SolicitudesDescarga(models.Model):
         z = zipfile.ZipFile(io.BytesIO(zipBytes))
         for filename in z.infolist():
             file = z.read(filename)
-            self._ProcessXML(file, filename)
+            self._ProcessXML(file, filename.filename)
         z.close()
         
     def attachzip(self):
@@ -451,7 +451,7 @@ class FacturasSat(models.Model):
         attachment = self.env['ir.attachment'].create({
             'name': self.document_name,
             'datas': xml.read(),
-            'description': _('XML signed from Invoice %s.') % move_id.name,
+            'description': 'XML signed from Invoice %s.' % move_id.name,
             'res_model': 'account.move',
             'res_id': move_id.id,
         })
