@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import UserError
 import base64
 import datetime
 import pytz
@@ -199,8 +200,8 @@ class SolicitudesDescarga(models.Model):
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'company' : self.company_id.id,
             'emitida' : self.emitidas,
-            'zip_downloaded' : self.document_downloaded,
-            'document_filename' : filename,
+            'zip_downloaded' : self.document_downloaded.id,
+            'document_name' : filename,
         })
 
 
@@ -223,7 +224,7 @@ class SolicitudesDescarga(models.Model):
                 'discount' : element.get('Descuento'),
                 'objeto_impuesto' : element.get('ObjetoImp'),
             }
-            if element.get('ObjetoImp') != "02":
+            if element.get('ObjetoImp') != "02" and nodes['cfdi_node'].get('Version') == "4.0":
                 productos.append(values)
                 continue
             Impuestos = element.Impuestos
@@ -406,22 +407,28 @@ class FacturasSat(models.Model):
             #self._CreatePayment()
 
     def _CreateAccountMove(self, move_type : str):
-        journal_id = self.env['account.journal'].search([
-            ('type', '=', 'sale'),
-            ('company_id', '=', self.env.user.company_id.id)
-        ], limit=1)
+        journal_id = self.env['account.journal']
         date = self.sat_fecha_emision.date()
         partner_id = self.env['res.partner']
         currency = self.env['res.currency']
         if self.emitida:
             partner_id = self.env['res.partner'].search([('vat','=',self.sat_rfc_receptor)], limit = 1)
+            journal_id = self.env['account.journal'].search([
+            ('type', '=', 'sale'),
+            ('company_id', '=', self.company.id)
+        ], limit=1)
         else:
             partner_id = self.env['res.partner'].search([('vat','=',self.sat_rfc_emisor)], limit = 1)
+            journal_id = self.env['account.journal'].search([
+            ('type', '=', 'purchase'),
+            ('company_id', '=', self.company.id)
+        ], limit=1)
         currency = self.env['res.currency'].search([('name','ilike',self.sat_moneda), ('active','=',True)])
         if not partner_id.id:
-            raise UserWarning("No existe el partner para generar la factura")
+            raise UserError("No existe el partner para generar la factura")
         if not currency.id:
-            raise UserWarning("La moneda esta inactiva o no existe en la base de datos")
+            raise UserError("La moneda esta inactiva o no existe en la base de datos")
+        products = self.CreateMoveLines()
         move_id = self.env['account.move'].create({
             'move_type' : move_type,
             'partner_id' : partner_id.id,
@@ -429,10 +436,37 @@ class FacturasSat(models.Model):
             'invoice_date' : date,
             'date' : date,
             'currency_id' : currency.id,
+            'invoice_line_ids' : products,
         })
         self.write({
             'account_move_id' : move_id.id
         })
+
+    def CreateMoveLines(self):
+        account_id = self.env['account.account'].search([
+            ('deprecated', '=', False), 
+            ('user_type_id.type', 'ilike', 'income'), 
+            ('company_id', '=', self.company.id), 
+            ('is_off_balance', '=', False),
+            ], limit=1)
+        values = []
+        for product in self.id_details_products:
+            product_obj = self.env['product.product']
+
+            product_obj = product_obj.search([('default_code', '=', product.id_product)], limit=1)
+            if not product_obj :
+                product_obj = product_obj.search([('name', '=', product.name_product)], limit=1)
+
+            values.append({
+                'product_id' : product_obj.id,
+                'name' : product.name_product,
+                'account_id' : account_id.id,
+                'quantity' : float(product.quantity),
+                'price_unit' : float(product.value_unitary),
+                'discount' : float(product.discount) / float(product.value_unitary),
+            })
+        return values
+
     def _getMoveType(self):
         if self.emitida:
             if self.sat_tipo_factura == "I":
