@@ -458,9 +458,11 @@ class FacturasSat(models.Model):
             if not product_obj :
                 product_obj = product_obj.search([('name', '=', product.name_product)], limit=1)
             if product_obj:
-                tax_obj = product_obj.taxes_id
+                tax_obj = product_obj.taxes_id if self.emitida else product_obj.supplier_taxes_id
             else:
                 for tax in product.taxes.split("\n"):
+                    if tax == "":
+                        continue
                     imp = tax.split(" ")
                     tax_obj += tax_obj.search([
                         ('name', 'ilike', imp[0]),
