@@ -447,10 +447,10 @@ class FacturasSat(models.Model):
     def AddAttachment(self, move_id):
         zipBytes = self.zip_downloaded.attachment_id.raw
         z = zipfile.ZipFile(io.BytesIO(zipBytes))
-        xml = z.open(self.document_name)
+        xml = z.read(self.document_name)
         attachment = self.env['ir.attachment'].create({
             'name': self.document_name,
-            'datas': xml.read(),
+            'raw': xml,
             'description': 'XML signed from Invoice %s.' % move_id.name,
             'res_model': 'account.move',
             'res_id': move_id.id,
