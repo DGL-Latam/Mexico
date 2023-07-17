@@ -50,7 +50,7 @@
                         </group>
                         <notebook>
                             <page string="Descripción">
-                                <field name="id_details_products" widget="One2many">
+                                <field name="id_details_products" widget="One2many" readonly="1">
                                     <tree >
                                         <field name="id_product"></field>
                                         <field name="name_product"></field>
