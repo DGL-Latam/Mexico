@@ -199,6 +199,7 @@ class SolicitudesDescarga(models.Model):
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
             'sat_metodo_pago' : nodes['cfdi_node'].get('FormaPago'),
+            'sat_cfdi_usage' : nodes['receptor_node'].get('UsoCFDI'),
             'company' : self.company_id.id,
             'emitida' : self.emitidas,
             'zip_downloaded' : self.document_downloaded.id,
@@ -325,6 +326,7 @@ class FacturasSat(models.Model):
         ('T', 'Traslado (Carta Porte)'),
     ], default='1', string='Tipo de Factura', readonly=True)
     sat_metodo_pago = fields.Char(string="Metodo de pago", readonly=True)
+    sat_cfdi_usage = fields.Char(string="Uso CFDI", readonly=True)
 
     id_details_products = fields.One2many('details.facturasat','factura_id','Productos')
     account_move_id = fields.Many2one(
@@ -442,6 +444,7 @@ class FacturasSat(models.Model):
             'currency_id' : currency.id,
             'invoice_line_ids' : products,
             'l10n_mx_edi_payment_method_id' : metodo_pago.id,
+            'l10n_mx_edi_usage' : self.sat_cfdi_usage,
         })
         self.AddAttachment(move_id)
         self.write({
