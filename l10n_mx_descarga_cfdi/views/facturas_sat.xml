@@ -23,8 +23,8 @@
             <form string="factura_sat_form">
               <header>
                 <button name="createInvoice" string="Crear Factura" 
-                type="object" groups="group_create_factura" 
-                attrs="{'invsible' : [('account_move_id', '=', True)]}"
+                type="object" groups="l10n_mx_descarga_cfdi.group_create_factura" 
+                attrs="{'invisible': [('account_move_id', '!=', False)]}"
                 />
               </header>
                 <sheet>
