@@ -3,7 +3,7 @@
     'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
-    "version": "0.0.5",
+    "version": "1.0",
     'depends': [
         'base_automation',
         'account',
@@ -13,6 +13,7 @@
     ],
     'data' : [
         'security/ir.model.access.csv',
+        'security/facturas_sat_security.xml',
         'views/facturas_sat.xml',
         'views/res_company.xml',
         'views/ir_cron.xml',

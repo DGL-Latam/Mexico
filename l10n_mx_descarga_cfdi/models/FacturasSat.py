@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import UserError
 import base64
 import datetime
 import pytz
@@ -45,6 +46,8 @@ class SolicitudesDescarga(models.Model):
 
     fechaInicio = fields.Datetime(string="fecha inicio busqueda")
     fechaFin = fields.Datetime(string="fecha fin busqueda")
+
+    emitidas = fields.Boolean(default=False)
     
     def _getFiel(self, company):
         cer = company.l10n_mx_fiel_cer
@@ -59,71 +62,75 @@ class SolicitudesDescarga(models.Model):
         autentificacion = Autentificacion(fiel)
         token = autentificacion.obtener_token()
         return token
-
-    def _NuevaSolicitud(self,company):
+    
+    def _GetSolicitudxma(self,company):
         fiel = self._getFiel(company)
         token = self._getToken(company,fiel)
-        solicitudDes = SolicitudDescarga(fiel)
-        yesterday = datetime.datetime.today() - datetime.timedelta(days=1,hours=6)
-        
-        datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
-        datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
-        fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
-        fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
-        solicitud = solicitudDes.SolicitarDescarga(
-            token,
-            company.vat, 
-            fechaI,
-            fechaF,
-            rfc_receptor = company.vat
-        )
+        solicitudDes = SolicitudDescarga(fiel) 
+        return solicitudDes, token 
+    
+    def _NuevaSolicitud(self,company, fechaInicio = None, fechaFin = None, emitidas = False):
+        solicitudDes, token = self._GetSolicitudxma(company)
+        fechaI, fechaF = "" , ""
+        if fechaInicio or fechaFin:
+            fechaI = datetime.datetime.strptime(fechaInicio, '%d/%m/%y %H:%M:%S')
+            fechaF = datetime.datetime.strptime(fechaFin, '%d/%m/%y %H:%M:%S') 
+        else:
+            yesterday = datetime.datetime.today() - datetime.timedelta(days=1,hours=6)
+            datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
+            datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
+            fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
+            fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
+        if emitidas:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                company.vat, 
+                fechaI,
+                fechaF,
+                rfc_emisor = company.vat
+            )
+        else:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                company.vat, 
+                fechaI,
+                fechaF,
+                rfc_receptor = company.vat
+            )
         self.env['solicitud.descarga'].sudo().create( {
             'id_solicitud' : solicitud['id_solicitud'], 
             'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
             'company_id' : company.id,
             'fechaInicio' : fechaI,
             'fechaFin' : fechaF,
-        } )
-
-    def _NuevaSolicitudFechada(self,company,inicio,fin):
-        fiel = self._getFiel(company)
-        token = self._getToken(company,fiel)
-        solicitudDes = SolicitudDescarga(fiel)
-                
-        fechaI = datetime.datetime.strptime(inicio, '%d/%m/%y %H:%M:%S')
-        fechaF = datetime.datetime.strptime(fin, '%d/%m/%y %H:%M:%S')
-        solicitud = solicitudDes.SolicitarDescarga(
-            token,
-            company.vat, 
-            fechaI,
-            fechaF,
-            rfc_receptor = company.vat
-        )
-        self.env['solicitud.descarga'].sudo().create( {
-            'id_solicitud' : solicitud['id_solicitud'], 
-            'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
-            'company_id' : company.id,
-            'fechaInicio' : fechaI,
-            'fechaFin' : fechaF,
+            'emitidas' : emitidas,
         } )
 
     def reintentar(self):
-        fiel = self._getFiel(self.company_id)
-        token = self._getToken(self.company_id,fiel)
-        solicitudDes = SolicitudDescarga(fiel)
-        solicitud = solicitudDes.SolicitarDescarga(
-            token,
-            self.company_id, 
-            self.fechaInicio,
-            self.fechaFin,
-            rfc_receptor = self.company_id.vat
-        ) 
+        solicitudDes,token = self._GetSolicitudxma(self.company_id)
+        if self.emitidas:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                self.company_id, 
+                self.fechaInicio,
+                self.fechaFin,
+                rfc_emisor = self.company_id.vat
+            ) 
+        else:
+            solicitud = solicitudDes.SolicitarDescarga(
+                token,
+                self.company_id, 
+                self.fechaInicio,
+                self.fechaFin,
+                rfc_receptor = self.company_id.vat
+            )
         self.env['solicitud.descarga'].sudo().create( {
             'id_solicitud' : solicitud['id_solicitud'], 
             'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
             'company_id' : self.company_id.id,
             'fechaInicio' : self.fechaInicio,
             'fechaFin' : self.fechaFin,
+            'emitidas' : self.emitidas
         } )
 
     def _getNodes(self, cfdi_data : str):
@@ -169,7 +176,7 @@ class SolicitudesDescarga(models.Model):
             'tfd_node' : tfd_node,
         }
 
-    def _ProcessXML(self, xml : str):
+    def _ProcessXML(self, xml : str, filename : str):
         nodes = self._getNodes(xml)
         registros = []
         if not nodes:
@@ -184,19 +191,24 @@ class SolicitudesDescarga(models.Model):
             'sat_uuid' : nodes['tfd_node'].get('UUID'),
             'sat_rfc_emisor' : nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
             'sat_name_emisor' : nodes['emisor_node'].get('Nombre', nodes['emisor_node'].get('nombre')),
+            'sat_rfc_receptor' : nodes['receptor_node'].get('Rfc', nodes['receptor_node'].get('rfc')),
             'sat_name_receptor' : nodes['receptor_node'].get('Nombre', nodes['receptor_node'].get('nombre')),
             'sat_monto' : float(nodes['cfdi_node'].get('Total')),
             'sat_moneda' : nodes['cfdi_node'].get('Moneda'),
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
+            'sat_metodo_pago' : nodes['cfdi_node'].get('FormaPago'),
+            'sat_cfdi_usage' : nodes['receptor_node'].get('UsoCFDI'),
             'company' : self.company_id.id,
+            'emitida' : self.emitidas,
+            'zip_downloaded' : self.document_downloaded.id,
+            'document_name' : filename,
         })
 
 
         fact1 = self.env['details.facturasat'].sudo().create(self.getProducts(nodes,fact.id)) 
 
-        #fact.SearchOdooInvoice()
         
     def getProducts(self, nodes, fact_id):
         productos = []
@@ -214,7 +226,7 @@ class SolicitudesDescarga(models.Model):
                 'discount' : element.get('Descuento'),
                 'objeto_impuesto' : element.get('ObjetoImp'),
             }
-            if element.get('ObjetoImp') != "02":
+            if element.get('ObjetoImp') != "02" and nodes['cfdi_node'].get('Version') == "4.0":
                 productos.append(values)
                 continue
             Impuestos = element.Impuestos
@@ -250,7 +262,7 @@ class SolicitudesDescarga(models.Model):
         z = zipfile.ZipFile(io.BytesIO(zipBytes))
         for filename in z.infolist():
             file = z.read(filename)
-            self._ProcessXML(file)
+            self._ProcessXML(file, filename.filename)
         z.close()
         
     def attachzip(self):
@@ -293,11 +305,13 @@ class FacturasSat(models.Model):
     _name = "facturas.sat"
     _rec_name = "sat_uuid"
     _description = "Facturas SAT"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     sat_uuid = fields.Char(string="Folio Fiscal", copy=False, readonly=True,  required=True)
     sat_state = fields.Char(string="Estado Factura SAT", readonly=True)
     sat_rfc_emisor = fields.Char(string="RFC Emisor", readonly=True)
     sat_name_emisor = fields.Char(string="Nombre Emisor", readonly=True)
+    sat_rfc_receptor = fields.Char(string="RFC Receptor", readonly=True)
     sat_name_receptor = fields.Char(string="Nombre Receptor", readonly=True)
     sat_monto = fields.Float(string="Monto", readonly=True)
     sat_fecha_emision = fields.Datetime(string="Fecha Emision", readonly=True)
@@ -311,6 +325,8 @@ class FacturasSat(models.Model):
         ('N', 'Nomina'),
         ('T', 'Traslado (Carta Porte)'),
     ], default='1', string='Tipo de Factura', readonly=True)
+    sat_metodo_pago = fields.Char(string="Metodo de pago", readonly=True)
+    sat_cfdi_usage = fields.Char(string="Uso CFDI", readonly=True)
 
     id_details_products = fields.One2many('details.facturasat','factura_id','Productos')
     account_move_id = fields.Many2one(
@@ -324,6 +340,8 @@ class FacturasSat(models.Model):
     account_move_partner_vat = fields.Char(related="account_move_partner_id.vat", readonly=True)
     account_move_date = fields.Date(string="Fecha Movimiento",related="account_move_id.date", readonly=True)
 
+    emitida = fields.Boolean(string="La factura es nuestra", readonly=True)
+
     company = fields.Many2one(comodel_name="res.company",string="Empresa")
 
     _sql_constraints = [
@@ -335,11 +353,16 @@ class FacturasSat(models.Model):
         ('all_good', 'No hay diferencia'),
         ('wrong_amount', 'Monto Distinto'),
         ('wrong_emiter', 'Emisor Distinto'),
+        ('wrong_receptor', 'Receptor Distinto'),
         ('wrong_date', 'Fecha distinta'),
         ('wrong_status', 'Distinto Estado'),
-        ('no_odoo', 'No existe en Odoo')    
+        ('no_odoo', 'No existe en Odoo'),
     ], compute="_check_diferential", store=True)
     
+
+    zip_downloaded = fields.Many2one('documents.document', string="Zip Relacionado")
+    document_name = fields.Char(string = "Nombre del archivo")
+
     @api.depends('account_move_id','account_move_total','account_move_partner_vat','account_move_date','account_move_status')
     def _check_diferential(self):
         for rec in self:
@@ -352,9 +375,15 @@ class FacturasSat(models.Model):
             if rec.account_move_total != rec.sat_monto:
                 rec.write({'diferentials' : 'wrong_amount'})
                 continue
-            if rec.account_move_partner_vat != rec.sat_rfc_emisor:
-                rec.write({'diferentials' : 'wrong_emiter'})
-                continue
+            if rec.emitida:
+                if rec.sat_rfc_receptor != rec.account_move_partner_vat:
+                    rec.write({'diferentials' : 'wrong_receptor'})
+                    continue
+            else:
+                if rec.account_move_partner_vat != rec.sat_rfc_emisor:
+                    rec.write({'diferentials' : 'wrong_emiter'})
+                    continue
+
             if rec.account_move_date != rec.sat_fecha_emision.date():
                 rec.write({'diferentials' : 'wrong_date'})
                 continue
@@ -372,8 +401,130 @@ class FacturasSat(models.Model):
         for r in self:
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
-    
+    def createInvoice(self):
+        for rec in self:
+            if rec.sat_tipo_factura not in ["I","E","P"]:
+                return
+            move_type = rec._getMoveType()
+            if "invoice" in move_type or "refund" in move_type:
+                rec._CreateAccountMove(move_type)
+            #else:
+                #self._CreatePayment()
 
+    def _CreateAccountMove(self, move_type : str):
+        journal_id = self.env['account.journal']
+        date = self.sat_fecha_emision.date()
+        partner_id = self.env['res.partner']
+        currency = self.env['res.currency']
+        if self.emitida:
+            partner_id = self.env['res.partner'].search([('vat','=',self.sat_rfc_receptor)], limit = 1)
+            journal_id = self.env['account.journal'].search([
+            ('type', '=', 'sale'),
+            ('company_id', '=', self.company.id)
+        ], limit=1)
+        else:
+            partner_id = self.env['res.partner'].search([('vat','=',self.sat_rfc_emisor)], limit = 1)
+            journal_id = self.env['account.journal'].search([
+            ('type', '=', 'purchase'),
+            ('company_id', '=', self.company.id)
+        ], limit=1)
+        currency = self.env['res.currency'].search([('name','ilike',self.sat_moneda), ('active','=',True)])
+        metodo_pago = self.env['l10n_mx_edi.payment.method'].search([('code', '=', self.sat_metodo_pago)])
+        if not partner_id.id:
+            raise UserError("No existe el partner para generar la factura")
+        if not currency.id:
+            raise UserError("La moneda esta inactiva o no existe en la base de datos")
+        products = self.CreateMoveLines()
+        move_id = self.env['account.move'].create({
+            'move_type' : move_type,
+            'partner_id' : partner_id.id,
+            'journal_id' : journal_id.id,
+            'invoice_date' : date,
+            'date' : date,
+            'currency_id' : currency.id,
+            'invoice_line_ids' : products,
+            'l10n_mx_edi_payment_method_id' : metodo_pago.id,
+            'l10n_mx_edi_usage' : self.sat_cfdi_usage,
+        })
+        self.AddAttachment(move_id)
+        self.write({
+            'account_move_id' : move_id.id
+        })
+
+    
+    def AddAttachment(self, move_id):
+        zipBytes = self.zip_downloaded.attachment_id.raw
+        z = zipfile.ZipFile(io.BytesIO(zipBytes))
+        xml = z.read(self.document_name)
+        attachment = self.env['ir.attachment'].create({
+            'name': self.document_name,
+            'raw': xml,
+            'description': 'XML signed from Invoice %s.' % move_id.name,
+            'res_model': 'account.move',
+            'res_id': move_id.id,
+        })
+        self.env['account.edi.document'].create({
+            'move_id': move_id.id,
+            'edi_format_id': self.env.ref('l10n_mx_edi.edi_cfdi_3_3').id,
+            'attachment_id': attachment.id,
+            'state': 'sent',
+        })
+
+
+
+    def CreateMoveLines(self):
+        account_id = self.env['account.account'].search([
+            ('deprecated', '=', False), 
+            ('user_type_id.type', 'ilike', 'income'), 
+            ('company_id', '=', self.company.id), 
+            ('is_off_balance', '=', False),
+            ], limit=1)
+        values = []
+        for product in self.id_details_products:
+            product_obj = self.env['product.product']
+            tax_obj = self.env['account.tax']
+
+            product_obj = product_obj.search([('default_code', '=', product.id_product)], limit=1)
+            if not product_obj :
+                product_obj = product_obj.search([('name', '=', product.name_product)], limit=1)
+            if product_obj:
+                tax_obj = product_obj.taxes_id if self.emitida else product_obj.supplier_taxes_id
+            else:
+                for tax in product.taxes.split("\n"):
+                    if tax == "":
+                        continue
+                    imp = tax.split(" ")
+                    tax_obj += tax_obj.search([
+                        ('name', 'ilike', imp[0]),
+                        ('amount', '=', float(imp[1])),
+                        ('type_tax_use', '=', 'sale' if self.emitida else 'purchase')
+                    ])
+            values.append({
+                'product_id' : product_obj.id,
+                'name' : product.name_product,
+                'account_id' : account_id.id,
+                'quantity' : float(product.quantity),
+                'price_unit' : float(product.value_unitary),
+                'discount' : float(product.discount) / float(product.value_unitary),
+                'tax_ids' : tax_obj.ids
+            })
+        return values
+
+    def _getMoveType(self):
+        if self.emitida:
+            if self.sat_tipo_factura == "I":
+                return "out_invoice"
+            elif self.sat_tipo_factura == "E":
+                return "out_refund"
+            elif self.sat_tipo_factura == "P":
+                return "entry"
+        else:
+            if self.sat_tipo_factura == "I":
+                return "in_invoice"
+            elif self.sat_tipo_factura == "E":
+                return "in_refund"
+            elif self.sat_tipo_factura == "P":
+                return "entry"
 
 class FacturasSatDetails(models.Model):
     _name = "details.facturasat"
