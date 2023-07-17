@@ -198,6 +198,7 @@ class SolicitudesDescarga(models.Model):
             'sat_fecha_emision' :  f_emitido.astimezone(pytz.utc).replace(tzinfo=None),
             'sat_fecha_timbrado' : f_timbrado.astimezone(pytz.utc).replace(tzinfo=None) ,
             'sat_tipo_factura' : nodes['cfdi_node'].get('TipoDeComprobante'),
+            'sat_metodo_pago' : nodes['cfdi_node'].get('FormaPago'),
             'company' : self.company_id.id,
             'emitida' : self.emitidas,
             'zip_downloaded' : self.document_downloaded.id,
@@ -323,6 +324,7 @@ class FacturasSat(models.Model):
         ('N', 'Nomina'),
         ('T', 'Traslado (Carta Porte)'),
     ], default='1', string='Tipo de Factura', readonly=True)
+    sat_metodo_pago = fields.Char(string="Metodo de pago", readonly=True)
 
     id_details_products = fields.One2many('details.facturasat','factura_id','Productos')
     account_move_id = fields.Many2one(
@@ -425,6 +427,7 @@ class FacturasSat(models.Model):
             ('company_id', '=', self.company.id)
         ], limit=1)
         currency = self.env['res.currency'].search([('name','ilike',self.sat_moneda), ('active','=',True)])
+        metodo_pago = self.env['l10n_mx_edi.payment.method'].search([('code', '=', self.sat_metodo_pago)])
         if not partner_id.id:
             raise UserError("No existe el partner para generar la factura")
         if not currency.id:
@@ -438,6 +441,7 @@ class FacturasSat(models.Model):
             'date' : date,
             'currency_id' : currency.id,
             'invoice_line_ids' : products,
+            'l10n_mx_edi_payment_method_id' : metodo_pago.id,
         })
         self.AddAttachment(move_id)
         self.write({
