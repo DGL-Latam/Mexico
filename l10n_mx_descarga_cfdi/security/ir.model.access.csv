@@ -1,4 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_facturassat_model,facturasat,model_facturas_sat,base.group_system,1,1,1,1
+access_facturas_sat_model_view,facturasat_view,model_facturas_sat,account.group_account_manager,1,0,0,0
 access_solicitudessat_model,solicitudDescargs,model_solicitud_descarga,base.group_system,1,1,1,1
 access_details_facturasat_model,detailsfacturasat,model_details_facturasat,base.group_system,1,0,0,0
+access_details_facturasat_view,details_facturasat_view,model_details_facturasat,account.group_account_manager,1,0,0,0

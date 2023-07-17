@@ -21,6 +21,12 @@
         <field name="model">facturas.sat</field>
         <field name="arch" type="xml">
             <form string="factura_sat_form">
+              <header>
+                <button name="createInvoice" string="Crear Factura" 
+                type="object" groups="group_create_factura" 
+                attrs="{'invsible' : [('account_move_id', '=', True)]}"
+                />
+              </header>
                 <sheet>
                         <h1>
                             <field name="sat_uuid" string="Folio Fiscal"/>

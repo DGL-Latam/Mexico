@@ -398,13 +398,14 @@ class FacturasSat(models.Model):
             _logger.critical(f'fecha timbrado: {r.sat_fecha_timbrado}  fecha emision: {r.sat_fecha_emision}')
 
     def createInvoice(self):
-        if self.sat_tipo_factura not in ["I","E","P"]:
-            return
-        move_type = self._getMoveType()
-        if "invoice" in move_type or "refund" in move_type:
-            self._CreateAccountMove(move_type)
-        #else:
-            #self._CreatePayment()
+        for rec in self:
+            if rec.sat_tipo_factura not in ["I","E","P"]:
+                return
+            move_type = rec._getMoveType()
+            if "invoice" in move_type or "refund" in move_type:
+                rec._CreateAccountMove(move_type)
+            #else:
+                #self._CreatePayment()
 
     def _CreateAccountMove(self, move_type : str):
         journal_id = self.env['account.journal']
