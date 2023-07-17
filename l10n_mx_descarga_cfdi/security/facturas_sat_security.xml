@@ -2,7 +2,7 @@
 <odoo>
     <data noupdate="0">
         <record id="group_create_factura" model="res.groups">
-            <field name="name">SAT-WS Crear Facturas</field>
+            <field name="name">SAT_WS</field>
             <field name="category_id" ref="base.module_category_hidden"/>
         </record>
     </data>
