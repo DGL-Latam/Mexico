@@ -229,7 +229,11 @@ class SolicitudesDescarga(models.Model):
             if element.get('ObjetoImp') != "02" and nodes['cfdi_node'].get('Version') == "4.0":
                 productos.append(values)
                 continue
-            Impuestos = element.Impuestos
+            try : 
+                Impuestos = element.Impuestos
+            except AttributeError:
+                productos.append(values)
+                continue
             impuestos_trasladados = []
             impuestos_Retenidos = []
             for el in Impuestos.getchildren():
