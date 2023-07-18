@@ -191,12 +191,12 @@ class AccountEdiFormat(models.Model):
         # We round up for the currency rate and down for the tax values because we lost a lot of time to find out
         # that Finkok only accepts it this way.  The other PACs accept either way and are reasonable.
         for v in total_taxes_paid.values():
-            v['base_value'] = float_round(v['base_value'], move.currency_id.decimal_places, rounding_method='DOWN')
-            v['tax_value'] = float_round(v['tax_value'], move.currency_id.decimal_places, rounding_method='DOWN')
+            v['base_value'] = float_round(v['base_value'], move.currency_id.decimal_places )
+            v['tax_value'] = float_round(v['tax_value'], move.currency_id.decimal_places )
             v['base_value_mxn'] = float_round(v['base_value'] * rate_payment_curr_mxn_40, mxn_currency.decimal_places)
             v['tax_value_mxn'] = float_round(v['tax_value'] * rate_payment_curr_mxn_40, mxn_currency.decimal_places)
         for v in total_taxes_withheld.values():
-            v['amount_curr'] = float_round(v['amount_curr'], move.currency_id.decimal_places, rounding_method='DOWN')
+            v['amount_curr'] = float_round(v['amount_curr'], move.currency_id.decimal_places)
             v['amount_mxn'] = float_round(v['amount_curr'] * rate_payment_curr_mxn_40, mxn_currency.decimal_places)
 
         cfdi_values = {
