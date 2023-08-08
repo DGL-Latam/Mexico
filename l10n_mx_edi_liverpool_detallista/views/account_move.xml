@@ -1,25 +1,26 @@
+<?xml version="1.0"?>
 <odoo>
     <record id="liverpol_detallista_form" model="ir.ui.view">
-    <field name="name">Detallista Liverpool form</field>
-    <field name="model">account.move</field>
-    <field name="inherit_id" ref="account.view_move_form"/>
-    <field name="arch" type="xml">
-        <xpath expr="//group[@id='header_right_group']" position="inside">
-            <field name="needs_detallista" attrs="{'readonly' : [('status', 'in', ['posted','cancel'] )]}"/>
-        </xpath>
-        <xpath expr="//page[@id='other_tab']" position="after">
-            <page name="liverpool_detallista" string="Liverpool Detallista" invisible="needs_detallista">
-                <group name="liverpool_detallista_group" string="Detalles" attrs="{'readonly' : [('status', 'in', ['posted','cancel'] )]}" >
-                    <field name="pedido_date"/>
-                    <field name="delivery_reference"/>
-                    <field name="delivery_reference_date"/>
-                    <field name="department_name"/>
-                    <field name="special_service_type"/>
-                    <field name="percentage_special_service"/>
-                </group>
-            </page>
-        </xpath>
-    /</field>
+        <field name="name">Detallista Liverpool form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@id='header_right_group']" position="inside">
+                <field name="needs_detallista" attrs="{'readonly' : [('status', 'in', ['posted','cancel'] )]}"/>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']" position="after">
+                <page name="liverpool_detallista" string="Liverpool Detallista" invisible="needs_detallista">
+                    <group name="liverpool_detallista_group" string="Detalles" attrs="{'readonly' : [('status', 'in', ['posted','cancel'] )]}" >
+                        <field name="pedido_date"/>
+                        <field name="delivery_reference"/>
+                        <field name="delivery_reference_date"/>
+                        <field name="department_name"/>
+                        <field name="special_service_type"/>
+                        <field name="percentage_special_service"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
     </record>
 
 </odoo>
