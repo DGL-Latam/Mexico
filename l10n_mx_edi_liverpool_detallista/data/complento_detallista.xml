@@ -1,15 +1,8 @@
 <odoo>
     <template id="liverpol_detallista" name="Detallista Liverpool" inherit_id="l10n_mx_edi_40.cfdiv40">
-        <xpath expr="//*[local-name()='Comprobante']" position="attributes">
+        <xpath expr="//*[local-name()='Comprobante']" position="inside">
             <t t-if="record.needs_detallista">
-                <attribute name="xmlns:detallista">http://www.sat.gob.mx/detallista</attribute>
-                <attribute name="xsi:schemaLocation">http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/ComercioExterior11 http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior11/ComercioExterior11.xsd http://www.sat.gob.mx/detallista http://www.sat.gob.mx/sitio_internet/cfd/detallista/detallista.xsd </attribute>
-            </t>
-        </xpath>
-
-        <xpath expr="//*[local-name()='Comprobante']" position="attributes">
-            <t t-if="record.needs_detallista">
-                <t name="Detallista Liverpool" t-name="liverpool_detallista">
+                <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:detallista="http://www.sat.gob.mx/detallista">
                     <detallista:detallista 
                     type="SimpleType" contentVersion="1.3.1" documentStructureVersion="AMC8.1" 
                     documentStatus="ORIGINAL">
@@ -102,7 +95,9 @@
                         </detallista:TotalAllowanceCharge>
                     
                     </detallista:detallista>
-                </t>
+                </cfdi:Comprobante>
+
+                
             </t>
         </xpath>
     </template> 
