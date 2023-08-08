@@ -6,11 +6,11 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//group[@id='header_right_group']" position="inside">
-                <field name="needs_detallista" attrs="{'readonly' : [('status', 'in', ['posted','cancel'] )]}"/>
+                <field name="needs_detallista" attrs="{'readonly' : [('state', 'in', ['posted','cancel'] )]}"/>
             </xpath>
             <xpath expr="//page[@id='other_tab']" position="after">
-                <page name="liverpool_detallista" string="Liverpool Detallista" invisible="needs_detallista">
-                    <group name="liverpool_detallista_group" string="Detalles" attrs="{'readonly' : [('status', 'in', ['posted','cancel'] )]}" >
+                <page name="liverpool_detallista" string="Liverpool Detallista" attrs="{'invisible' : [('needs_detallista', '=', False )]}">
+                    <group name="liverpool_detallista_group" string="Detalles" attrs="{'readonly' : [('state', 'in', ['posted','cancel'] )]}" >
                         <field name="pedido_date"/>
                         <field name="delivery_reference"/>
                         <field name="delivery_reference_date"/>
