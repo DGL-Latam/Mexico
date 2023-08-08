@@ -1,0 +1,109 @@
+<odoo>
+    <template id="liverpol_detallista" name="Detallista Liverpool" inherit_id="l10n_mx_edi_40.cfdiv40">
+        <xpath expr="//*[local-name()='Comprobante']" position="attributes">
+            <t t-if="record.needs_detallista">
+                <attribute name="xmlns:detallista">http://www.sat.gob.mx/detallista</attribute>
+                <attribute name="xsi:schemaLocation">http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/ComercioExterior11 http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior11/ComercioExterior11.xsd http://www.sat.gob.mx/detallista http://www.sat.gob.mx/sitio_internet/cfd/detallista/detallista.xsd </attribute>
+            </t>
+        </xpath>
+
+        <xpath expr="//*[local-name()='Comprobante']" position="attributes">
+            <t t-if="record.needs_detallista">
+                <t name="Detallista Liverpool" t-name="liverpool_detallista">
+                    <detallista:detallista 
+                    type="SimpleType" contentVersion="1.3.1" documentStructureVersion="AMC8.1" 
+                    documentStatus="ORIGINAL">
+                        <detallista:requestForPaymentIdentification>
+                            <detallista:entityType><t t-out="'INVOICE' if record.move_type == 'out_invoice' else 'CREDIT_NOTE' if record.move_type == 'out_refund'"/></detallista:entityType>
+                        </detallista:requestForPaymentIdentification>
+                        <detallista:specialInstruction code="ZZZ" >
+                            <detallista:text><t t-out="format_amount(record.amount_total, record.currency_id)"/></detallista:text>
+                        </detallista:specialInstruction>
+                        <detallista:orderIdentification>
+                            <detallista:referenceIdentification type="ON"><t t-out="record.ref"/></detallista:referenceIdentification>
+                            <detallista:ReferenceDate><t t.out="record.pedido_date"/></detallista:ReferenceDate>
+                        </detallista:orderIdentification>
+                        <detallista:AdditionalInformation>
+                            <detallista:referenceIdentification type="ACE">0</detallista:referenceIdentification>
+                        </detallista:AdditionalInformation>
+                        <detallista:DeliveryNote>
+                            <detallista:referenceIdentification><t t-out="record.delivery_reference"/></detallista:referenceIdentification>
+                            <detallista:ReferenceDate><t t-out="record.delivery_reference_date"/></detallista:ReferenceDate>
+                        </detallista:DeliveryNote>
+                        <detallista:buyer>
+                            <detallista:gln>7504000107903</detallista:gln>
+                            <detallista:contactInformation>
+                                <detallista:personOrDepartmentName>
+                                    <detallista:text><t t-out="record.department_name"/></detallista:text>
+                                </detallista:personOrDepartmentName>
+                            </detallista:contactInformation>
+                        </detallista:buyer>
+                        <detallista:seller>
+                            <detallista:gln>0000000148575</detallista:gln>
+                            <detallista:alternatePartIdentification type="SELLER_ASSIGNED_IDENTIFIER_FOR_A_PARTY">148575</detallista:alternatePartIdentification>
+                        </detallista:seller>
+                        <detallista:allowanceCharge allowanceChargeType="ALLOWANCE_GLOBAL" settlementType="OFF_INVOICE">
+                            <detallista:specialServicesType><t t-out="record.special_service_type"/></detallista:specialServicesType>
+                            <detallista:monetaryAmountOrPercentage>
+                                <detallista:rate base="INVOICE_VALUE">
+                                    <detallista:percentage><t t-out="record.percentage_special_service"/></detallista:percentage>
+                                </detallista:rate>
+                            </detallista:monetaryAmountOrPercentage>
+                        </detallista:allowanceCharge>
+                        <t t-set="count" t-value="0"/>
+                        
+                        <t t-foreach="invoice_line_vals_list" t-as="line_values">
+                            <t t-set="line" t-value="line_values['line']"/>
+                            <t t-set="count" t-value="count + 1"/>
+                            <t t-set="importe" t-value="line_values['price_subtotal_before_discount'] if tax_objected == '02' else line.price_total + line_values['price_discount']"/>
+                            <t t-set="discounts" t-value="line_values['price_discount'] if not record.currency_id.is_zero(line_values['price_discount']) else 0"/>
+                            <t t-set="tax_detail_transferred" t-value="tax_details_transferred['invoice_line_tax_details'][line]"/>
+                            <t t-set="value_taxes_sum" t-value="0"/>
+                            <t t-if="tax_detail_transferred['tax_details']">
+                                <t t-foreach="tax_detail_transferred['tax_details'].values()" t-as="tax_detail_vals">
+                                    <t t-set="tax" t-value="tax_detail_vals['tax']"/>
+                                    <t t-set="value_taxes_sum" t-value="(value_taxes_sum + (balance_multiplicator * tax_detail_vals['tax_amount_currency'])) if tax.l10n_mx_tax_type != 'Exento' else 0"/>
+                                </t>
+                            </t>
+                            <detallista:lineItem type="SimpleInvoiceLineItemType" t-att-number="count">
+                                <detallista:tradeItemIdentification>
+                                    <detallista:gtin><t t-out="line.product_id.barcode"/></detallista:gtin>
+                                </detallista:tradeItemIdentification>
+                                <detallista:alternateTradeItemIdentification type="BUYER_ASSIGNED"><t t-out="line.product_id.customer_ids.filtered(lambda r : r.name ilike 'DISTRIBUIDORA LIVERPOOL').product_code"/></detallista:alternateTradeItemIdentification>
+                                <detallista:tradeItemDescriptionInformation>
+                                    <detallista:longText>
+                                        <t t-out="format_string(line.name, 1000)"/>
+                                    </detallista:longText>
+                                </detallista:tradeItemDescriptionInformation>
+                                <detallista:invoicedQuantity unitOfMeasure="PZ"><t t-out="format_float(line.quantity, 4)"/></detallista:invoicedQuantity>
+                                <detallista:grossPrice>
+                                    <detallista:Amount><t t-out="format_float(importe / line.quantity, currency_precision)"/></detallista:Amount>
+                                </detallista:grossPrice>
+                                <detallista:netPrice>
+                                    <detallista:Amount><t t-out="format_float((importe - discounts + value_taxes_sum) / line.quantity, currency_precision)"/></detallista:Amount>
+                                </detallista:netPrice>
+                                <detallista:totalLineAmount>
+                                    <detallista:grossAmount>
+                                        <detallista:Amount> <t t-out="format_float(importe,currency_precision)"/></detallista:Amount>
+                                    </detallista:grossAmount>
+                                    <detallista:netAmount>
+                                        <detallista:Amount><t t-out="format_float((importe - discounts + value_taxes_sum) , currency_precision)"/></detallista:Amount>
+                                    </detallista:netAmount>
+                                </detallista:totalLineAmount>        
+                            </detallista:lineItem>
+                        </t>
+                        
+                        <detallista:totalAmount>
+                            <detallista:Amount></detallista:Amount>
+                        </detallista:totalAmount>
+                        <detallista:TotalAllowanceCharge allowanceOrChargeType="ALLOWANCE">
+                            <detallista:specialServicesType>AA</detallista:specialServicesType>
+                            <detallista:Amount><t t-out="format_float(total_price_discount, currency_precision) if not record.currency_id.is_zero(total_price_discount) else '0.00'"/></detallista:Amount>
+                        </detallista:TotalAllowanceCharge>
+                    
+                    </detallista:detallista>
+                </t>
+            </t>
+        </xpath>
+    </template> 
+</odoo>
