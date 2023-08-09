@@ -1,27 +1,28 @@
 <odoo>
-    <template id="liverpol_detallista" name="Detallista Liverpool" inherit_id="l10n_mx_edi_40.cfdiv40">
+    <template id="liverpol_detallista" name="Detallista Liverpool" inherit_id="l10n_mx_edi_40.cfdiv40" xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:detallista="http://www.sat.gob.mx/detallista">
         <xpath expr="//*[local-name()='Comprobante']" position="inside">
             <t t-if="record.needs_detallista">
-                <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:detallista="http://www.sat.gob.mx/detallista">
+                <cfdi:Complemento>
                     <detallista:detallista 
-                    type="SimpleType" contentVersion="1.3.1" documentStructureVersion="AMC8.1" 
+                    type="SimpleInvoiceType" contentVersion="1.3.1" documentStructureVersion="AMC8.1" 
                     documentStatus="ORIGINAL">
                         <detallista:requestForPaymentIdentification>
-                            <detallista:entityType><t t-out="'INVOICE' if record.move_type == 'out_invoice' else 'CREDIT_NOTE' if record.move_type == 'out_refund'"/></detallista:entityType>
+                            <t t-set="ent_type" t-value="'INVOICE' if record.move_type == 'out_invoice' else 'CREDIT_NOTE'"/>
+                            <detallista:entityType><t t-out="ent_type"/></detallista:entityType>
                         </detallista:requestForPaymentIdentification>
                         <detallista:specialInstruction code="ZZZ" >
                             <detallista:text><t t-out="format_amount(record.amount_total, record.currency_id)"/></detallista:text>
                         </detallista:specialInstruction>
                         <detallista:orderIdentification>
                             <detallista:referenceIdentification type="ON"><t t-out="record.ref"/></detallista:referenceIdentification>
-                            <detallista:ReferenceDate><t t.out="record.pedido_date"/></detallista:ReferenceDate>
+                            <detallista:ReferenceDate><t t-out="record.pedido_date.strftime('%Y-%m-%d')"/></detallista:ReferenceDate>
                         </detallista:orderIdentification>
                         <detallista:AdditionalInformation>
                             <detallista:referenceIdentification type="ACE">0</detallista:referenceIdentification>
                         </detallista:AdditionalInformation>
                         <detallista:DeliveryNote>
                             <detallista:referenceIdentification><t t-out="record.delivery_reference"/></detallista:referenceIdentification>
-                            <detallista:ReferenceDate><t t-out="record.delivery_reference_date"/></detallista:ReferenceDate>
+                            <detallista:ReferenceDate><t t-out="record.delivery_reference_date.strftime('%Y-%m-%d')"/></detallista:ReferenceDate>
                         </detallista:DeliveryNote>
                         <detallista:buyer>
                             <detallista:gln>7504000107903</detallista:gln>
@@ -33,7 +34,7 @@
                         </detallista:buyer>
                         <detallista:seller>
                             <detallista:gln>0000000148575</detallista:gln>
-                            <detallista:alternatePartIdentification type="SELLER_ASSIGNED_IDENTIFIER_FOR_A_PARTY">148575</detallista:alternatePartIdentification>
+                            <detallista:alternatePartyIdentification type="SELLER_ASSIGNED_IDENTIFIER_FOR_A_PARTY">148575</detallista:alternatePartyIdentification>
                         </detallista:seller>
                         <detallista:allowanceCharge allowanceChargeType="ALLOWANCE_GLOBAL" settlementType="OFF_INVOICE">
                             <detallista:specialServicesType><t t-out="record.special_service_type"/></detallista:specialServicesType>
@@ -62,11 +63,9 @@
                                 <detallista:tradeItemIdentification>
                                     <detallista:gtin><t t-out="line.product_id.barcode"/></detallista:gtin>
                                 </detallista:tradeItemIdentification>
-                                <detallista:alternateTradeItemIdentification type="BUYER_ASSIGNED"><t t-out="line.product_id.customer_ids.filtered(lambda r : r.name ilike 'DISTRIBUIDORA LIVERPOOL').product_code"/></detallista:alternateTradeItemIdentification>
+                                <detallista:alternateTradeItemIdentification type="BUYER_ASSIGNED"><t t-out="line.product_id.customer_ids.filtered(lambda r : 'DISTRIBUIDORA LIVERPOOL' in r.name).product_code"/></detallista:alternateTradeItemIdentification>
                                 <detallista:tradeItemDescriptionInformation>
-                                    <detallista:longText>
-                                        <t t-out="format_string(line.name, 1000)"/>
-                                    </detallista:longText>
+                                    <detallista:longText><t t-out="format_string(line.name.strip(), 35).strip()"/></detallista:longText>
                                 </detallista:tradeItemDescriptionInformation>
                                 <detallista:invoicedQuantity unitOfMeasure="PZ"><t t-out="format_float(line.quantity, 4)"/></detallista:invoicedQuantity>
                                 <detallista:grossPrice>
@@ -87,7 +86,7 @@
                         </t>
                         
                         <detallista:totalAmount>
-                            <detallista:Amount></detallista:Amount>
+                            <detallista:Amount><t t-out="format_float(total_price_subtotal_before_discount if tax_objected == '02' else record.amount_total + total_price_discount, currency_precision)"/></detallista:Amount>
                         </detallista:totalAmount>
                         <detallista:TotalAllowanceCharge allowanceOrChargeType="ALLOWANCE">
                             <detallista:specialServicesType>AA</detallista:specialServicesType>
@@ -95,7 +94,7 @@
                         </detallista:TotalAllowanceCharge>
                     
                     </detallista:detallista>
-                </cfdi:Comprobante>
+                </cfdi:Complemento>
 
                 
             </t>
