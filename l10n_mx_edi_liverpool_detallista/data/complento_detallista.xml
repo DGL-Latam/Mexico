@@ -11,7 +11,7 @@
                             <detallista:entityType><t t-out="ent_type"/></detallista:entityType>
                         </detallista:requestForPaymentIdentification>
                         <detallista:specialInstruction code="ZZZ" >
-                            <detallista:text><t t-out="format_amount(record.amount_total, record.currency_id)"/></detallista:text>
+                            <detallista:text><t t-out="record._l10n_mx_edi_cfdi_amount_to_text()"/></detallista:text>
                         </detallista:specialInstruction>
                         <detallista:orderIdentification>
                             <detallista:referenceIdentification type="ON"><t t-out="record.ref"/></detallista:referenceIdentification>
