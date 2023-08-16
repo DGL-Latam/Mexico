@@ -24,6 +24,7 @@ _logger = logging.getLogger(__name__)
 
 
 class SolicitudesDescarga(models.Model):
+    """ Modelo generado para llevar el control de las solicitadas al SAT, su estado y datos para procesamiento """
     _name = "solicitud.descarga"
     _descripcion = "Solicitudes Descargas SAT"
     
@@ -50,6 +51,7 @@ class SolicitudesDescarga(models.Model):
     emitidas = fields.Boolean(default=False)
     
     def _getFiel(self, company):
+        #Recuperamos la Fiel decodificada que tenemos guardada en la base de datos
         cer = company.l10n_mx_fiel_cer
         key = company.l10n_mx_fiel_key
         password = company.l10n_mx_fiel_pass
@@ -57,6 +59,7 @@ class SolicitudesDescarga(models.Model):
         return fiel
 
     def _getToken(self,company, fiel = None):
+        #Se con la Fiel, se hace una peticion al sistema del SAT para que nos genere un Token para las solicitudes
         if fiel is None:
             fiel = self._getFiel(company)
         autentificacion = Autentificacion(fiel)
@@ -64,12 +67,18 @@ class SolicitudesDescarga(models.Model):
         return token
     
     def _GetSolicitudxma(self,company):
+        # De acuerdo a la compañia obtenemos su Fiel y Token, con estos datos generamos la solicitud de Descarga
         fiel = self._getFiel(company)
         token = self._getToken(company,fiel)
         solicitudDes = SolicitudDescarga(fiel) 
         return solicitudDes, token 
     
     def _NuevaSolicitud(self,company, fechaInicio = None, fechaFin = None, emitidas = False):
+        """ Metodo padre para el servicio Cron que genera las solicitudes al SAT para la recuperacion de Facturas
+        company es el id de la compañia que esta haciendo la solicitud, la cual debe de tener los datos de llave Fiel, certificado y frase en su configuracion
+        Fecha de inicio : Para poder indicar desde que fecha quiere que se genere, en caso de que no se especifique se tomara la fecha del dia anterior a las 0:00
+        Fecga de Fin : Para poder indicar hasta que fecha se quiere recuperar facturas, en caso de no ser indicado se tomara la media noche del dia anterior
+        emitidas : Booleano para indicar si se busca recuperar la facturas emitidas o recibidas"""
         solicitudDes, token = self._GetSolicitudxma(company)
         fechaI, fechaF = "" , ""
         if fechaInicio or fechaFin:
@@ -82,6 +91,7 @@ class SolicitudesDescarga(models.Model):
             fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
             fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
         if emitidas:
+            #si se piden las facturas emitidas se pasa el rfc de la empresa en el valor de rfc_emisor
             solicitud = solicitudDes.SolicitarDescarga(
                 token,
                 company.vat, 
@@ -90,6 +100,7 @@ class SolicitudesDescarga(models.Model):
                 rfc_emisor = company.vat
             )
         else:
+            #si se piden las facturas emitidas se pasa el rfc de la empresa en el valor de rfc_emisor
             solicitud = solicitudDes.SolicitarDescarga(
                 token,
                 company.vat, 
@@ -97,6 +108,8 @@ class SolicitudesDescarga(models.Model):
                 fechaF,
                 rfc_receptor = company.vat
             )
+        
+        #Una vez que se hizo la solicitud con los datos que nos responde creamos la entrada en nuestra tabla
         self.env['solicitud.descarga'].sudo().create( {
             'id_solicitud' : solicitud['id_solicitud'], 
             'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
@@ -107,6 +120,7 @@ class SolicitudesDescarga(models.Model):
         } )
 
     def reintentar(self):
+        #en el caso que nos rechace la solicitud, se vuelva a intentar creando una solicitud nueva con los mismos datos
         solicitudDes,token = self._GetSolicitudxma(self.company_id)
         if self.emitidas:
             solicitud = solicitudDes.SolicitarDescarga(
@@ -134,6 +148,8 @@ class SolicitudesDescarga(models.Model):
         } )
 
     def _getNodes(self, cfdi_data : str):
+        #Utilidad para recuperar los nodos principales del xml para despues ser procesados}
+        #Tiene dos metodos de recuperacion en caso de que uno falle por desborde de memoria
         def get_node(cfdi_node, attribute, namespaces):
             if hasattr(cfdi_node, 'Complemento'):
                 node = cfdi_node.Complemento.xpath(attribute, namespaces=namespaces)
@@ -177,16 +193,27 @@ class SolicitudesDescarga(models.Model):
         }
 
     def _ProcessXML(self, xml : str, filename : str):
+        """ Metodo para procesar el archivo xml de la factura, para colocar todos los detalles de este dentro de nuestro modelo
+        xml : el contenido del archivo xml como una variable string, que sera procesado en un etree en otro metodo
+        filename: Nombre que tiene el archivo, este es necesario guardarlo para que despues se pueda volver a procesar en caso de ser necesario
+        
+        Resulta en crear un registro en la tabla de facturas.sat al igual que todos los detalles de conceptos de esta"""
         nodes = self._getNodes(xml)
         registros = []
         if not nodes:
             return
+        
+        #no se debe de poder procesar una factura que ya esta registrada en nuestra BD
         reg = self.env['facturas.sat'].sudo().search([('sat_uuid','=',nodes['tfd_node'].get('UUID'))])
         if reg.id:
             return
+        
+        # los datos de fechas dentro de la factura ya estan en hora de mexico, entonces se indica de forma explicita en las variables
         mexTime = pytz.timezone('America/Mexico_City')
         f_emitido = mexTime.localize(datetime.datetime.strptime( nodes['cfdi_node'].get('Fecha') , '%Y-%m-%dT%H:%M:%S'))
         f_timbrado = mexTime.localize(datetime.datetime.strptime( nodes['tfd_node'].get('FechaTimbrado') , '%Y-%m-%dT%H:%M:%S'))
+
+        #se crea el registro de la factura sin detalles, estos seran agregados posteriormente
         fact = self.env['facturas.sat'].sudo().create({
             'sat_uuid' : nodes['tfd_node'].get('UUID'),
             'sat_rfc_emisor' : nodes['emisor_node'].get('Rfc', nodes['emisor_node'].get('rfc')),
@@ -206,14 +233,23 @@ class SolicitudesDescarga(models.Model):
             'document_name' : filename,
         })
 
-
+        # se crean los conceptos de la factura
         fact1 = self.env['details.facturasat'].sudo().create(self.getProducts(nodes,fact.id)) 
 
         
     def getProducts(self, nodes, fact_id):
+        """ Cada factura tiene un elemento de Conceptos, dentro de esta cada Concepto es un producto o servicio
+        que se le vende/compro, a si mismo este puede tener uno o mas impuestos que pueden ser retenidos o trasladados
+        segun sea el caso, se crea una linea de concepto por producto y en los impuestos cada linea es un impuesto
+        distinto con su tasa o cuota para que al crear la factura se pueda buscar por codigo
+
+        nodes : Diccionario que apunta a los etree elements de la factura,
+        fact_id : Id de la factura a la cual se le anexaran los conceptos
+        """
         productos = []
-        tax_type = {"001" : "ISR ", "002" : "IVA ", "003" : "IEPS "}
+        tax_type = {"001" : "ISR ", "002" : "IVA ", "003" : "IEPS "} #relacionde impuesto con su codigo SAT
         for element in nodes['conceptos_node'].Concepto:
+            #recorremos todos los conceptos y se obtienen sus valores
             values = {
                 'factura_id' : fact_id,
                 'code_service_product': element.get('ClaveProdServ'),
@@ -226,20 +262,29 @@ class SolicitudesDescarga(models.Model):
                 'discount' : element.get('Descuento'),
                 'objeto_impuesto' : element.get('ObjetoImp'),
             }
-            if element.get('ObjetoImp') != "02" and nodes['cfdi_node'].get('Version') == "4.0":
+            if element.get('ObjetoImp') != "02" and nodes['cfdi_node'].get('Version') == "4.0": 
+                #en el cfdi 4.0 si el Objeto de I,puesto es distinto a 02 no esta obligado a describir los impuestos o no tiene
+                # por lo que se agrega el producto sin impuestos
                 productos.append(values)
                 continue
             try : 
+                #del concepto obtenemos el elemento hijo Impuestos que en si trae las colecciones de trasladados o retenciones
                 Impuestos = element.Impuestos
             except AttributeError:
+                # en caso de que no tenga este elemento (como puede ocurrir con el cfdi 3.3) se agrega solo el concepto y se continua el iterador
                 productos.append(values)
                 continue
             impuestos_trasladados = []
             impuestos_Retenidos = []
             for el in Impuestos.getchildren():
+                #se obtienen el arreglo de impuestos retenidos y trasladados en caso de que existan, caso cotrario se obtienen un arreglo vacio
                 impuestos_trasladados = el if 'Traslados' in el.tag else []
                 impuestos_Retenidos = el if 'Retenciones' in el.tag else []
             taxt_text = ""
+            #Por cada impuesto se crea una linea de texto que describe el impuesto, en caso de las retenciones seguimos la logica de Odoo
+            # que la tasa o importe se vuelve negativo para indicar que es retencion siguen el esquema "Impuesto MontoOPorcentaje"
+
+            # TODO : en el caso de que sea importe como el IEPS en gasolina evitar la multiplicacion x 100 que solo sirve en las tasas
             if type(impuestos_trasladados) != type([]):
                 for imp in impuestos_trasladados.Traslado:
                     taxt_text += tax_type[imp.get('Impuesto')] + str(float(imp.get('TasaOCuota')) * 100) + "\n"

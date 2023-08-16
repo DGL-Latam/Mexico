@@ -7,6 +7,7 @@ _logger = logging.getLogger(__name__)
 class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
     
+    #se define un metodo de cambio de pagina en javascript, abre el account move correspondiente en una nueva ventana
     def action_open_journal_entry(self):
         return {
             'type': 'ir.actions.act_url',
@@ -17,6 +18,9 @@ class AccountBankStatementLine(models.Model):
     
     @api.model_create_multi
     def create(self, vals_list):
+        """ Sobre escribimos el metodo de creacion para colocar en los estados de cuenta las nuevas entradas, pero que estas
+        no se publiquen si el estado de cuenta ya se esta procesando
+        """
         # OVERRIDE
         counterpart_account_ids = []
         for vals in vals_list:

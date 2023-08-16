@@ -4,6 +4,7 @@ from odoo.tools.translate import _
 class AccountMoveReversal(models.TransientModel):
     """
     Account move reversal wizard, it cancel an account move by reversing it.
+    Se dduplico el metodo para evitar una nomenclatura que se ponia de forma automatica por codigo
     """
     _inherit = 'account.move.reversal'
 

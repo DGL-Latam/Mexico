@@ -4,15 +4,26 @@ class Picking(models.Model):
     _inherit = "stock.picking"
     
     def button_validate(self):
+        """
+        Se amplia la funcionabilidad del boton de validar en el picking
+        para que cuando se valide una recepcion o salida de mercancia en una venta intercompañia
+        se valide su contra (recepcion -> salida, salida -> recepcion)
+        colocando de forma correspondiente los numeros de serie y lote de los productos
+        """
         action = super().button_validate()
         ctx = dict(self.env.context)
         if 'validate_picking' in ctx and not ctx['validate_picking']:
             return  
+        #buscamos en la orden de compra o venta relacionada al movimiento que se esta validando si tiene una contra intercompañia
         to_process = self.env['stock.picking']
         if self.sale_id:
             to_process = self.sudo().sale_logic_int(action)
         elif self.purchase_id:
             to_process = self.sudo().purchase_logic_int(action)
+        
+        """en caso en que la accion que se este regresando no sea de tipo bool actualizamos valores de contexto
+        para que en el menu de entrgas parciales se haga lo mismo con ambos movimientos de stock en caso de ser necesario """
+
         if type(action) != bool and to_process:
             action['context'].pop('quotation_only',None)
             action['context'].pop('default_partner_id',None)
@@ -33,6 +44,19 @@ class Picking(models.Model):
     
     
     def sale_logic_int(self, action):   
+        """ Si se esta validando el movimiento de inventario de una orden de venta
+        se buscara si tiene relacionada la orden de compra (PO), en caso de que la tenga se buscara
+        los movimientos de stock relacionados a la PO y se filtraran por una lista que lleva
+        los productos y cantidades a procesar, estos tienen que coincidir de forma completa para que
+        se lleve acabo la autovalidacion, se agregaron pasos extras para cuando existe dos veces el mismo 
+        producto en distintas lineas de movimiento de stock, ya que eso nos indica que son distintos sale.order.lines
+        
+        TODO : Filtrar tambien que solo se tome en cuenta movimientos de recepcion para que si esta una devolucion pendiente no intente
+        auto validarla y mande un error de uso al usuario, salvaria tiempo al equipo de Soporte
+        - Colocar un mensaje en el chatter de si se realizo la validacion de la contra o si no encontro para que el equipo de almacen
+        sepa si tiene que hacer el paso manualmente
+
+        """
         ctx = dict(self.env.context)
         if 'validate_picking' in ctx and not ctx['validate_picking']:
             return 
@@ -83,6 +107,19 @@ class Picking(models.Model):
     
     
     def purchase_logic_int(self, action):
+        """ Si se esta validando el movimiento de inventario de una orden de venta
+        se buscara si tiene relacionada la orden de compra (PO), en caso de que la tenga se buscara
+        los movimientos de stock relacionados a la PO y se filtraran por una lista que lleva
+        los productos y cantidades a procesar, estos tienen que coincidir de forma completa para que
+        se lleve acabo la autovalidacion, se agregaron pasos extras para cuando existe dos veces el mismo 
+        producto en distintas lineas de movimiento de stock, ya que eso nos indica que son distintos sale.order.lines
+        
+        TODO : Filtrar tambien que solo se tome en cuenta movimientos de recepcion para que si esta una devolucion pendiente no intente
+        auto validarla y mande un error de uso al usuario, salvaria tiempo al equipo de Soporte
+        - Colocar un mensaje en el chatter de si se realizo la validacion de la contra o si no encontro para que el equipo de almacen
+        sepa si tiene que hacer el paso manualmente
+        
+        """
         ctx = dict(self.env.context)
         if 'validate_picking' in ctx and not ctx['validate_picking']:
             return 

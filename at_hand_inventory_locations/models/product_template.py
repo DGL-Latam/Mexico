@@ -15,8 +15,12 @@ class ProductTemplate(models.Model):
         'product_variant_ids.outgoing_qty',
     )
     def _compute_quantities(self):
+        """ Se sobreescribio el metodo para evitar que se calculen las ubicaciones hijas de las ubicaciones
+        puestas por el usuario, 
+        """
         locations = []
         for company in self.env.companies:
+            #recuperamos las ubicaciones puestas por el usuario.
             locations.extend(company.at_hand_stock_locations.ids)
         res = self.with_context(location =  locations,  compute_child = False)._compute_quantities_dict()
         for template in self:
