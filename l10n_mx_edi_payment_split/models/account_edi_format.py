@@ -87,6 +87,7 @@ class AccountEdiFormat(models.Model):
 
 
         currency_invoice = self.env["res.currency"]
+
         for field1, field2 in (('debit', 'credit'), ('credit', 'debit')):
             for partial in pay_rec_lines[f'matched_{field1}_ids']:
                 payment_line = partial[f'{field2}_move_id']
@@ -107,6 +108,8 @@ class AccountEdiFormat(models.Model):
                                                                                                    
                 if invoice_line.currency_id == payment_line.currency_id:
                     amount_paid_invoice_curr = invoice_amount
+                elif move.currency_id != mxn_currency and invoice_line.currency_id == mxn_currency:
+                    amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount )
                 else: 
                     invoice_rate = move.currency_id._convert(1.0, invoice.currency_id, move.company_id, move.date, round=False)
                     amount_paid_invoice_curr = invoice_line.currency_id.round(partial.amount * invoice_rate) # monto pagado en moneda de la factura 
