@@ -126,48 +126,40 @@ class MercadoLibreSales(models.Model):
         items = self._getShipmentItems()
         order_ids = []
         for order_item in items:
-            try :
+            try:
                 order_ids.append(order_item['order_id'])
-            except TypeError as e : 
-                _logger.critical("couldn't process this order {}\n{}".format(order_item,e))
-        order_ids = list(dict.fromkeys(order_ids)) #remove duplicates
+            except TypeError as e: 
+                _logger.critical("couldn't process this order {}\n{}".format(order_item, e))
+        order_ids = list(dict.fromkeys(order_ids))  # remove duplicates
         values = []
         for order in order_ids:
             details = self._getOrderDetails(order)
             for order_item in details['order_items']:
-                product_id = self.env['product.product'].sudo().search([('default_code','=',order_item['item']['seller_sku'].replace('-',''))])
-                if product_id:
+                seller_sku = order_item['item'].get('seller_sku')  # Use get() to safely access dictionary keys
+                if seller_sku:
+                    clean_sku = seller_sku.replace('-', '')  # Safely apply replace
+                    product_id = self.env['product.product'].sudo().search([('default_code', '=', clean_sku)])
+                    if product_id:
+                        values.append({
+                            'ml_order_id': self.id,
+                            'product_id': product_id.id,
+                            'name': product_id.description_sale if product_id.description_sale else '[{}] {}'.format(product_id.default_code, product_id.name),
+                            'price': order_item['unit_price'],
+                            'product_uom_qty': order_item['quantity']
+                        })
+                    else:
+                        # Handle the case where no product is found
+                        _logger.critical("No product found for SKU {}".format(clean_sku))
+                else:
+                    name = order_item['item'].get('title', '')  # Safely get title or default to empty string
+                    _logger.critical("SKU is missing for item, using title as name: {}".format(name))
                     values.append({
-                        'ml_order_id' : self.id,
-                        'product_id' : product_id.id,
-                        'name' : product_id.description_sale if product_id.description_sale else '[{}] {}'.format(product_id.default_code, product_id.name),
-                        'price' : order_item['unit_price'],
-                        'product_uom_qty' : order_item['quantity']
+                        'ml_order_id': self.id,
+                        'name': name,
+                        'price': order_item['unit_price'],
+                        'product_uom_qty': order_item['quantity']
                     })
-                else : 
-                    name = ""
-                    try:
-                        name = order_item['item']['seller_sku']
-                    except KeyError as e:
-                        _logger.critical("Doesnt have SKU")
-                        _logger.critical(details)
-                    try:
-                        name += ' ' + order_item['title']
-                    except KeyError as e:
-                        try:
-                            name += ' ' + order_item['item']['title']
-                        except KeyError as e:
-                            _logger.critical("cant find any title")
-                        _logger.critical("Doesnt have title")
-                        _logger.critical(details)
-                    
-                    values.append({
-                        'ml_order_id' : self.id,
-                        'name' : name,
-                        'price' : order_item['unit_price'],
-                        'product_uom_qty' : order_item['quantity']
-                    })
-        self.env['mercadolibre.sale.line'].sudo().with_user(1).create(values) 
+        self.env['mercadolibre.sale.line'].sudo().with_user(1).create(values)
 
 
     def _print_info(self):
