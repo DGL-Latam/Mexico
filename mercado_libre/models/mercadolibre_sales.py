@@ -192,14 +192,17 @@ class MercadoLibreSales(models.Model):
             self.write({'tracking_reference' : shipping_details['tracking_number']})
         except KeyError as e:
             _logger.critical("No se pudo procesar escribir Tracking_number")
+            _logger.critical(shipping_details)
         try:
             self.write({'ml_is_order_full' : shipping_details['logistic_type'] == 'fulfillment'}) 
         except KeyError as e:
             _logger.critical("No se pudo escribir si full")
+            _logger.critical(shipping_details)
         try:
             self.write({'status' : shipping_details['status']})
         except KeyError as e:
             _logger.critical("No se pudo procesar los datos de envio \nError {}".format(str(e)))
+            _logger.critical(shipping_details)
 
 
     def check_order(self):
