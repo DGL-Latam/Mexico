@@ -4,7 +4,7 @@
         Adds the option to search by the uuid of the attachment
         of the invoice by default when searching for the name
     """,
-    "version": "15.0",
+    "version": "17.0",
     "author": "DGL-Latam",
     "category": "Localization/Mexico",
     "depends": [

@@ -5,7 +5,7 @@
     'author': 'DGL-Latam',
     'license': 'LGPL-3',
     'category': '',
-    "version": "15.0.2",
+    "version": "17.0",
     'depends': [
         'base_automation',
         'l10n_mx_edi',

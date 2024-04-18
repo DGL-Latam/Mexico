@@ -3,7 +3,7 @@
     "summary": """
         Muestra tanto el codigo como el nombre del uso del cfdi
     """,
-    "version": "15.0",
+    "version": "17.0",
     "author": "DGL-Latam",
     "category": "Localization/Mexico",
     "depends": [

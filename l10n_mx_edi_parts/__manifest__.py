@@ -7,7 +7,7 @@
     'website': 'https://www.vauxoo.com',
     'license': 'AGPL-3',
     'category': 'Installer',
-    'version': '15.0.1',
+    'version': '17.0',
     'depends': [
         'l10n_mx_edi',
         'sale_management',

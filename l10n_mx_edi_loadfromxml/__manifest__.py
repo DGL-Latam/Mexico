@@ -1,6 +1,6 @@
 {
     'name': 'Set EDI from attached xml',
-    'version': '15.0',
+    'version': '17.0',
     "author": "DGL-Latam",
     "license": "LGPL-3",
     'category': 'Hidden',

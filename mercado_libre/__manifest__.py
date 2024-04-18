@@ -9,7 +9,7 @@ Conecta con API Mercado libre
 Permite obtener los pedidos que se generen en nuestro portal de ventas de Mercado libre y genera la orden de venta 
 """,
     "author": "DGL-Latam",
-    "version": "1.2.3",
+    "version": "17.0",
     'category': 'Hidden/Tools',
     'depends': ['web','sale','sale_stock','tracking_ref_so'],
     'installable': True,

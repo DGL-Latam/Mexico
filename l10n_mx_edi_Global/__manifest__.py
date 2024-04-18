@@ -4,7 +4,7 @@
     Datos extras para las facturas globales del cfdi 4.0
     ''',
     'author': 'DGL-Latam',
-    'version': '0.1',
+    'version': '17.0',
     'depends': [
         'l10n_mx_edi',
     ],

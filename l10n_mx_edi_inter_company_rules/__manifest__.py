@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Inter Company Module for EDI Invoices',
-    'version': '15.0',
+    'version': '17.0',
     "author": "DGL-Latam",
     "license": "LGPL-3",
     'category': 'Hidden',
