@@ -16,7 +16,7 @@
                 </xpath>
                 <xpath expr="//field[@name='communication']" position="after">
                     <field name="csv_file" filename="csv_file_name"/>
-                    <field name="csv_name" invisible="1" class="oe_inline oe_right"/>
+                    <field name="csv_name" column_invisible="True" class="oe_inline oe_right"/>
                 </xpath>
                 
                 <xpath expr="//group" position="after">
@@ -24,12 +24,12 @@
                         <page string="Payments on Invoices">
                             <field name="payment_move_ids" nolabel="1" widget="Many2one">
                             <tree editable="top" decoration-danger="amount_in_line_currency &gt; amount" decoration-info="amount_in_line_currency &lt; amount">
-                                <field name="prev_currency" invisible="1"/>
-                                <field name="prev_payment_date" invisible="1"/>
+                                <field name="prev_currency" column_invisible="True"/>
+                                <field name="prev_payment_date" column_invisible="True"/>
                                 <field name="move_line_id"  />
                                 <field name="partner_id"  readonly="1"/>
                                 <field name="date"  readonly="1" />
-                                <field name="date_due"   readonly="1" invisible="1"/>
+                                <field name="date_due"   readonly="1" column_invisible="True"/>
                                 <field name="currency_id" readonly="1"/>
                                 <field name="amount"  readonly="1"/>
                                 <field name="amount_in_line_currency" readonly="1"/>                              

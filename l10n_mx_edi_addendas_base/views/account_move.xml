@@ -8,7 +8,7 @@
         <!-- find field description and add the field
              new_field after it -->
         <xpath expr="//label[@for='invoice_payment_term_id']" position="before">
-          <field name="partner_vat" invisible="1"/>
+          <field name="partner_vat" column_invisible="True"/>
         </xpath>
     </field>
 </record>
