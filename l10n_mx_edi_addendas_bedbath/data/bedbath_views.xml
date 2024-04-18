@@ -65,7 +65,7 @@
                 <button name="l10n_mx_edi_addendas_bedbath.action_addenda_bed_bath_defaults" type="action"
                         string="Addenda Bed Bath"
                         context="{'move_id': id}"
-                        attrs="{'invisible': [('state', 'not in', ['draft'])]}"
+                        invisible="state not in ['draft']"
                         />
             </xpath>
         </field>

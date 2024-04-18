@@ -7,9 +7,9 @@
         <field name="arch" type="xml">
             <xpath expr="//label[@for='journal_id']" position="before">
                 <field column_invisible="True" name="partner_vat"/>
-                <field name="l10n_mx_edi_periocidad" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
-                <field name="l10n_mx_edi_mes" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
-                <field name="l10n_mx_edi_year" attrs="{'invisible': ['|',('partner_vat','not in', ['XEXX010101000','XAXX010101000']),('move_type', 'not in', 'out_invoice' )], 'readonly': [('state', '!=', 'draft')]}"/> 
+                <field name="l10n_mx_edi_periocidad" invisible="partner_vat not in ['XEXX010101000','XAXX010101000'] or move_type not in 'out_invoice'" readonly="state != 'draft'"/> 
+                <field name="l10n_mx_edi_mes" invisible="partner_vat not in ['XEXX010101000','XAXX010101000'] or move_type not in 'out_invoice'" readonly="state != 'draft'"/> 
+                <field name="l10n_mx_edi_year" invisible="partner_vat not in ['XEXX010101000','XAXX010101000'] or move_type not in 'out_invoice'" readonly="state != 'draft'"/> 
 
             </xpath>
         </field>

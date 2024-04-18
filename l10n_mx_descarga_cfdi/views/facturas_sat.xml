@@ -24,7 +24,7 @@
               <header>
                 <button name="createInvoice" string="Crear Factura" 
                 type="object" groups="l10n_mx_descarga_cfdi.group_create_factura" 
-                attrs="{'invisible': [('account_move_id', '!=', False)]}"
+                invisible="account_move_id"
                 />
               </header>
                 <sheet>

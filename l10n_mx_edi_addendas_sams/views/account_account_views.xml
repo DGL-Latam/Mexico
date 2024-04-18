@@ -8,7 +8,7 @@
         <!-- find field description and add the field
              new_field after it -->
         <xpath expr="//label[@for='journal_id']" position="before">
-          <field name="x_addenda_sams" attrs="{'invisible' : [('partner_vat', '!=', 'NWM9709244W4')]}"/>
+          <field name="x_addenda_sams" invisible="partner_vat != 'NWM9709244W4'" />
         </xpath>
     </field>
 </record>
