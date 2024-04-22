@@ -14,7 +14,7 @@
         'views/account_move.xml',
         'data/cfdi.xml',
     ],
-    'installable': False,
+    'installable': False, #change value to False
     'auto_install': False,
     'application': False,
 }

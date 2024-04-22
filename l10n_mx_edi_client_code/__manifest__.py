@@ -13,5 +13,5 @@
     ],
     'demo': [
     ],
-    'installable': True,
+    'installable': False, #change value to False
 }
