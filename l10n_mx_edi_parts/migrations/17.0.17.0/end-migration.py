@@ -4,7 +4,7 @@ _logger = logging.getLogger(__name__)
 
 
 def migrate(cr, version):
-    _logger.info('XXX XXX XXX XXX PRE XXX XXX XXX XXX')
+    _logger.info('XXX XXX XXX XXX END XXX XXX XXX XXX')
     _logger.info('Start script for deactivating modules of dependences')
     _logger.info(f'Version: {version}')
     cr.execute("DELETE FROM ir_module_module WHERE name ILIKE 'account_payment_widget_amount'")
@@ -13,4 +13,4 @@ def migrate(cr, version):
     cr.execute("DELETE FROM ir_module_module WHERE name ILIKE 'product_tax_multicompany_default'")
     cr.execute("DELETE FROM ir_module_module WHERE name ILIKE 'purchase_discount'")
     _logger.info('Stop script for deactivating modules of dependences')
-    _logger.info('XXX XXX XXX XXX PRE XXX XXX XXX XXX')
+    _logger.info('XXX XXX XXX XXX END XXX XXX XXX XXX')
