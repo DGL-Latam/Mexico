@@ -4,7 +4,10 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     def _get_default_journal(self):
-       return self.env['account.move'].with_context(default_move_type='out_invoice')._get_default_journal()
+        try:
+            return self.env['account.move'].with_context(default_move_type='out_invoice')._get_default_journal()
+        except AttributeError:
+            return self.env['account.journal'].search([('type', '=', 'sale')], limit=1).id
 
     journal_id = fields.Many2one(
         'account.journal', 
