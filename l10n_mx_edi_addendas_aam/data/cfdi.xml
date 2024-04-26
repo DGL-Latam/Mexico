@@ -1,7 +1,0 @@
-<odoo>
-    <template id="cfdiv33_inherit" inherit_id="l10n_mx_edi.cfdiv33">
-        <xpath expr="//*[local-name()='Comprobante']" position="attributes">
-            <attribute name="t-att-CondicionesDePago">record.x_amazon if customer_rfc == 'ANE140618P37' else format_string(record.invoice_payment_term_id.name, 1000)</attribute>
-        </xpath>
-    </template>
-</odoo>
