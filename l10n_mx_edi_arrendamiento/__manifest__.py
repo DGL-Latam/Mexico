@@ -19,7 +19,7 @@
     ],
     'demo': [
     ],
-    'installable': False, #change value to False
-    'auto_install': False,
+    'installable': True, #change value to False
+    'auto_install': True,
     'application': False,
 }

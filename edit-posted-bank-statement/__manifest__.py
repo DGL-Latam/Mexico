@@ -15,6 +15,6 @@
     ],
     'demo': [
     ],
-    'installable': False,
-    'auto_install': False,
+    'installable': True,
+    'auto_install': True,
 }
