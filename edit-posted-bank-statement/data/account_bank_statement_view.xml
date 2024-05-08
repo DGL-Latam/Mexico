@@ -2,7 +2,7 @@
 <odoo>
     <record id="view_bank_statement_inh_edit_posted_base" model="ir.ui.view">
         <field name="name">view.bank.statement.inherit.edit_posted_base</field>
-        <field name="model">account.bank.statement</field>
+        <field name="model">account.bank.statement.line</field>
         <field name="inherit_id" ref="account.view_bank_statement_form"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']" position="attributes">
