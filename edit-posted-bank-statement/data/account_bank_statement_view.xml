@@ -6,25 +6,25 @@
         <field name="inherit_id" ref="account.view_bank_statement_form"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', 'not in', ['open','posted'])]}</attribute>
+                <attribute name="readonly">state not in ['open','posted']</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='date']" position="attributes">
-                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+                <attribute name="readonly">parent.state not in ['open','posted'] or is_reconciled</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='partner_id']" position="attributes">
-                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+                <attribute name="readonly">parent.state not in ['open','posted'] or is_reconciled</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='amount_currency']" position="attributes">
-                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+                <attribute name="readonly">parent.state not in ['open','posted'] or is_reconciled</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='foreign_currency_id']" position="attributes">
-                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+                <attribute name="readonly">parent.state not in ['open','posted'] or is_reconciled</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='amount']" position="attributes">
-                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+                <attribute name="readonly">parent.state not in ['open','posted'] or is_reconciled</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//field[@name='payment_ref']" position="attributes">
-                <attribute name="attrs">{'readonly': ['|',('parent.state', 'not in', ['open','posted']),('is_reconciled', '=', True)]}</attribute>
+                <attribute name="readonly">parent.state not in ['open','posted'] or is_reconciled</attribute>
             </xpath>
             <xpath expr="//page[@name='statement_line_ids']//field[@name='line_ids']//tree//button[@name='button_undo_reconciliation']" position="after">
                             <button name="action_open_journal_entry" type="object"
@@ -40,7 +40,8 @@
         <field name="inherit_id" ref="l10n_mx_edi.view_bank_statement_inh_l10n_mx"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='l10n_mx_edi_payment_method_id']" position="attributes">
-                <attribute name="attrs">{'column_invisible': [('parent.country_code', '!=', 'MX')], 'readonly': [('state', 'in', ('confirm'))]}</attribute>
+                <attribute name="column_invisible">parent.country_code != 'MX'</attribute>
+                <attribute name="readonly"> state in ('confirm')</attribute>
             </xpath>
         </field>
     </record>
