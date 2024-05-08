@@ -1,5 +1,5 @@
 <odoo>
-    <template id="cfdiv33_inherit" inherit_id="l10n_mx_edi_40.cfdiv40">
+    <template id="cfdiv33_inherit" inherit_id="l10n_mx_edi.cfdiv40">
         <xpath expr="//*[local-name()='Conceptos']" position="before">
             <t t-set="sale_order" t-value="record.mapped('invoice_line_ids.sale_line_ids.order_id') or False"/>
             <t t-set="pickings" t-value="sale_order.mapped('picking_ids').filtered(lambda pick: pick.state == 'done') if sale_order else False"/>

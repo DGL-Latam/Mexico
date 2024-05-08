@@ -1,5 +1,5 @@
 <odoo>
-    <template id="cfdiv33_client_code_inherit" inherit_id="l10n_mx_edi_40.cfdiv40">
+    <template id="cfdiv33_client_code_inherit" inherit_id="l10n_mx_edi.cfdiv40">
         <xpath expr="//*[local-name()='Concepto']" position="before">
             <t t-set="customer_code" t-value="None"/>
             <t t-if="line.sudo().product_id.customer_ids">
