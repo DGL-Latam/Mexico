@@ -9,7 +9,6 @@
     'depends': [
         'base_automation',
         'l10n_mx_edi',
-        'html_text',
     ],
     'test': [],
     'data': [
