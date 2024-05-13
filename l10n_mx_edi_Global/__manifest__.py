@@ -7,6 +7,7 @@
     'version': '17.0',
     'depends': [
         'l10n_mx_edi',
+        'l10n_mx_edi_addendas_SAMS',
     ],
     'test': [
     ],
