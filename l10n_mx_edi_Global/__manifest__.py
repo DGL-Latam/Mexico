@@ -12,7 +12,7 @@
     ],
     'data': [
         'views/account_move.xml',
-        'data/cfdi.xml',
+        # 'data/cfdi.xml',
     ],
     'installable': True, #change value to False 
     'auto_install': False,
