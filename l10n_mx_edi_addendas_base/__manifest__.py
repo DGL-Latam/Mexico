@@ -12,11 +12,12 @@
     ],
     'test': [],
     'data': [
-        'data/cfdi.xml',
+        #'data/cfdi.xml',
         'views/res_config_view.xml',    
         'views/account_move.xml',    
     ],
     'demo': [
     ],
-    'installable': True,
+    'installable': False, #change value to False
+    'auto_install': False, #change value to False
 }
