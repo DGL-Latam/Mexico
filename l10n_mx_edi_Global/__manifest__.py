@@ -7,7 +7,6 @@
     'version': '17.0',
     'depends': [
         'l10n_mx_edi',
-        'l10n_mx_edi_addendas_SAMS',
     ],
     'test': [
     ],
@@ -15,7 +14,7 @@
         'views/account_move.xml',
         'data/cfdi.xml',
     ],
-    'installable': False, #change value to False 
+    'installable': True, #change value to False 
     'auto_install': False,
-    'application': False,
+    'application': True,
 }
