@@ -14,7 +14,7 @@
     'test': [
     ],
     'data': [
-        'data/cfdi.xml',
+        #'data/cfdi.xml',
         'views/product_views.xml',
     ],
     'demo': [
