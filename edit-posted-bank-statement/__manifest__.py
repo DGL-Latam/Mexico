@@ -11,7 +11,7 @@
     ],
     'test': [],
     'data': [   
-        'data/account_bank_statement_view.xml'
+        #'data/account_bank_statement_view.xml'
     ],
     'demo': [
     ],
