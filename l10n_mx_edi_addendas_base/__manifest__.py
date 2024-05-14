@@ -19,5 +19,5 @@
     'demo': [
     ],
     'installable': False, #change value to False
-    'auto_install': False, #change value to False
+    'auto_install': True, 
 }
