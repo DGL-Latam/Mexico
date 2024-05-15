@@ -18,6 +18,6 @@
     ],
     'demo': [
     ],
-    'installable': False, #change value to False
+    'installable': True,
     'auto_install': True, 
 }
