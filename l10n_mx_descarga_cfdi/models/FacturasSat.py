@@ -26,7 +26,7 @@ _logger = logging.getLogger(__name__)
 class SolicitudesDescarga(models.Model):
     """ Modelo generado para llevar el control de las solicitadas al SAT, su estado y datos para procesamiento """
     _name = "solicitud.descarga"
-    _descripcion = "Solicitudes Descargas SAT"
+    _description = "Solicitudes Descargas SAT"
     
     id_solicitud = fields.Char(string="ID de la solicitud", copy=False, readonly=True)
     estado_solicitud = fields.Selection(selection = [
