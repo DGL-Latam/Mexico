@@ -6,7 +6,7 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     l10n_mx_edi_cancellation = fields.Char(
-        string='Cancellation Case', copy=False, track_visibility='onchange',
+        string='Cancellation Case', copy=False, tracking=True, #change value track_visibility='onchange' to tracking=True for upgrade v14+ 
         help='The SAT has 4 cases in which an invoice could be cancelled, please fill this field based on your case:\n'
         'Case 1: The invoice was generated with errors and must be re-invoiced, the format must be:\n'
         '"01:UUID" where the UUID is the fiscal folio of the invoice generated to replace this record.\n'
