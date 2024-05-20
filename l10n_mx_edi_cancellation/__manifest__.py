@@ -4,6 +4,7 @@
     Allow to manually set cancellation cause of cfdi.
     ''',
     'author': 'DGL-Latam',
+    'license': 'OPL-1',
     'version': '17.0',
     'depends': [
         'l10n_mx_edi',

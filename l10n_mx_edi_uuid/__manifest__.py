@@ -5,6 +5,7 @@
         of the invoice by default when searching for the name
     """,
     "version": "17.0",
+    "license": "OPL-1",
     "author": "DGL-Latam",
     "category": "Localization/Mexico",
     "depends": [

@@ -4,6 +4,7 @@
         Muestra tanto el codigo como el nombre del uso del cfdi
     """,
     "version": "17.0",
+    "license": "OPL-1",
     "author": "DGL-Latam",
     "category": "Localization/Mexico",
     "depends": [

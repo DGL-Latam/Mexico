@@ -1,6 +1,7 @@
 {
     'name': 'Choose journal in the Sale Order',
     'version': '17.0',
+    'license': 'OPL-1',
     "author": "DGL-Latam",
     'category': 'Hidden',
     'summary': 'Modulo para escoger de forma manual el diario desde la orden de venta',

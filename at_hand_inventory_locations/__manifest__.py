@@ -2,6 +2,7 @@
     "name": "Select inventory at hand",
     "summary": "The admin can select witch locations will be considered as on hand",
     "version": "17.0",
+    "license": "OPL-1",
     "author": "DGL-Latam",
     "depends" : ['stock'],
     "data": [
