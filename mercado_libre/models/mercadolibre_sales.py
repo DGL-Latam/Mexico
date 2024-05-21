@@ -11,6 +11,7 @@ _logger = logging.getLogger(__name__)
 
 class MercadolibreSaleLine(models.Model):
     _name = "mercadolibre.sale.line"
+    _description = "Mercado Libre Sale Order Line"
     
     ml_order_id = fields.Many2one('mercadolibre.sales', string='Order Reference', required=True, ondelete='cascade', index=True, copy=False)
     name = fields.Text(string='Descripcion', required=True)
@@ -30,6 +31,7 @@ class MercadolibreSaleLine(models.Model):
 
 class MercadoLibreSales(models.Model):
     _name = "mercadolibre.sales"
+    _description = "Mercado Libre Sales"
     
     #Identificadores para hacer peticiones a mercado libre
     ml_order_id = fields.Char(string="identificador orden mercado libre", help="id de la orden de compra", required=True)
