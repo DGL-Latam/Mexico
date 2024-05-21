@@ -21,14 +21,14 @@ class ResCompany(models.Model):
     ml_seller_id = fields.Char(string="ID del vendedor", help="Valor numerico que pertenece al vendedor en la base de datos de mercado libre")
     ml_app_id = fields.Char(string="Mercado libre app id", help="App id, se puede checar en la configuracion de la app en la pagina de developers de ML")
     ml_app_secret = fields.Char(string="Mercado libre app secret", help="Secret key, se puede checar en la configuracion de la app en la pagina de developers de ML")
-    ml_access_token = fields.Char(string="Access Token", help="Token para poder acceder a los servicios del api")
+    ml_access_token = fields.Char(string="Access Token ML", help="Token para poder acceder a los servicios del api")
     ml_refresh_token = fields.Char(string="Token", help="Token para refrescar nuestro token de auth",)
     ml_responsible_deliveries = fields.Char(
         string="Email responsables Entrega ML", 
-        help="Lista de correos electronicos al que se les notificara de no entregar la mercancia, que fue marcada como hecha en odoo, a paqueteria si el pedido fue cancelado"
+        help="Lista de correos electronicos al que se les notificara de no entregar la mercancia, que fue marcada como hecha en odoo, a paqueteria si el pedido fue cancelado (delivered)"
     )
     ml_responsible_products = fields.Char(string="Email responsables Productos ML", 
-        help="Lista de correos electronicos al que se les notificara de no entregar la mercancia, que fue marcada como hecha en odoo, a paqueteria si el pedido fue cancelado"
+        help="Lista de correos electronicos al que se les notificara de no entregar la mercancia, que fue marcada como hecha en odoo, a paqueteria si el pedido fue cancelado (product)"
     )
     
     def renew_access_token(self):

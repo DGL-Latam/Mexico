@@ -239,7 +239,8 @@ class AccountRegisterInvoices(models.TransientModel):
         'account.move.line', help='Invoice being paid' ,store=True)
     currency_id = fields.Many2one(
         'res.currency', help='Currency of this invoice',
-        related='move_line_id.currency_id' ,store=True)
+        related='move_line_id.currency_id' ,store=True, string="Moneda Account Register Invoices"
+    )
     date = fields.Date(help="Invoice Date" ,store=True , related='move_line_id.date')
     date_due = fields.Date(string='Due Date',
                            help="Maturity Date in the invoice" ,store=True, related='move_line_id.move_id.invoice_date_due')
@@ -257,9 +258,14 @@ class AccountRegisterInvoices(models.TransientModel):
     
     prev_currency = fields.Many2one('res.currency',string="previous currency", help="only for calculations")
     prev_payment_date = fields.Date(string="prev date", help="only to help make calculations")
-    payment_currency_id = fields.Many2one(help="Currency in wich the payment is being processed", related="register_id.currency_id")
+    payment_currency_id = fields.Many2one(
+        help="Currency in wich the payment is being processed", related="register_id.currency_id",
+        string="Payment Currency Account Register Invoices"
+    )
     
-    company_currency_id = fields.Many2one('res.currency',related='company_id.currency_id')
+    company_currency_id = fields.Many2one(
+        'res.currency',related='company_id.currency_id', string="Company Currency Account Register Invoices"
+    )
     exchange_rate = fields.Float(string="Tasa de cambio", compute="_compute_amount_in_line_currency", digits=(16, 4))
     payment_date = fields.Date(related="register_id.payment_date")
     company_id = fields.Many2one(related="register_id.company_id")

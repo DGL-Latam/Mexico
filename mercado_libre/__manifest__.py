@@ -2,11 +2,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Conexion Mercado Libre',
-    'description': """
-Conecta con API Mercado libre
-===========================
-
-Permite obtener los pedidos que se generen en nuestro portal de ventas de Mercado libre y genera la orden de venta 
+    'description': """Conecta con API Mercado libre.
+Permite obtener los pedidos que se generen en nuestro portal de ventas de Mercado libre
+y genera la orden de venta. 
 """,
     "author": "DGL-Latam",
     "version": "17.0",
