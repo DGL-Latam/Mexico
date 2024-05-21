@@ -87,7 +87,7 @@ class Picking(models.Model):
         for line in picking_to_work.move_ids_without_package:
             line.move_line_ids.unlink()
         for move in self.move_line_ids_without_package:
-            line = picking_to_work.move_ids_without_package.filtered(lambda x: x.product_id == move.product_id and x.product_uom_qty > x.quantity_done)[0]
+            line = picking_to_work.move_ids_without_package.filtered(lambda x: x.product_id == move.product_id and x.product_uom_qty > x.quantity)[0]
 
             values = {
                     'qty_done' : move.qty_done,
