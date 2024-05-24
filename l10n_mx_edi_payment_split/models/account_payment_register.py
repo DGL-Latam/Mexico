@@ -27,7 +27,7 @@ class AccountPaymentRegister(models.TransientModel):
         'register_id', help='Invoices that were paid in mass')
     partner_id = fields.Many2one('res.partner',
         string="Customer/Vendor", store=True, copy=False, ondelete='restrict',
-        compute='_compute_from_lines', inverse = "_inv_partner")
+        compute='_compute_from_lines', inverse = "_inv_partner", required=True) #add required=True for upgrade
     csv_file = fields.Binary(copy=False, help='csv con el nombre de la factura y monto')
     csv_name = fields.Char(copy=False, help='nombre del archivo CSV')
     
