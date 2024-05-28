@@ -7,7 +7,7 @@
     <field name="arch" type="xml">
         <!-- find field description and add the field
              new_field after it -->
-        <xpath expr="//field[@name='l10n_mx_edi_origin']" position="before">
+        <xpath expr="//field[@name='l10n_mx_edi_cfdi_origin']" position="before">
           <field name="l10n_mx_edi_cancellation" /> 
         </xpath>
     </field>

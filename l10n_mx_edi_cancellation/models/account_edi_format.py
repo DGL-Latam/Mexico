@@ -23,7 +23,7 @@ class AccountEdiFormat(models.Model):
     _inherit = 'account.edi.format'
 
     def _l10n_mx_edi_finkok_cancel(self, move, credentials, cfdi):
-        uuid_replace = move.l10n_mx_edi_cancel_invoice_id.l10n_mx_edi_cfdi_uuid
+        uuid_replace = move.l10n_mx_edi_cfdi_cancel_id.l10n_mx_edi_cfdi_uuid
         return self._l10n_mx_edi_finkok_cancel_service(move.l10n_mx_edi_cfdi_uuid, move.company_id, credentials,
                                                        uuid_replace=uuid_replace,cancel_case=move.l10n_mx_edi_cancellation)
 

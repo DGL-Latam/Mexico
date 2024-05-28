@@ -8,7 +8,7 @@
         <xpath expr="//button[@name='action_cancel']" position="attributes">
           <attribute name="invisible">state not in ('posted','draft')</attribute>
         </xpath>
-        <xpath expr="//field[@name='l10n_mx_edi_origin']" position="before">
+        <xpath expr="//field[@name='l10n_mx_edi_cfdi_origin']" position="before">
           <field name="l10n_mx_edi_cancellation" /> 
         </xpath>
     </field>
