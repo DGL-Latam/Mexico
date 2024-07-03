@@ -77,6 +77,9 @@ class AccountMove(models.Model):
         except AttributeError:
             # Not a CFDI
             return {}
+        except Exception as e:
+            _logger.error('Error decoding CFDI: %s', e)
+            return {}
 
         return {
             'uuid': ({} if tfd_node is None else tfd_node).get('UUID'),

@@ -10,7 +10,6 @@ class AccountMove(models.Model):
         help='Folio in electronic invoice, is returned by SAT when send to stamp.',
         compute='_compute_cfdi_values',
         search='search_uuid',
-        store=True,
     )
     
     def search_uuid(self,operator, value):
