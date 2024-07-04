@@ -52,7 +52,6 @@ class AccountMove(models.Model):
             return {}
 
         try:
-
             cfdi_node = fromstring(cfdi_data)
             emisor_node = cfdi_node.Emisor
             receptor_node = cfdi_node.Receptor
@@ -62,18 +61,22 @@ class AccountMove(models.Model):
             'tfd:TimbreFiscalDigital[1]',
             {'tfd': 'http://www.sat.gob.mx/TimbreFiscalDigital'},
             )
-        except etree.XMLSyntaxError:
+        except etree.XMLSyntaxError as e:
+            _logger.error('XML Syntax Error: %s', e)
             file = io.BytesIO(cfdi_data)
-
-            for element in etree.iterparse(file):
-                if '}Emisor' in element[1].tag:
-                    emisor_node = element[1]
-                if '}Receptor' in element[1].tag:
-                    receptor_node = element[1]
-                if '}Comprobante' in element[1].tag:
-                    cfdi_node = element[1]
-                if '}TimbreFiscalDigital' in element[1].tag:
-                    tfd_node = element[1]
+            try:
+                for element in etree.iterparse(file):
+                    if '}Emisor' in element[1].tag:
+                        emisor_node = element[1]
+                    if '}Receptor' in element[1].tag:
+                        receptor_node = element[1]
+                    if '}Comprobante' in element[1].tag:
+                        cfdi_node = element[1]
+                    if '}TimbreFiscalDigital' in element[1].tag:
+                        tfd_node = element[1]
+            except Exception as e:
+                _logger.error('Error decoding CFDI: %s', e)
+                return {}
         except AttributeError:
             # Not a CFDI
             return {}
