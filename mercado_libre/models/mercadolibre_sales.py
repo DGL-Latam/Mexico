@@ -181,7 +181,8 @@ class MercadoLibreSales(models.Model):
 
     def _writeDataShipDetails(self,shipping_details):
         try:
-            self.write({'tracking_reference' : shipping_details['tracking_number']})
+            if shipping_details['tracking_number']
+                self.write({'tracking_reference' : shipping_details['tracking_number']})
         except KeyError as e:
             _logger.critical("No se pudo procesar escribir Tracking_number")
             _logger.critical(shipping_details)
