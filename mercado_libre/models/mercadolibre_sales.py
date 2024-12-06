@@ -181,8 +181,7 @@ class MercadoLibreSales(models.Model):
 
     def _writeDataShipDetails(self,shipping_details):
         try:
-            if shipping_details['tracking_number']:
-                self.write({'tracking_reference' : shipping_details['tracking_number']})
+            self.write({'tracking_reference' : shipping_details['tracking_number']})
         except KeyError as e:
             _logger.critical("No se pudo procesar escribir Tracking_number")
             _logger.critical(shipping_details)
@@ -393,12 +392,13 @@ class MercadoLibreSales(models.Model):
         if attach.id:
             attach.write({'raw' : label_data})
         else:
-            self.env['ir.attachment'].sudo().create({
-                'name' : 'Guia ' + self.tracking_reference + '.pdf',
-                'type' : 'binary',
-                'raw' : label_data,
-                'res_model' : 'sale.order',
-            'res_id' : self.sale_order_id.id,
-            })
+            if self.tracking_reference:
+                self.env['ir.attachment'].sudo().create({
+                    'name' : 'Guia ' + self.tracking_reference + '.pdf',
+                    'type' : 'binary',
+                    'raw' : label_data,
+                    'res_model' : 'sale.order',
+                'res_id' : self.sale_order_id.id,
+                })
         return self.sale_order_id
 
