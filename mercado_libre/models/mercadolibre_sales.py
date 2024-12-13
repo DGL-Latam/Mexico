@@ -138,7 +138,7 @@ class MercadoLibreSales(models.Model):
                 seller_sku = order_item['item'].get('seller_sku')  # Use get() to safely access dictionary keys
                 if seller_sku:
                     clean_sku = seller_sku.replace('-', '')  # Safely apply replace
-                    product_id = self.env['product.product'].sudo().search([('default_code', '=', clean_sku)])
+                    product_id = self.env['product.product'].sudo().search([('default_code', '=', clean_sku)], limit = 1)
                     if product_id:
                         values.append({
                             'ml_order_id': self.id,
