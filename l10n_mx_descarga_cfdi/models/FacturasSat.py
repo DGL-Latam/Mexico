@@ -8,6 +8,10 @@ import time
 import zipfile
 import io
 
+import base64
+from datetime import date, timedelta
+from satcfdi.models import Signer
+from satcfdi.pacs.sat import SAT, TipoDescargaMasivaTerceros, EstadoSolicitud
 
 from lxml.objectify import fromstring
 from lxml import etree
@@ -79,43 +83,81 @@ class SolicitudesDescarga(models.Model):
         Fecha de inicio : Para poder indicar desde que fecha quiere que se genere, en caso de que no se especifique se tomara la fecha del dia anterior a las 0:00
         Fecga de Fin : Para poder indicar hasta que fecha se quiere recuperar facturas, en caso de no ser indicado se tomara la media noche del dia anterior
         emitidas : Booleano para indicar si se busca recuperar la facturas emitidas o recibidas"""
-        solicitudDes, token = self._GetSolicitudxma(company)
-        fechaI, fechaF = "" , ""
-        if fechaInicio or fechaFin:
-            fechaI = datetime.datetime.strptime(fechaInicio, '%d/%m/%y %H:%M:%S')
-            fechaF = datetime.datetime.strptime(fechaFin, '%d/%m/%y %H:%M:%S') 
-        else:
-            yesterday = datetime.datetime.today() - datetime.timedelta(days=1,hours=6)
-            datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
-            datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
-            fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
-            fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
+        # solicitudDes, token = self._GetSolicitudxma(company)
+        # fechaI, fechaF = "" , ""
+        # if fechaInicio or fechaFin:
+        #     fechaI = datetime.datetime.strptime(fechaInicio, '%d/%m/%y %H:%M:%S')
+        #     fechaF = datetime.datetime.strptime(fechaFin, '%d/%m/%y %H:%M:%S') 
+        # else:
+        #     yesterday = datetime.datetime.today() - datetime.timedelta(days=1,hours=6)
+        #     datetime_str =  yesterday.strftime('%d/%m/%y') + ' 00:00:00'
+        #     datetime_str2 = yesterday.strftime('%d/%m/%y') + ' 23:59:59'
+        #     fechaI = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
+        #     fechaF = datetime.datetime.strptime(datetime_str2, '%d/%m/%y %H:%M:%S')
+        # if emitidas:
+        #     #si se piden las facturas emitidas se pasa el rfc de la empresa en el valor de rfc_emisor
+        #     solicitud = solicitudDes.SolicitarDescarga(
+        #         token,
+        #         company.vat, 
+        #         fechaI,
+        #         fechaF,
+        #         rfc_emisor = company.vat
+        #     )
+        # else:
+        #     #si se piden las facturas emitidas se pasa el rfc de la empresa en el valor de rfc_emisor
+        #     solicitud = solicitudDes.SolicitarDescarga(
+        #         token,
+        #         company.vat, 
+        #         fechaI,
+        #         fechaF,
+        #         rfc_receptor = company.vat
+        #     )
+        yesterday = date.today() - timedelta(days=1)
+        today = date.today()
+        
+        # Load Fiel
+        signer = Signer.load(
+            certificate=company.l10n_mx_fiel_cer,
+            key=company.l10n_mx_fiel_key,
+            password=company.l10n_mx_fiel_pass
+        )
+        
+        sat_service = SAT(
+            signer=signer
+        )
+        
         if emitidas:
-            #si se piden las facturas emitidas se pasa el rfc de la empresa en el valor de rfc_emisor
-            solicitud = solicitudDes.SolicitarDescarga(
-                token,
-                company.vat, 
-                fechaI,
-                fechaF,
-                rfc_emisor = company.vat
+            # Facturas Recibidas
+            response = sat_service.recover_comprobante_request(
+                fecha_inicial=yesterday,
+                fecha_final=today,
+                rfc_emisor=sat_service.signer.rfc,
+                tipo_solicitud=TipoDescargaMasivaTerceros.CFDI
             )
         else:
-            #si se piden las facturas emitidas se pasa el rfc de la empresa en el valor de rfc_emisor
-            solicitud = solicitudDes.SolicitarDescarga(
-                token,
-                company.vat, 
-                fechaI,
-                fechaF,
-                rfc_receptor = company.vat
+            # Facturas Emitidas
+            response = sat_service.recover_comprobante_request(
+                fecha_inicial=yesterday,
+                fecha_final=today,
+                rfc_receptor=sat_service.signer.rfc,
+                tipo_solicitud=TipoDescargaMasivaTerceros.CFDI
             )
+
+        # Almacenar el id_solicitud en algún lugar
+        id_solicitud = response['IdSolicitud']
+
+        # Revisar estado de descarga
+        response = sat_service.recover_comprobante_status(id_solicitud)
+        
+        _logger.critical(response)
         
         #Una vez que se hizo la solicitud con los datos que nos responde creamos la entrada en nuestra tabla
         self.env['solicitud.descarga'].sudo().create( {
-            'id_solicitud' : solicitud['id_solicitud'], 
-            'estado_solicitud' : '1' if solicitud['mensaje'] == 'Solicitud Aceptada' else '0',
+            'id_solicitud' : id_solicitud, 
+            'estado_solicitud' : '1' if response['mensaje'] == 'Solicitud Aceptada' else '0',
             'company_id' : company.id,
-            'fechaInicio' : fechaI,
-            'fechaFin' : fechaF,
+            'fechaInicio' : yesterday,
+            'fechaFin' : today,
             'emitidas' : emitidas,
         } )
 
