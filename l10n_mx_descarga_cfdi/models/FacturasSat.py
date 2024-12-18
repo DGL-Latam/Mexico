@@ -112,44 +112,6 @@ class SolicitudesDescarga(models.Model):
                 fechaF,
                 rfc_receptor = company.vat
             )
-        # yesterday = date.today() - timedelta(days=1)
-        # today = date.today()
-        
-        # # Load Fiel
-        # signer = Signer.load(
-        #     certificate=company.l10n_mx_fiel_cer,
-        #     key=company.l10n_mx_fiel_key,
-        #     password=company.l10n_mx_fiel_pass
-        # )
-        
-        # sat_service = SAT(
-        #     signer=signer
-        # )
-        
-        # if emitidas:
-        #     # Facturas Recibidas
-        #     response = sat_service.recover_comprobante_request(
-        #         fecha_inicial=yesterday,
-        #         fecha_final=today,
-        #         rfc_emisor=sat_service.signer.rfc,
-        #         tipo_solicitud=TipoDescargaMasivaTerceros.CFDI
-        #     )
-        # else:
-        #     # Facturas Emitidas
-        #     response = sat_service.recover_comprobante_request(
-        #         fecha_inicial=yesterday,
-        #         fecha_final=today,
-        #         rfc_receptor=sat_service.signer.rfc,
-        #         tipo_solicitud=TipoDescargaMasivaTerceros.CFDI
-        #     )
-
-        # # Almacenar el id_solicitud en algún lugar
-        # id_solicitud = response['IdSolicitud']
-
-        # # Revisar estado de descarga
-        # response = sat_service.recover_comprobante_status(id_solicitud)
-        
-        # _logger.critical(response)
         
         #Una vez que se hizo la solicitud con los datos que nos responde creamos la entrada en nuestra tabla
         self.env['solicitud.descarga'].sudo().create( {

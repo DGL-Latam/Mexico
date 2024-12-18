@@ -5,7 +5,9 @@ from Crypto.Hash import SHA
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from OpenSSL import crypto
-
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import Encoding, pkcs12, PrivateFormat, BestAvailableEncryption, NoEncryption, PublicFormat, load_der_private_key
 
 class Fiel():
     def __init__(self, cer_der, key_der, passphrase):
@@ -15,33 +17,59 @@ class Fiel():
     def __importar_cer__(self, cer_der):
         # Cargar certificado en formato DER
         self.cer = crypto.load_certificate(crypto.FILETYPE_ASN1, cer_der)
+        
+    def public_key(self) -> rsa.RSAPublicKey:
+        return self.cer.get_pubkey().to_cryptography_key()
+    
+    def _compare_public_keys(public_key_a, public_key_b):
+        def key_bytes(k):
+            return k.public_bytes(
+                encoding=Encoding.DER,
+                format=PublicFormat.SubjectPublicKeyInfo
+            )
+        
+        return key_bytes(public_key_a) == key_bytes(public_key_b)
 
-    def __importar_key__(self, key_der, passphrase):
-        # Importar KEY en formato DER
-        self.key = RSA.importKey(key_der, passphrase)
-        # Crear objeto para firmar
-        self.signer = PKCS1_v1_5.new(self.key)
+    def __importar_key__(self, key_der, password):
+        if isinstance(password, str):
+            password = password.encode()
+            
+        key = load_der_private_key(
+            data=key,
+            password=password
+        )
+        
+        res = _compare_public_keys(key.public_key(), self.cer.public_key())
+        
+        if not res:
+            raise CFDIError("Private Key does not match certificate")
 
-    def firmar_sha1(self, texto):
-        # Generar SHA1
-        sha1 = SHA.new(texto)
-        # Firmar
-        firma = self.signer.sign(sha1)
-        # Pasar a base64
-        b64_firma = base64.b64encode(firma)
-        return b64_firma
+    def firmar_sha1(self, data):
+        signature = self.key.sign(
+            data = data,
+            padding = padding.PKCS1v15(),
+            algorithm = hashes.SHA1()
+        )
 
+        return base64.b64encode(
+            signature
+        ).decode()
+
+    def _certificate_bytes(self, encoding: Encoding = Encoding.DER) -> bytes:
+        return self.cer.to_cryptography().public_bytes(
+            encoding=encoding
+        )
+        
     def cer_to_base64(self):
-        # Extraer DER de certificado
-        cer = crypto.dump_certificate(crypto.FILETYPE_ASN1, self.cer)
-        # Pasar a b64
-        return base64.b64encode(cer)
+        cert = self.certificate_bytes()
+        
+        return base64.b64encode(cert).decode()
 
     def cer_issuer(self):
         # Extraer issuer
         d = self.cer.get_issuer().get_components()
         # Generar cadena issuer
-        return u','.join(['{key}={value}'.format(key=key.decode(), value=value.decode()) for key, value in d])
+        return ','.join(f'{k.decode()}={v.decode()}' for k, v in reversed(d))
 
     def cer_serial_number(self):
         # Obtener numero de serie del certificado
