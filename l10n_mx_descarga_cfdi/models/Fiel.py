@@ -35,7 +35,7 @@ class Fiel():
             password = password.encode()
             
         key = load_der_private_key(
-            data=key,
+            data=key_der,
             password=password
         )
         
