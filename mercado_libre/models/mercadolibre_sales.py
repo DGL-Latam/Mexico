@@ -202,9 +202,13 @@ class MercadoLibreSales(models.Model):
         if 'error' in order_details:
             return 
 
-        if order_details['pack_id'] and self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id.id)]):
-            self.unlink()
-            return
+        try:
+            if order_details['pack_id'] and self.env['mercadolibre.sales'].sudo().with_user(1).search([('ml_pack_id','=',order_details['pack_id']),('company_id','=', self.company_id.id)]):
+                self.unlink()
+                return
+        except KeyError as e:
+            _logger.critical("No se pudo procesar los datos de envio \nError {}".format(str(e)))
+            _logger.critical("ml_order_id {}".format(self.ml_order_id))
 
         self._writeDataOrderDetail(order_details)
         
