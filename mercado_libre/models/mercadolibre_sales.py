@@ -235,7 +235,7 @@ class MercadoLibreSales(models.Model):
         #2022-08-03T22:51:33.675-04:00
         last_shipping = max(shipping_details['substatus_history'], key = lambda substatus :  datetime.datetime.strptime(substatus['date'], "%Y-%m-%dT%H:%M:%S.%f%z") )
         
-        if last_shipping['substatus'] in ['ready_to_print','regenerating']:
+        if last_shipping['substatus'] in ['ready_to_print','regenerating','buffered']:
             if not self.sale_order_id:
                 so = self.create_so()
                 if not so.id:
