@@ -381,7 +381,7 @@ class MercadoLibreSales(models.Model):
         self.sale_order_id.sudo().with_user(1).message_post(body = message)
         self.env['sale.order.line'].sudo().with_user(1).create(so_lines_values)
         
-        if not error:
+        if not error  and len(self.sale_order_id.picking_ids[0]) > 0:
             self.sale_order_id.sudo().with_user(1).action_confirm()
             self.sale_order_id.picking_ids[0].sudo().with_user(1).message_post(body = message)
         
