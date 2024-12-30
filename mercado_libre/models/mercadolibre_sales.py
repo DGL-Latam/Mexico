@@ -50,7 +50,7 @@ class MercadoLibreSales(models.Model):
     
     order_line = fields.One2many('mercadolibre.sale.line', 'ml_order_id', string='Order Lines', auto_join=True)
     productsQuantity = fields.Float(string="Cantidad de productos", compute="_ComputeQtyProducts")
-    total = fields.Float(string="Total", compute="_ComputeTotalOrder")
+    total = fields.Float(string="Total", compute="_ComputeTotalOrder") 
 
     
     status = fields.Selection([
@@ -63,8 +63,14 @@ class MercadoLibreSales(models.Model):
         ('fraud' , 'Cancelado por riesgo de Fraude'),
         ('pending', 'Pendiente'),
         ('handling', 'Pago del envio recibido'),
-        ('to_be_agreed', 'A acordar con el comprador')
+        ('to_be_agreed', 'A acordar con el comprador'),
+        ('buffered', 'Buffered')
     ], default="to_create")
+    
+    buffering_date = fields.Date(
+        string = "Fecha programada",
+        help = "Fecha correspondiente que se tiene que despachar el paquete y ese mismo día estara disponible la etiqueta para la impresión.",
+    )
     
     
     _sql_constraints = [
@@ -219,6 +225,12 @@ class MercadoLibreSales(models.Model):
             self.cancel_order()
             return 
 
+        if shipping_details['substatus'] in ['buffered'] and shipping_details['status'] in ['pending']:
+            self.status = 'buffered'
+            lead_time = shipping_details['lead_time']
+            self.buffering_date = datetime.datetime.strptime(lead_time['buffering'], "%Y-%m-%dT%H:%M:%S.%f%z")
+            return
+
         if not 'substatus_history' in shipping_details:
             _logger.critical(order_details)
             return 
@@ -230,12 +242,22 @@ class MercadoLibreSales(models.Model):
         if self.ml_is_order_full:
             return
         
-
+        today = date.today()
+        if self.status == 'buffered' and today == self.buffering_date:
+            if not self.sale_order_id:
+                so = self.create_so()
+                if not so.id:
+                    return
+                self.create_so_lines()
+                self.write({'status' : 'ready_to_ship'})
+            
+            return
+        
         #si en subestados existe ready to print entonces obtener la guia y generar el pedido :3
         #2022-08-03T22:51:33.675-04:00
         last_shipping = max(shipping_details['substatus_history'], key = lambda substatus :  datetime.datetime.strptime(substatus['date'], "%Y-%m-%dT%H:%M:%S.%f%z") )
         
-        if last_shipping['substatus'] in ['ready_to_print','regenerating','buffered']:
+        if last_shipping['substatus'] in ['ready_to_print','regenerating']:
             if not self.sale_order_id:
                 so = self.create_so()
                 if not so.id:

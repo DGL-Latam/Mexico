@@ -37,6 +37,7 @@
                         <field name="sale_order_id" readonly="1"/>
                         <field name="ml_is_order_full" string="Es un pedido de Full" readonly="1"/>
                         <field name="status" readonly="1"/>
+                        <field name="buffering_date" attrs="{'invisible' : [('buffering_date', '!=', False)]}"/>
                     </group>
                     <field name="order_line">
                         <tree>
