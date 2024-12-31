@@ -227,8 +227,9 @@ class MercadoLibreSales(models.Model):
 
         if shipping_details['substatus'] in ['buffered'] and shipping_details['status'] in ['pending']:
             self.status = 'buffered'
-            lead_time = shipping_details['lead_time']
-            self.buffering_date = datetime.datetime.strptime(lead_time['buffering'], "%Y-%m-%dT%H:%M:%S.%f%z")
+            shipping_option = shipping_details['shipping_option']
+            buffering = lead_time['buffering']
+            self.buffering_date = datetime.datetime.strptime(buffering['date'], "%Y-%m-%dT%H:%M:%S.%f%z")
             return
 
         if not 'substatus_history' in shipping_details:
@@ -240,17 +241,6 @@ class MercadoLibreSales(models.Model):
    
         self._ProcessOrderLines()
         if self.ml_is_order_full:
-            return
-        
-        today = date.today()
-        if self.status == 'buffered' and today == self.buffering_date:
-            if not self.sale_order_id:
-                so = self.create_so()
-                if not so.id:
-                    return
-                self.create_so_lines()
-                self.write({'status' : 'ready_to_ship'})
-            
             return
         
         #si en subestados existe ready to print entonces obtener la guia y generar el pedido :3
