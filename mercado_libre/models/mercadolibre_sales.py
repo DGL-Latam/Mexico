@@ -228,7 +228,7 @@ class MercadoLibreSales(models.Model):
         if shipping_details['substatus'] in ['buffered'] and shipping_details['status'] in ['pending']:
             self.status = 'buffered'
             shipping_option = shipping_details['shipping_option']
-            buffering = lead_time['buffering']
+            buffering = shipping_option['buffering']
             self.buffering_date = datetime.datetime.strptime(buffering['date'], "%Y-%m-%dT%H:%M:%S.%f%z")
             return
 
