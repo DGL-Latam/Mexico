@@ -63,8 +63,7 @@ class MercadoLibreSales(models.Model):
         ('fraud' , 'Cancelado por riesgo de Fraude'),
         ('pending', 'Pendiente'),
         ('handling', 'Pago del envio recibido'),
-        ('to_be_agreed', 'A acordar con el comprador'),
-        ('buffered', 'Buffered')
+        ('to_be_agreed', 'A acordar con el comprador')
     ], default="to_create")
     
     buffering_date = fields.Date(
@@ -226,10 +225,10 @@ class MercadoLibreSales(models.Model):
             return 
 
         if shipping_details['substatus'] in ['buffered'] and shipping_details['status'] in ['pending']:
-            self.status = 'buffered'
             shipping_option = shipping_details['shipping_option']
             buffering = shipping_option['buffering']
             self.buffering_date = datetime.datetime.strptime(buffering['date'], "%Y-%m-%dT%H:%M:%S.%f%z")
+            
             return
 
         if not 'substatus_history' in shipping_details:
