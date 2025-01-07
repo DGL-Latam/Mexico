@@ -33,30 +33,34 @@ class MercadoLibre(Controller):
     
     @route('/ML/so', type='json', auth='public', methods=['POST'], csrf=False)
     def handleOrdersNotif(self):
-        
-        data = request.jsonrequest
-        if(data['topic'] != 'orders_v2'):
-            return {
+        return {
                     'success': True,
                     'status': 'No order to be modified/created',
                     'code': 200
                 }
+        # data = request.jsonrequest
+        # if(data['topic'] != 'orders_v2'):
+        #     return {
+        #             'success': True,
+        #             'status': 'No order to be modified/created',
+        #             'code': 200
+        #         }
 
-        ml_order_id = data['resource'].split('/')[2]
-        company_id = self.get_company_to_use(data['user_id'])
-        mls = self.check_ml_table(ml_order_id,company_id.id)
-        if mls.id:
-            return {
-                'success': True,
-                'status': 'Registro creada',
-                'code': 200
-            }
-        else:
-            return {
-                'success': True,
-                'status': 'Registro creada',
-                'code': 500
-            }
+        # ml_order_id = data['resource'].split('/')[2]
+        # company_id = self.get_company_to_use(data['user_id'])
+        # mls = self.check_ml_table(ml_order_id,company_id.id)
+        # if mls.id:
+        #     return {
+        #         'success': True,
+        #         'status': 'Registro creada',
+        #         'code': 200
+        #     }
+        # else:
+        #     return {
+        #         'success': True,
+        #         'status': 'Registro creada',
+        #         'code': 500
+        #     }
         #could delete from here onwards
         
     #check wheter a record has been created for this order (tracking purposes) if not create it
